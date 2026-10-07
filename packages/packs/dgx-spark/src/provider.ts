@@ -13,7 +13,12 @@ import {
 } from '@craftabot/pack-ollama';
 import { SPARK_PROVIDER_ID } from './catalogue.js';
 import { sparkBaseUrls } from './endpoints.js';
-import { SparkUnavailable, createSparkTransport, type SparkTransport } from './transport.js';
+import {
+	SparkUnavailable,
+	createSparkTransport,
+	unitKeyOf,
+	type SparkTransport
+} from './transport.js';
 
 /**
  * **The DGX Spark brain** (`99-DGX-SPARK.md` §5). The LLM brick's provider
@@ -119,7 +124,8 @@ export function createSparkProvider(options: SparkProviderOptions = {}): LLMProv
 		async chat(request, opts): Promise<ChatResponse> {
 			let response: Response;
 			try {
-				({ response } = await transport.post(
+				let route: { baseUrl: string };
+				({ response, route } = await transport.post(
 					request.model,
 					'/chat/completions',
 					(model) => ({
@@ -129,6 +135,8 @@ export function createSparkProvider(options: SparkProviderOptions = {}): LLMProv
 					}),
 					opts.signal
 				));
+				// A recording says which unit answered (WP189); both units serve the model, and nothing else records it.
+				opts.onServed?.(unitKeyOf(route.baseUrl));
 			} catch (cause) {
 				if (cause instanceof SparkUnavailable)
 					fail({ kind: 'provider-down', message: cause.message });

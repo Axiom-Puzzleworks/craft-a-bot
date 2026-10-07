@@ -9,6 +9,7 @@
  *
  * For each design, in order:
  *   1. `craftabot spark verify --for` — the Sparks serve the design's cartridge, or stop with the pattern to stand up;
+ *   (The live run's own store — every prompt, event and outcome — is kept under `recordings/<id>/trial-0/`, gitignored; WP189.)
  *   2. `craftabot record --experiment … --provider dgx-spark --concurrency auto` — the live calls, recorded (slim) to
  *      `docs/evidence/live/<id>/<id>.provider-cassette.json`;
  *   3. `craftabot experiment run … --egress none` — the design replayed from the cassette alone, with no network: the
@@ -39,6 +40,8 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SPARK_CONFIG = 'packages/packs/dgx-spark/craftabot.config.mjs';
 const OUT = join(ROOT, 'docs', 'evidence', 'live');
 const WORK = join(ROOT, '.live-work');
+/** The live runs' own stores (113-… D1): gitignored, kept, never deleted by this script. */
+const RECORDINGS = join(ROOT, 'recordings');
 
 function run(args, { quiet = false } = {}) {
 	return new Promise((resolve) => {
@@ -157,6 +160,11 @@ async function one(id, { replayOnly = false } = {}) {
 			console.error(verified.stdout);
 			throw new Error(`the Sparks do not serve ${id}'s cartridge; stand a pattern up first`);
 		}
+		const liveStore = join(RECORDINGS, id, 'trial-0');
+		if (existsSync(liveStore))
+			throw new Error(
+				`${liveStore} already holds a live run; move or delete it first — this script never overwrites the record of a live run`
+			);
 		const started = Date.now();
 		const recorded = await run([
 			'record',
@@ -169,7 +177,7 @@ async function one(id, { replayOnly = false } = {}) {
 			'--concurrency',
 			'auto',
 			'--out',
-			join(work, 'record')
+			liveStore
 		]);
 		wall = Math.round((Date.now() - started) / 1000);
 		if (recorded.code !== 0) throw new Error(`recording ${id} failed (exit ${recorded.code})`);

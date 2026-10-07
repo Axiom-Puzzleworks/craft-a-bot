@@ -684,6 +684,19 @@ export {
 } from './schemas/reader.js';
 /** Provider cassettes (WP114, `103-FALLIBLE-ACTORS.md` §3). */
 export {
+	RECORDING_FORMAT_VERSION,
+	cellKeyOf,
+	parseAnyProviderCassette,
+	parseProviderRecording,
+	providerRecordingFileSchema,
+	recordedCallSchema,
+	recordedCellSchema,
+	recordingManifestSchema,
+	type AnyProviderCassette,
+	type ProviderRecordingFile,
+	type RecordedCall,
+	type RecordedCell,
+	type RecordingManifest,
 	parseProviderCassette,
 	promptDigest,
 	providerCassetteEntrySchema,
@@ -698,6 +711,10 @@ export {
 	mergeProviderEntries,
 	recordingProvider,
 	timedProvider,
+	describeError,
+	RecordingTape,
+	type CellTape,
+	type TappedCall,
 	type ProviderRecording
 } from './provider-cassette.js';
 export {

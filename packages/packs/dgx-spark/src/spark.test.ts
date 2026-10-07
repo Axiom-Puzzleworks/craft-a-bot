@@ -142,6 +142,31 @@ describe('the provider', () => {
 		expect(provider.keyRequirement).toBe('none');
 	});
 
+	it('tells a recording which unit answered, and says nothing to a caller that did not ask', async () => {
+		const { fetch } = fakeSparks({ [UNIT1]: 'down', [UNIT2]: [GIANT] }, () =>
+			sse(
+				{ choices: [{ delta: { content: 'ok' }, finish_reason: 'stop' }] },
+				{ choices: [], usage: { prompt_tokens: 1, completion_tokens: 1 } }
+			)
+		);
+		const provider = createSparkProvider({ fetch });
+		const request = {
+			model: SPARK_MODELS.giant,
+			messages: [{ role: 'user' as const, content: 'hi' }],
+			temperature: 0,
+			maxTokens: 8
+		};
+		const served: string[] = [];
+		await provider.chat(request, {
+			signal: new AbortController().signal,
+			onServed: (unit) => served.push(unit)
+		});
+		expect(served).toEqual(['spark-ef08']);
+		await expect(
+			provider.chat(request, { signal: new AbortController().signal })
+		).resolves.toBeDefined();
+	});
+
 	it('names the units and the switch command when nothing serves the cartridge', async () => {
 		const { fetch } = fakeSparks({ [UNIT1]: [QUICK], [UNIT2]: 'down' }, () => new Response());
 		const provider = createSparkProvider({ fetch });

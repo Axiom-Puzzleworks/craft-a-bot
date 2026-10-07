@@ -1125,10 +1125,10 @@ export async function main(argv: readonly string[], io: CliIo): Promise<number> 
 					io.stdout(
 						[
 							`recorded ${recorded.experimentId} — ${recorded.campaigns} campaign(s), ${recorded.cells} cells`,
-							...recorded.cassettes.map(
-								(cassette) =>
-									`  cassette   ${cassette.path}  ${cassette.entries} entries${cassette.conflicts > 0 ? ` (${cassette.conflicts} later answers differed; the first kept)` : ''}`
-							),
+							...recorded.cassettes.flatMap((cassette) => [
+								`  cassette   ${cassette.path}  ${cassette.entries} entries${cassette.conflicts > 0 ? ` (${cassette.conflicts} later answers differed; the first kept)` : ''}`,
+								`  recording  ${cassette.recording}  ${cassette.calls} calls${cassette.failedCalls > 0 ? `, ${cassette.failedCalls} failed` : ''}`
+							]),
 							''
 						].join('\n')
 					);

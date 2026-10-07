@@ -28,7 +28,12 @@ export interface LLMProvider {
 	validateKey(key: string): Promise<KeyCheck>;
 	chat(
 		req: ChatRequest,
-		opts: { signal: AbortSignal; onToken?: (t: string) => void }
+		opts: {
+			signal: AbortSignal;
+			onToken?: (t: string) => void;
+			/** Told which serving unit answered, by a provider that routes between several (WP189). Ignored by every other. */
+			onServed?: (unit: string) => void;
+		}
 	): Promise<ChatResponse>;
 }
 

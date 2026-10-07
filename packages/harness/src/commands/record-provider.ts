@@ -1,9 +1,14 @@
 import {
 	CASSETTE_FORMAT_VERSION,
+	RECORDING_FORMAT_VERSION,
+	RecordingTape,
 	containsSecret,
 	mergeProviderEntries,
 	parseProviderCassette,
+	parseProviderRecording,
 	redactSecrets,
+	sha256Hex,
+	type ProviderRecordingFile,
 	type EgressDeclaration,
 	type EgressMode,
 	type ProviderCassetteEntry,
@@ -12,7 +17,7 @@ import {
 import { expandExperiment, parseExperiment } from '@craftabot/evals';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
-import { createRegistry, type HarnessConfig } from '../config.js';
+import { createRegistry, packVersions, type HarnessConfig } from '../config.js';
 import type { CredentialSource } from '../credentials.js';
 import { runCampaignFile } from './campaign.js';
 import { withPopulationSize } from './experiment.js';
@@ -53,7 +58,15 @@ export interface RecordExperimentReport {
 	experimentId: string;
 	campaigns: number;
 	cells: number;
-	cassettes: Array<{ path: string; entries: number; conflicts: number }>;
+	cassettes: Array<{
+		path: string;
+		entries: number;
+		conflicts: number;
+		/** The cell-scoped recording written beside it (WP189): every call, per cell, failures included. */
+		recording: string;
+		calls: number;
+		failedCalls: number;
+	}>;
 }
 
 export async function recordExperiment(
@@ -87,11 +100,20 @@ export async function recordExperiment(
 	}
 
 	const recordings = new Map<string, ProviderCassetteEntry[][]>();
+	const tapes = new Map<string, RecordingTape>();
+	const seen = {
+		units: new Set<string>(),
+		sampling: new Map<string, { temperature?: number; maxTokens?: number }>(),
+		interventions: new Set<string>()
+	};
+	const campaignDigests: Record<string, string> = {};
 	await mkdir(options.out, { recursive: true });
 	let cells = 0;
 	for (const campaign of campaigns) {
 		const campaignFile = join(options.out, `${campaign.id}.campaign.json`);
-		await writeFile(campaignFile, `${JSON.stringify(campaign, null, '\t')}\n`, 'utf8');
+		const campaignText = `${JSON.stringify(campaign, null, '\t')}\n`;
+		await writeFile(campaignFile, campaignText, 'utf8');
+		campaignDigests[campaign.id] = sha256Hex(campaignText);
 		const ran = await runCampaignFile({
 			file: campaignFile,
 			out: join(options.out, campaign.id),
@@ -101,6 +123,8 @@ export async function recordExperiment(
 			record: {
 				provider: mode,
 				recordings,
+				tapes,
+				seen,
 				clock: options.clock ?? (() => Date.now())
 			},
 			...(options.egress !== undefined ? { egress: options.egress } : {}),
@@ -140,7 +164,66 @@ export async function recordExperiment(
 		const absolute = resolve(path);
 		await mkdir(dirname(absolute), { recursive: true });
 		await writeFile(absolute, `${JSON.stringify(cassette, null, '\t')}\n`, 'utf8');
-		written.push({ path, entries: merged.entries.length, conflicts: merged.conflicts });
+
+		// The cell-scoped recording beside it (WP189): what each cell made of the calls, in order, nothing merged or dropped.
+		const tape = tapes.get(path);
+		const recordedCells = [...(tape?.cells.values() ?? [])].map((cell) => ({
+			cellKey: cell.cellKey,
+			trial: cell.trial,
+			...(cell.meta.runId !== undefined ? { runId: cell.meta.runId } : {}),
+			...(cell.meta.outcome !== undefined ? { outcome: cell.meta.outcome } : {}),
+			...(cell.meta.pathDigest !== undefined ? { pathDigest: cell.meta.pathDigest } : {}),
+			calls: cell.calls
+		}));
+		const calls = recordedCells.flatMap((cell) => cell.calls);
+		const recording: ProviderRecordingFile = redactSecrets(
+			{
+				format: 'craftabot-cassette',
+				formatVersion: RECORDING_FORMAT_VERSION,
+				kind: 'provider-recording',
+				providerId: cassette.providerId,
+				recordedAt,
+				recordedBy: cassette.recordedBy,
+				...(cassette.note !== undefined ? { note: cassette.note } : {}),
+				egress: cassette.egress,
+				manifest: {
+					experimentId: experiment.id,
+					campaignDigests,
+					packVersions: packVersions(options.config),
+					sampling: [...seen.sampling.values()],
+					models: [...new Set(calls.map((call) => call.model))],
+					units: [...seen.units].sort(),
+					trials: 1,
+					interventions: [...seen.interventions]
+				},
+				cells: recordedCells
+			},
+			options.credentials.secrets()
+		);
+		if (containsSecret(recording, options.credentials.secrets())) {
+			throw new Error(
+				`a recorded call carries a credential — nothing was written for ${path}; a provider must never echo its key`
+			);
+		}
+		parseProviderRecording(recording);
+		const recordingPath = recordingPathOf(path);
+		const recordingAbsolute = resolve(recordingPath);
+		await writeFile(recordingAbsolute, `${JSON.stringify(recording, null, '\t')}\n`, 'utf8');
+		written.push({
+			path,
+			entries: merged.entries.length,
+			conflicts: merged.conflicts,
+			recording: recordingPath,
+			calls: calls.length,
+			failedCalls: calls.filter((call) => call.error !== undefined).length
+		});
 	}
 	return { experimentId: experiment.id, campaigns: campaigns.length, cells, cassettes: written };
+}
+
+/** Where a cassette's cell-scoped recording sits: beside it, `<id>.recording.json` for `<id>.provider-cassette.json`. */
+export function recordingPathOf(cassettePath: string): string {
+	return cassettePath.endsWith('.provider-cassette.json')
+		? `${cassettePath.slice(0, -'.provider-cassette.json'.length)}.recording.json`
+		: `${cassettePath}.recording.json`;
 }

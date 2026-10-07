@@ -18,6 +18,7 @@ import {
 	bookSchema,
 	calibrationRow,
 	contextSpecSchema,
+	cellKeyOf,
 	createCassetteProvider,
 	heldOutRefusal,
 	sha256Hex,
@@ -893,6 +894,8 @@ export interface CampaignCellSpec {
 	item?: WorkItem;
 	/** The rung of the context ladder (WP81); absent when the campaign named none. */
 	context?: ContextSpec;
+	/** Which performance of these inputs this is, from 0 (WP189); absent is the first. */
+	trial?: number;
 }
 
 /** The synthetic scenario a book campaign's cells sit in: the workflow's id, its obligations as the tags, no card of its own. */
@@ -979,10 +982,38 @@ export function campaignCells(
 	return cells;
 }
 
+/**
+ * **What a live brain's provider is asked for** (WP114, widened by WP189): the
+ * card the session plays and — so a recorder can tell one cell's calls from
+ * another's (`113-RECORDING-AND-RELIABILITY.md` §4.2) — the cell's key and
+ * trial and which seat the provider serves, the agent or the seated visitor.
+ */
+export interface ProviderContext {
+	goalCardId?: string;
+	cellKey?: string;
+	trial?: number;
+	role?: 'agent' | 'seat';
+}
+
+/** The key of a cell's inputs (`113-…` §4.3), from the spec the runner holds. */
+export function cellKeyOfSpec(campaign: Campaign, cell: CampaignCellSpec): string {
+	return cellKeyOf({
+		campaignId: campaign.id,
+		scenario: cell.scenario.id,
+		build: cell.build.id,
+		guard: cell.guard.id,
+		brain: cell.brain.id,
+		context: cell.context?.id,
+		item: cell.item?.id,
+		seed: cell.seed,
+		trial: cell.trial
+	});
+}
+
 export interface RunCampaignOptions {
 	/** Where a `live` cell's provider comes from; a live cell with none is recorded as an error, never faked. */
 	/** A live brain's provider — asked per cell, and per agent stage in a book cell, with the card it plays when there is one (WP114: a recorder needs it). */
-	providerFor?: (brain: CampaignBrain, context?: { goalCardId?: string }) => LLMProvider;
+	providerFor?: (brain: CampaignBrain, context?: ProviderContext) => LLMProvider;
 	/** A brain's provider cassette by the path it names (WP114): the host reads the file; `evals` never touches a disk. */
 	cassetteFor?: (path: string) => ProviderCassetteFile;
 	/** The previous report, for `no-regression` gates; without one they are inconclusive. */
@@ -1537,7 +1568,15 @@ async function runCell(
 			idOffset: cell.ordinal * ID_STRIDE,
 			seed,
 			...(maxTicks !== undefined ? { maxTicks } : {}),
-			...(brain.tier === 'live' ? { provider: providerForLive(brain, options, goalCardId) } : {}),
+			...(brain.tier === 'live'
+				? {
+						provider: providerForLive(brain, options, goalCardId, {
+							cellKey: cellKeyOfSpec(campaign, cell),
+							trial: cell.trial ?? 0,
+							role: 'agent'
+						})
+					}
+				: {}),
 			...(chain.length > 0 ? { guardrails: chain } : {}),
 			...(egress !== undefined ? { egress } : {}),
 			...(options.principal !== undefined ? { principal: options.principal } : {}),
@@ -1692,7 +1731,9 @@ async function runBookCell(
 									cartridgeId,
 									...(brain.cassette !== undefined ? { cassette: brain.cassette } : {})
 								},
-								options
+								options,
+								goalCardId,
+								{ cellKey: cellKeyOfSpec(campaign, cell), trial: cell.trial ?? 0, role: 'seat' }
 							),
 							name: script.name,
 							...(partner.maxRounds !== undefined ? { maxRounds: partner.maxRounds } : {})
@@ -1702,7 +1743,11 @@ async function runBookCell(
 			: {}),
 		providerFor: (_stage, goalCardId) =>
 			brain.tier === 'live'
-				? providerForLive(brain, options, goalCardId)
+				? providerForLive(brain, options, goalCardId, {
+						cellKey: cellKeyOfSpec(campaign, cell),
+						trial: cell.trial ?? 0,
+						role: 'agent'
+					})
 				: createMockProvider({
 						script: scriptFor(
 							brain.tier,
@@ -1906,9 +1951,18 @@ async function runDuoCell(
 	);
 	const agentProvider =
 		brain.tier === 'live'
-			? providerForLive(brain, options, goalCardId)
+			? providerForLive(brain, options, goalCardId, {
+					cellKey: cellKeyOfSpec(campaign, cell),
+					trial: cell.trial ?? 0,
+					role: 'agent'
+				})
 			: createMockProvider({ script });
-	const seatProvider = providerForLive({ id: 'counterpart', tier: 'live', cartridgeId }, options);
+	const seatProvider = providerForLive(
+		{ id: 'counterpart', tier: 'live', cartridgeId },
+		options,
+		goalCardId,
+		{ cellKey: cellKeyOfSpec(campaign, cell), trial: cell.trial ?? 0, role: 'seat' }
+	);
 	const stack = groupStackFor(guard, registry);
 	const chain = componentChainFor(guard, registry, options);
 	const group = createSessionGroup({
@@ -2487,7 +2541,8 @@ function fallibleFor(
 function providerForLive(
 	brain: CampaignBrain,
 	options: RunCampaignOptions,
-	goalCardId?: string
+	goalCardId?: string,
+	cell?: { cellKey: string; trial: number; role: 'agent' | 'seat' }
 ): LLMProvider {
 	// A cassette brain replays (WP114): a fresh provider per call, so each cell (each stage) counts its prompts from zero, as its recording did.
 	if (brain.cassette !== undefined) {
@@ -2498,7 +2553,10 @@ function providerForLive(
 		}
 		return createCassetteProvider(options.cassetteFor(brain.cassette));
 	}
-	const provider = options.providerFor?.(brain, goalCardId !== undefined ? { goalCardId } : {});
+	const provider = options.providerFor?.(brain, {
+		...(goalCardId !== undefined ? { goalCardId } : {}),
+		...(cell ? cell : {})
+	});
 	if (!provider) {
 		throw new Error(`the "${brain.id}" brain is live and no providerFor was supplied`);
 	}

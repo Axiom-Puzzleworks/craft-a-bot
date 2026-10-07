@@ -39,7 +39,8 @@ const inFlight = new Map<string, number>();
 /** The load now on a unit, for tests and `craftabot spark status`. */
 export const sparkLoad = (unit: string): number => inFlight.get(unit) ?? 0;
 
-const unitKeyOf = (baseUrl: string): string => {
+/** The unit a route belongs to (its id when known, else its host): what a recording says answered (WP189). */
+export const unitKeyOf = (baseUrl: string): string => {
 	try {
 		const host = new URL(baseUrl).hostname;
 		return unitOfHost(host)?.id ?? host;

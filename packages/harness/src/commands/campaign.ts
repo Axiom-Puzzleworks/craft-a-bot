@@ -2,6 +2,8 @@ import type { EgressMode, Principal } from '@craftabot/core';
 import { appendFile, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import {
+	RecordingTape,
+	cellKeyOf,
 	computeTraceDigest,
 	containsSecret,
 	engineEventSchema,
@@ -104,6 +106,14 @@ export interface CampaignFileOptions {
 	record?: {
 		provider: 'live' | 'mock';
 		recordings: Map<string, ProviderCassetteEntry[][]>;
+		/** Each cassette path's tape (WP189): every call, per cell, failures and the answering unit included. */
+		tapes: Map<string, RecordingTape>;
+		/** What the tap saw of the run as a whole: the units that answered, the samplings asked, the stops it made. */
+		seen: {
+			units: Set<string>;
+			sampling: Map<string, { temperature?: number; maxTokens?: number }>;
+			interventions: Set<string>;
+		};
 		clock?: () => number;
 	};
 }
@@ -261,9 +271,23 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
 							})
 						: providerFor(brain, registry, options);
 				// Slim: a live provider's raw stream chunks are most of an entry's bytes and nothing replays them (WP168); a mock has none.
+				const tape =
+					context?.cellKey !== undefined
+						? (record.tapes.get(path) ?? record.tapes.set(path, new RecordingTape()).get(path)!)
+								.cell(context.cellKey, context.trial ?? 0)
+								.open(context.role ?? 'agent', context.goalCardId ?? '')
+						: undefined;
 				const recording = recordingProvider(inner, {
 					...(record.clock ? { now: record.clock } : {}),
-					slim: true
+					slim: true,
+					onCall: (call) => {
+						if (call.unit !== undefined) record.seen.units.add(call.unit);
+						record.seen.sampling.set(`${call.temperature}|${call.maxTokens}`, {
+							...(call.temperature !== undefined ? { temperature: call.temperature } : {}),
+							...(call.maxTokens !== undefined ? { maxTokens: call.maxTokens } : {})
+						});
+						tape?.(call);
+					}
 				});
 				const into = record.recordings.get(path) ?? [];
 				into.push(recording.entries);
@@ -278,6 +302,8 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
 						const response = await recording.provider.chat(request, opts);
 						if (containsSecret(response, held)) {
 							leaked = LEAK_MESSAGE;
+							// The one way the recorder changes a run (113-… D7): a leaked credential ends it, and the manifest says so.
+							record.seen.interventions.add('credential-stop');
 							throw new Error(LEAK_MESSAGE);
 						}
 						return response;
@@ -309,6 +335,26 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
 			...(options.newId ? { newId: options.newId } : {}),
 			onTrace: (cell, trace) => {
 				if (cell.runId === undefined) return;
+				if (options.record) {
+					const path = cassetteOfBrain.get(cell.brain);
+					const held = path === undefined ? undefined : options.record.tapes.get(path);
+					const key = cellKeyOf({
+						campaignId: campaign.id,
+						scenario: cell.scenario,
+						build: cell.build,
+						guard: cell.guard,
+						brain: cell.brain,
+						context: cell.context,
+						item: cell.item?.id,
+						seed: cell.seed,
+						trial: 0
+					});
+					const taped = held?.cells.get(key);
+					if (taped) {
+						taped.meta.runId = cell.runId;
+						if (cell.outcome !== undefined) taped.meta.outcome = cell.outcome;
+					}
+				}
 				if (sinks.length > 0) {
 					const exported = runRecordFrom({
 						runId: cell.runId,

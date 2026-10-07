@@ -2,13 +2,17 @@ import { describe, expect, it, vi } from 'vitest';
 import { createPackRegistry } from './pack-registry.js';
 import {
 	PROVIDER_CASSETTE_MISS,
+	RecordingTape,
 	createCassetteProvider,
 	mergeProviderEntries,
-	recordingProvider
+	recordingProvider,
+	type TappedCall
 } from './provider-cassette.js';
 import type { AgentSpec } from './schemas/agent-spec.js';
 import type { EngineEvent } from './schemas/events.js';
 import {
+	cellKeyOf,
+	parseAnyProviderCassette,
 	parseProviderCassette,
 	promptDigest,
 	type ProviderCassetteFile
@@ -193,7 +197,77 @@ describe('the provider cassette (WP114)', () => {
 		expect(promptDigest({ ...request, model: 'n' })).not.toBe(digest);
 	});
 
-	it('a slim recording drops the raw wire chunks from the entry and from what the session sees, and keeps the rest', async () => {
+	it('the tap is passive: a recorded session, slim and listened to, has the trace digest of an unrecorded one', async () => {
+		const plain = await runWith(createMockProvider({ script: PLAN }));
+		const tape = new RecordingTape();
+		const recording = recordingProvider(createMockProvider({ script: PLAN }), {
+			slim: true,
+			onCall: tape.cell('c', 0).open('agent', 'tally/goal')
+		});
+		const recorded = await runWith(recording.provider);
+		expect(await computeTraceDigest(recorded)).toBe(await computeTraceDigest(plain));
+		const cell = tape.cells.get('c');
+		expect(cell?.calls.map((call) => [call.seq, call.role, call.stage, call.segment])).toEqual([
+			[0, 'agent', 'tally/goal', 0],
+			[1, 'agent', 'tally/goal', 0],
+			[2, 'agent', 'tally/goal', 0]
+		]);
+		expect(cell?.calls.every((call) => /^[0-9a-f]{64}$/.test(call.promptDigest))).toBe(true);
+	});
+
+	it('the tap keeps a failed call — its kind, message and retry hint, and the unit — and rethrows the error unchanged', async () => {
+		const failure = Object.assign(new Error('The Spark timed out.'), {
+			kind: 'timeout',
+			retryAfterMs: 1500
+		});
+		const inner: LLMProvider = {
+			...createMockProvider({ script: [turn('hello', 'ping')] }),
+			chat: (_request, opts) => {
+				opts.onServed?.('spark-ef08');
+				return Promise.reject(failure);
+			}
+		};
+		const told: TappedCall[] = [];
+		const recording = recordingProvider(inner, { onCall: (call) => told.push(call) });
+		const request = { model: 'm', messages: [], temperature: 0, maxTokens: 8 };
+		await expect(
+			recording.provider.chat(request, { signal: new AbortController().signal })
+		).rejects.toBe(failure);
+		expect(told).toHaveLength(1);
+		expect(told[0]).toMatchObject({
+			model: 'm',
+			unit: 'spark-ef08',
+			temperature: 0,
+			maxTokens: 8,
+			error: { kind: 'timeout', message: 'The Spark timed out.', retryAfterMs: 1500 }
+		});
+		expect(told[0]?.response).toBeUndefined();
+		// A failed call is no cassette entry: nothing was answered.
+		expect(recording.entries).toHaveLength(0);
+	});
+
+	it('a tape counts which time each stage’s provider was made, and numbers the calls across roles', () => {
+		const tape = new RecordingTape();
+		const cell = tape.cell('k', 1);
+		const call = {
+			promptDigest: 'a'.repeat(64),
+			model: 'm',
+			latencyMs: 1,
+			error: { kind: 'x', message: 'y' }
+		};
+		cell.open('agent', 'stage-a')(call);
+		cell.open('seat', 'stage-a')(call);
+		cell.open('agent', 'stage-a')(call);
+		expect(cell.calls.map((c) => `${c.seq}:${c.role}:${c.segment}`)).toEqual([
+			'0:agent:0',
+			'1:seat:0',
+			'2:agent:1'
+		]);
+		expect(tape.cell('k', 1)).toBe(cell);
+		expect(cell.trial).toBe(1);
+	});
+
+	it('a slim recording drops the raw wire chunks from the entry written, and leaves the session’s response whole', async () => {
 		const wire = { chunks: [{ choices: [{ delta: { content: 'hi' } }] }] };
 		const inner: LLMProvider = {
 			...createMockProvider({ script: [turn('hello', 'ping')] }),
@@ -212,7 +286,7 @@ describe('the provider cassette (WP114)', () => {
 		expect((await full.provider.chat(request, opts)).raw).toEqual(wire);
 		expect(full.entries[0]?.response.raw).toEqual(wire);
 		const seen = await slim.provider.chat(request, opts);
-		expect(seen.raw).toBeNull();
+		expect(seen.raw).toEqual(wire);
 		expect(slim.entries[0]?.response).toMatchObject({ text: 'hello', usage: { inputTokens: 3 } });
 		expect(slim.entries[0]?.response.raw).toBeNull();
 	});
@@ -238,5 +312,77 @@ describe('the provider cassette (WP114)', () => {
 		]);
 		expect(merged.entries.map((kept) => kept.response.text)).toEqual(['yes', 'again']);
 		expect(merged.conflicts).toBe(1);
+	});
+});
+
+describe('the cell-scoped recording (WP189)', () => {
+	const call = (extra: Record<string, unknown>) => ({
+		seq: 0,
+		role: 'agent' as const,
+		stage: 'tally/goal',
+		segment: 0,
+		promptDigest: 'b'.repeat(64),
+		model: 'm',
+		latencyMs: 5,
+		...extra
+	});
+	const file = (cells: unknown[]) => ({
+		format: 'craftabot-cassette',
+		formatVersion: 2,
+		kind: 'provider-recording',
+		providerId: 'mock',
+		recordedAt: '2026-10-07T09:00:00.000Z',
+		recordedBy: 'provider-cassette.test',
+		egress: [],
+		manifest: {
+			campaignDigests: {},
+			packVersions: {},
+			sampling: [],
+			models: [],
+			units: [],
+			trials: 1,
+			interventions: []
+		},
+		cells
+	});
+	const answer = {
+		text: 'hi',
+		toolCall: null,
+		usage: { inputTokens: 1, outputTokens: 1 },
+		raw: null,
+		finishReason: 'stop' as const
+	};
+
+	it('tells a version 2 recording from a version 1 cassette by its kind, and parses each as itself', () => {
+		const two = parseAnyProviderCassette(
+			file([{ cellKey: 'c', trial: 0, calls: [call({ response: answer })] }])
+		);
+		expect(two.version).toBe(2);
+		const one = parseAnyProviderCassette(cassetteOf([]));
+		expect(one.version).toBe(1);
+	});
+
+	it('holds a call to a response or an error, never both and never neither', () => {
+		const bad = (extra: Record<string, unknown>) =>
+			parseAnyProviderCassette(file([{ cellKey: 'c', trial: 0, calls: [call(extra)] }]));
+		expect(() => bad({})).toThrow();
+		expect(() => bad({ response: answer, error: { kind: 'x', message: 'y' } })).toThrow();
+		expect(() => bad({ error: { kind: 'timeout', message: 'slow' } })).not.toThrow();
+	});
+
+	it('keys a cell by its inputs, not its place: the trial and every axis move the key', () => {
+		const base = { campaignId: 'k', scenario: 's', build: 'b', guard: 'g', brain: 'live', seed: 3 };
+		const key = cellKeyOf(base);
+		expect(cellKeyOf({ ...base })).toBe(key);
+		expect(cellKeyOf({ ...base, trial: 0 })).toBe(key);
+		for (const moved of [
+			{ trial: 1 },
+			{ seed: 4 },
+			{ item: 'i' },
+			{ context: 'c' },
+			{ guard: 'none' },
+			{ brain: 'other' }
+		])
+			expect(cellKeyOf({ ...base, ...moved })).not.toBe(key);
 	});
 });

@@ -1,0 +1,411 @@
+{
+	"$id": "https://craftabot.dev/schemas/craftabot-provider-recording.schema.json",
+	"title": "Craft A Bot provider recording (craftabot-cassette v2, kind provider-recording)",
+	"description": "A cell-scoped recording of a live run (WP189, 113-RECORDING-AND-RELIABILITY.md): every cell, by the key of its inputs and its trial, with every provider call in the order it was made — the response or the error, the digest of what was asked, the latency and the serving unit — and a manifest of the design digests, pack versions, models, samplings and units. Nothing merged, nothing dropped.",
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"type": "object",
+	"properties": {
+		"format": {
+			"type": "string",
+			"const": "craftabot-cassette"
+		},
+		"formatVersion": {
+			"type": "number",
+			"const": 2
+		},
+		"kind": {
+			"type": "string",
+			"const": "provider-recording"
+		},
+		"providerId": {
+			"type": "string",
+			"minLength": 1
+		},
+		"recordedAt": {
+			"type": "string",
+			"format": "date-time",
+			"pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+		},
+		"recordedBy": {
+			"type": "string",
+			"minLength": 1
+		},
+		"note": {
+			"type": "string"
+		},
+		"egress": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"host": {
+						"type": "string",
+						"minLength": 1
+					},
+					"purpose": {
+						"type": "string",
+						"minLength": 1
+					},
+					"sends": {
+						"minItems": 1,
+						"type": "array",
+						"items": {
+							"type": "string",
+							"enum": [
+								"prompt",
+								"observation",
+								"decision",
+								"result",
+								"trace",
+								"credential-header"
+							]
+						}
+					}
+				},
+				"required": [
+					"host",
+					"purpose",
+					"sends"
+				]
+			}
+		},
+		"manifest": {
+			"type": "object",
+			"properties": {
+				"experimentId": {
+					"type": "string"
+				},
+				"campaignDigests": {
+					"type": "object",
+					"propertyNames": {
+						"type": "string"
+					},
+					"additionalProperties": {
+						"type": "string"
+					}
+				},
+				"packVersions": {
+					"type": "object",
+					"propertyNames": {
+						"type": "string"
+					},
+					"additionalProperties": {
+						"type": "string"
+					}
+				},
+				"sampling": {
+					"type": "array",
+					"items": {
+						"type": "object",
+						"properties": {
+							"temperature": {
+								"type": "number"
+							},
+							"maxTokens": {
+								"type": "number"
+							}
+						}
+					}
+				},
+				"models": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					}
+				},
+				"units": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					}
+				},
+				"trials": {
+					"type": "integer",
+					"exclusiveMinimum": 0,
+					"maximum": 9007199254740991
+				},
+				"interventions": {
+					"type": "array",
+					"items": {
+						"type": "string"
+					}
+				}
+			},
+			"required": [
+				"campaignDigests",
+				"packVersions",
+				"sampling",
+				"models",
+				"units",
+				"trials",
+				"interventions"
+			]
+		},
+		"cells": {
+			"type": "array",
+			"items": {
+				"type": "object",
+				"properties": {
+					"cellKey": {
+						"type": "string",
+						"minLength": 1
+					},
+					"trial": {
+						"type": "integer",
+						"minimum": 0,
+						"maximum": 9007199254740991
+					},
+					"runId": {
+						"type": "string"
+					},
+					"outcome": {
+						"type": "string"
+					},
+					"pathDigest": {
+						"type": "string",
+						"pattern": "^[0-9a-f]{64}$"
+					},
+					"calls": {
+						"type": "array",
+						"items": {
+							"type": "object",
+							"properties": {
+								"seq": {
+									"type": "integer",
+									"minimum": 0,
+									"maximum": 9007199254740991
+								},
+								"role": {
+									"type": "string",
+									"enum": [
+										"agent",
+										"seat"
+									]
+								},
+								"stage": {
+									"type": "string"
+								},
+								"segment": {
+									"type": "integer",
+									"minimum": 0,
+									"maximum": 9007199254740991
+								},
+								"promptDigest": {
+									"type": "string",
+									"pattern": "^[0-9a-f]{64}$"
+								},
+								"model": {
+									"type": "string",
+									"minLength": 1
+								},
+								"latencyMs": {
+									"type": "number",
+									"minimum": 0
+								},
+								"unit": {
+									"type": "string"
+								},
+								"response": {
+									"type": "object",
+									"properties": {
+										"text": {
+											"type": "string"
+										},
+										"toolCall": {
+											"anyOf": [
+												{
+													"type": "object",
+													"properties": {
+														"name": {
+															"type": "string"
+														},
+														"arguments": {}
+													},
+													"required": [
+														"name",
+														"arguments"
+													]
+												},
+												{
+													"type": "null"
+												}
+											]
+										},
+										"usage": {
+											"type": "object",
+											"properties": {
+												"inputTokens": {
+													"type": "integer",
+													"minimum": 0,
+													"maximum": 9007199254740991
+												},
+												"outputTokens": {
+													"type": "integer",
+													"minimum": 0,
+													"maximum": 9007199254740991
+												}
+											},
+											"required": [
+												"inputTokens",
+												"outputTokens"
+											]
+										},
+										"raw": {},
+										"finishReason": {
+											"type": "string",
+											"enum": [
+												"stop",
+												"tool_call",
+												"length",
+												"filtered",
+												"other"
+											]
+										},
+										"latencyMs": {
+											"type": "number",
+											"minimum": 0
+										},
+										"logprobs": {
+											"type": "array",
+											"items": {
+												"type": "object",
+												"properties": {
+													"token": {
+														"type": "string"
+													},
+													"logprob": {
+														"type": "number"
+													}
+												},
+												"required": [
+													"token",
+													"logprob"
+												]
+											}
+										},
+										"servedBy": {
+											"type": "object",
+											"properties": {
+												"providerId": {
+													"type": "string"
+												},
+												"failedOver": {
+													"type": "array",
+													"items": {
+														"type": "object",
+														"properties": {
+															"providerId": {
+																"type": "string"
+															},
+															"kind": {
+																"type": "string"
+															}
+														},
+														"required": [
+															"providerId",
+															"kind"
+														]
+													}
+												}
+											},
+											"required": [
+												"providerId",
+												"failedOver"
+											]
+										},
+										"fault": {
+											"type": "object",
+											"properties": {
+												"field": {
+													"type": "string"
+												},
+												"chose": {},
+												"shouldHave": {},
+												"errorModel": {
+													"type": "string"
+												},
+												"draw": {
+													"type": "object",
+													"properties": {
+														"rate": {
+															"type": "number"
+														},
+														"roll": {
+															"type": "number"
+														},
+														"shaped": {
+															"type": "string"
+														}
+													},
+													"required": [
+														"rate",
+														"roll"
+													]
+												}
+											},
+											"required": [
+												"field",
+												"chose",
+												"shouldHave"
+											]
+										}
+									},
+									"required": [
+										"text",
+										"usage",
+										"raw",
+										"finishReason"
+									]
+								},
+								"error": {
+									"type": "object",
+									"properties": {
+										"kind": {
+											"type": "string"
+										},
+										"message": {
+											"type": "string"
+										},
+										"retryAfterMs": {
+											"type": "number",
+											"minimum": 0
+										}
+									},
+									"required": [
+										"kind",
+										"message"
+									]
+								}
+							},
+							"required": [
+								"seq",
+								"role",
+								"stage",
+								"segment",
+								"promptDigest",
+								"model",
+								"latencyMs"
+							]
+						}
+					}
+				},
+				"required": [
+					"cellKey",
+					"trial",
+					"calls"
+				]
+			}
+		}
+	},
+	"required": [
+		"format",
+		"formatVersion",
+		"kind",
+		"providerId",
+		"recordedAt",
+		"recordedBy",
+		"egress",
+		"manifest",
+		"cells"
+	]
+}

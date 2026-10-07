@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { parseProviderCassette, type ProviderCassetteFile } from '@craftabot/core';
+import { parseAnyProviderCassette, type ProviderCassetteFile } from '@craftabot/core';
 
 /**
  * **A brain's provider cassette, from disk** (WP114, `103-FALLIBLE-ACTORS.md`
@@ -19,7 +19,12 @@ export function cassetteLoader(
 		if (cached) return cached;
 		let parsed: ProviderCassetteFile;
 		try {
-			parsed = parseProviderCassette(JSON.parse(readFileSync(absolute, 'utf8')));
+			const loaded = parseAnyProviderCassette(JSON.parse(readFileSync(absolute, 'utf8')));
+			if (loaded.version === 2)
+				throw new Error(
+					'a cell-scoped recording (format version 2) is not replayable yet — WP190 reads it'
+				);
+			parsed = loaded.file;
 		} catch (error) {
 			throw new Error(
 				`${path} is not a provider cassette: ${error instanceof Error ? error.message.split('\n')[0] : String(error)}`,

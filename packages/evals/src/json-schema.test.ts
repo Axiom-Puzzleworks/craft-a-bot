@@ -38,7 +38,7 @@ describe('docs/schemas', () => {
 		}
 	});
 
-	it('names twenty-two artefacts (the review since WP129), each with an $id, a title and a draft-2020-12 marker', () => {
+	it('names twenty-three artefacts (the review since WP129), each with an $id, a title and a draft-2020-12 marker', () => {
 		expect(Object.keys(schemas).sort()).toEqual([
 			'bank-run',
 			'benchmark-report',
@@ -50,6 +50,7 @@ describe('docs/schemas', () => {
 			'craftabot-bundle',
 			'craftabot-cassette',
 			'craftabot-provider-cassette',
+		'craftabot-provider-recording',
 			'craftabot-scenarios',
 			'craftabot-trace',
 			'domain',

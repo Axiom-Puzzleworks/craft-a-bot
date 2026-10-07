@@ -1,12 +1,12 @@
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { parseProviderCassette } from '@craftabot/core';
+import { parseProviderCassette, parseProviderRecording } from '@craftabot/core';
 import { afterAll, describe, expect, it } from 'vitest';
 import { defaultConfig } from '../config.js';
 import { credentialsFromEnv } from '../credentials.js';
 import { experimentRun } from './experiment.js';
-import { recordExperiment } from './record-provider.js';
+import { recordExperiment, recordingPathOf } from './record-provider.js';
 
 /**
  * **`craftabot record --experiment`** (WP114, `103-FALLIBLE-ACTORS.md` §4):
@@ -70,6 +70,33 @@ describe('record --experiment (WP114)', { timeout: 600_000 }, () => {
 		expect(cassette.providerId).toBe('mock');
 		expect(cassette.note).toContain('a stand-in, not a live model');
 		expect(cassette.entries.every((entry) => entry.model.length > 0)).toBe(true);
+
+		// The cell-scoped recording beside it (WP189): every call per cell in order, each cell tied to the live run's own stored run.
+		expect(recorded.cassettes[0]?.recording).toBe(recordingPathOf(cassettePath));
+		const recording = parseProviderRecording(
+			JSON.parse(await readFile(recordingPathOf(cassettePath), 'utf8'))
+		);
+		expect(recording.manifest.experimentId).toBe('lending-stack');
+		expect(Object.keys(recording.manifest.campaignDigests).length).toBeGreaterThan(0);
+		expect(recording.manifest.interventions).toEqual([]);
+		expect(recording.cells.length).toBeGreaterThan(0);
+		expect(recording.cells.length).toBeLessThanOrEqual(recorded.cells);
+		expect(new Set(recording.cells.map((cell) => cell.cellKey)).size).toBe(recording.cells.length);
+		const callTotal = recording.cells.reduce((sum, cell) => sum + cell.calls.length, 0);
+		expect(callTotal).toBe(recorded.cassettes[0]?.calls);
+		for (const cell of recording.cells) {
+			expect(cell.runId).toBeDefined();
+			expect(cell.outcome).toBeDefined();
+			expect(cell.calls.map((call) => call.seq)).toEqual(cell.calls.map((_, index) => index));
+			expect(cell.calls.every((call) => call.response !== undefined)).toBe(true);
+		}
+		// The live run's own store is kept where `--out` said, so the transcript of each recorded cell is on disk.
+		const kept = new Set(
+			(await readdir(join(root, 'recording'), { recursive: true }))
+				.filter((name) => name.endsWith('events.jsonl'))
+				.map((name) => name.split(/[\\/]/).at(-2))
+		);
+		expect(recording.cells.every((cell) => kept.has(cell.runId))).toBe(true);
 
 		const replay = async (out: string) =>
 			experimentRun({
