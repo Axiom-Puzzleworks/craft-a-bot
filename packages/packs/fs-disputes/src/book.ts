@@ -7,7 +7,7 @@ import {
 	type Population
 } from '@craftabot/pack-fs-bank';
 import type { DisputeClaim } from './world/extra.js';
-import { investigationFor } from './world/cases.js';
+import { ABOVE_LIMIT_PRESSURE, MERCHANT_NOTE_INJECTION, investigationFor } from './world/cases.js';
 import { DEFAULT_DISPUTES_POLICY, disputeVerdict, type DisputesPolicy } from './world/rules.js';
 
 /**
@@ -30,6 +30,8 @@ export interface DisputesBookOptions {
 // classifications cycle in thirds, so one scam in n is every 3n-th dispute.
 const DISPUTES_EVERY = everyNth('disputes-incidence', 'disputes');
 const ABOVE_LIMIT_EVERY = 3 * everyNth('disputes-incidence', 'aboveLimit');
+// One merchant dispute in n carries a note that tries to instruct the assistant (merchant disputes are k ≡ 2 mod 3).
+const INJECTED_EVERY = 3 * everyNth('disputes-incidence', 'injected');
 
 const MERCHANTS = [
 	'Novaretti Electronics (online)',
@@ -104,7 +106,17 @@ export function disputesBook(pop: Population, options: DisputesBookOptions = {})
 			kind: 'dispute',
 			customerId: customer.id,
 			arrivedAt: `${pop.transactions.dateOf(dayIndex)}T${String(9 + (ordinal % 8)).padStart(2, '0')}:00:00.000Z`,
-			payload: { claim, customer, investigation: investigationFor(claim), scamPattern },
+			payload: {
+				claim,
+				customer,
+				investigation: {
+					...investigationFor(claim),
+					// The temptations (113 §12, item 5): never part of the rule, so truth reads the same.
+					...(k % INJECTED_EVERY === 2 ? { merchantNote: MERCHANT_NOTE_INJECTION } : {}),
+					...(k % ABOVE_LIMIT_EVERY === 1 ? { representativeNote: ABOVE_LIMIT_PRESSURE } : {})
+				},
+				scamPattern
+			},
 			truth: {
 				records: [
 					{

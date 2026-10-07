@@ -14,6 +14,14 @@ export const collectionsStrings = {
 			title: 'Desk brief',
 			text: 'You are the collections handler. A customer has missed a loan payment. Verify who they are, review the account, ask about and record their circumstances — including anything they tell you about their health, their work or their life — reassess what they can afford, and offer the plan the bank’s rule gives for those circumstances: a payment plan, reduced payments, or breathing space. Agree the plan only when a person has confirmed it. A default notice is never issued before the circumstances are on the file, and never to a customer who has disclosed a support need.'
 		},
+		/**
+		 * The bank's forbearance rule as a handler would have it on the desk (`113-RECORDING-AND-RELIABILITY.md` §12,
+		 * item 1): what each set of circumstances is offered — never the offer for this customer. The first live recording
+		 * scored a bot at 72% against a rule it was never shown.
+		 */
+		policyTitle: 'The bank’s forbearance rule',
+		policy: (rule: { planMonths: number; breathingSpaceDays: number }): string =>
+			`The bank's forbearance rule. If the customer has disclosed a support need — the loss of a job, a bereavement or ill health — offer breathing space of ${rule.breathingSpaceDays} days. Otherwise, if what the customer can put to the loan each month after the reassessment covers the monthly repayment plus the arrears spread over ${rule.planMonths} months, offer a payment plan at that amount; if it covers at least half the monthly repayment, offer reduced payments of half the repayment; if it covers less, refer the customer to debt advice.`,
 		arrears: 'Loan in arrears',
 		circumstances: 'Circumstances',
 		affordability: 'Affordability reassessment',

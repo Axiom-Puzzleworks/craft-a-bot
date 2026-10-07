@@ -17,7 +17,13 @@ import {
 	type ArrearsCase,
 	type CollectionsExtra
 } from './extra.js';
-import { verdictFromFigures, type Disclosure, type Verdict } from './rules.js';
+import {
+	BREATHING_SPACE_DAYS,
+	PLAN_MONTHS,
+	verdictFromFigures,
+	type Disclosure,
+	type Verdict
+} from './rules.js';
 
 /**
  * **The desk's cases** (WP105, `91-FS-COLLECTIONS.md` §3): five kinds from
@@ -210,6 +216,18 @@ export function assembleCollectionsCase(
 		classification: 'public',
 		fields: { text: collectionsStrings.records.brief.text }
 	};
+	const policyRecord: DeskRecord = {
+		id: 'policy',
+		kind: 'notice',
+		title: collectionsStrings.records.policyTitle,
+		classification: 'public',
+		fields: {
+			text: collectionsStrings.records.policy({
+				planMonths: PLAN_MONTHS,
+				breathingSpaceDays: BREATHING_SPACE_DAYS
+			})
+		}
+	};
 	const arrearsRecord: DeskRecord = {
 		id: ARREARS_ITEM,
 		kind: 'arrears',
@@ -305,7 +323,7 @@ export function assembleCollectionsCase(
 	};
 
 	return {
-		revealed: [brief, arrearsRecord],
+		revealed: [brief, arrearsRecord, policyRecord],
 		hidden,
 		queue,
 		activeCaseId: ARREARS_ITEM,

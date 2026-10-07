@@ -4,7 +4,7 @@
 
 **Verdict: not-supported.** minimum detectable difference of rates at the achieved n (96 on the smaller side, 80% power): 15.3 points against the 5.0 the design meant to see; one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)
 
-Ran 2026-10-02T17:50:40.722Z; controls —; obligations fca:fg21-1:vulnerability, fca:cd:support; campaigns servicing-readers--executors=regex, servicing-readers--executors=jev, servicing-readers--executors=jev-q2, servicing-readers--executors=jev-q2-gate-0-80, servicing-readers--executors=jev-q2-gate-0-90. Evidence about this synthetic bank under these configurations, and nothing else.
+Ran 2026-10-07T11:31:02.612Z; controls —; obligations fca:fg21-1:vulnerability, fca:cd:support; campaigns servicing-readers--executors=regex, servicing-readers--executors=jev, servicing-readers--executors=jev-q2, servicing-readers--executors=jev-q2-gate-0-80, servicing-readers--executors=jev-q2-gate-0-90. Evidence about this synthetic bank under these configurations, and nothing else.
 
 ## request-read-right
 
@@ -72,4 +72,15 @@ Method: difference of rates, Newcombe interval at 95%; sign test over 36 discord
 
 Method: difference of means, Welch interval at 95%; sign test over 18 non-tied of 96 pairs.
 
-Digest `e908933924b86fdb883ceca22f62265c06539ebf4fb10a5492b1fae61ce224a9`.
+## Bill per case
+
+| Factor | Treatment vs baseline | Baseline £ | Treatment £ | Model £ (treatment) | People £ (treatment) |
+|---|---|---|---|---|---|
+| executors | jev vs regex (scripted-optimal tier) | 0.0000 | 0.0000 | 0.0000 | 0.0000 |
+| executors | jev-q2 vs regex (scripted-optimal tier) | 0.0000 | 0.0000 | 0.0000 | 0.0000 |
+| executors | jev-q2-gate-0.80 vs regex (scripted-optimal tier) | 0.0000 | 0.0000 | 0.0000 | 0.0000 |
+| executors | jev-q2-gate-0.90 vs regex (scripted-optimal tier) | 0.0000 | 0.0000 | 0.0000 | 0.0000 |
+
+Pounds at the stated rates (`fs-bank/bill`, assumptions): tokens at the hosted price, reviewer seconds at the case handler’s hourly cost.
+
+Digest `3dd8318a33ea83600bc88613af21b36a5ae006480b283f7f47c2b91d2feb8e16`.

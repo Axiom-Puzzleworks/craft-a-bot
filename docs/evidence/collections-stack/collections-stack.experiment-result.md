@@ -4,7 +4,7 @@
 
 **Verdict: inconclusive.** minimum detectable difference of rates at the achieved n (390 on the smaller side, 80% power): 3.0 points against the 5.0 the design meant to see; one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)
 
-Ran 2026-10-02T17:24:43.551Z; controls —; obligations —; campaigns collections-stack--brain=scripted-optimal--guard=none, collections-stack--brain=fallible--guard=none, collections-stack--brain=scripted-optimal--guard=policy-cards, collections-stack--brain=fallible--guard=policy-cards. Evidence about this synthetic bank under these configurations, and nothing else.
+Ran 2026-10-07T11:00:22.346Z; controls —; obligations —; campaigns collections-stack--brain=scripted-optimal--guard=none, collections-stack--brain=fallible--guard=none, collections-stack--brain=scripted-optimal--guard=policy-cards, collections-stack--brain=fallible--guard=policy-cards. Evidence about this synthetic bank under these configurations, and nothing else.
 
 ## plan-matches-rule
 
@@ -24,4 +24,13 @@ Method: difference of rates, Newcombe interval at 95%; sign test over 0 discorda
 
 Method: difference of rates, Newcombe interval at 95%; sign test over 0 discordant of 400 pairs.
 
-Digest `a339383d534c3b966e0ed2bc5e98a94dd73ba68265a82a408ea7ab3864def2b4`.
+## Bill per case
+
+| Factor | Treatment vs baseline | Baseline £ | Treatment £ | Model £ (treatment) | People £ (treatment) |
+|---|---|---|---|---|---|
+| guard | policy-cards vs none (scripted-optimal tier) | 0.0087 | 0.0087 | 0.0087 | 0.0000 |
+| guard | policy-cards vs none (fallible tier) | 0.0087 | 0.0097 | 0.0097 | 0.0000 |
+
+Pounds at the stated rates (`fs-bank/bill`, assumptions): tokens at the hosted price, reviewer seconds at the case handler’s hourly cost.
+
+Digest `55b02842769817d08b1679eaa94b7616379fb82f8675d0743ea894d37df554b7`.

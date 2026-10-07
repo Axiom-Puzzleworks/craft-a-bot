@@ -223,7 +223,16 @@ const RULES: WorkflowSpec['rules'] = {
 
 // ── The stages ─────────────────────────────────────────────────────────
 
-const agent = (until: string, goalText: string): Executor => ({ kind: 'agent', until, goalText });
+/**
+ * A stage's turn ceiling, where the live tier has shown what a normal stage uses (`113-RECORDING-AND-RELIABILITY.md` §12, item 6): about
+ * twice the most any completed live cell took, so a normal run is never cut off and a loop ends in a few turns, not thirty.
+ */
+const agent = (until: string, goalText: string, maxTicks?: number): Executor => ({
+	kind: 'agent',
+	until,
+	goalText,
+	...(maxTicks !== undefined ? { maxTicks } : {})
+});
 const rule = (id: string): Executor => ({ kind: 'rule', rule: id });
 const names = strings.stages;
 
@@ -244,7 +253,7 @@ export const ADVICE_STAGES: StageSpec[] = [
 		obligations: ['fca:cobs-9:suitability', 'fca:cd:products-services'],
 		input: REQUEST_OUTPUT,
 		output: SUITABILITY_OUTPUT,
-		executor: agent('suitability-gathered', strings.briefs.suitability),
+		executor: agent('suitability-gathered', strings.briefs.suitability, 20),
 		read: (state) => (askedAll(state) ? { asked: [...advice(state).asked] } : undefined),
 		next: () => 'recommendation'
 	},
@@ -254,7 +263,7 @@ export const ADVICE_STAGES: StageSpec[] = [
 		obligations: ['fca:cd:support', 'fca:fg21-1:vulnerability', 'fca:cd:price-value'],
 		input: SUITABILITY_OUTPUT,
 		output: RECOMMENDATION_OUTPUT,
-		executor: agent('advised', strings.briefs.recommendation),
+		executor: agent('advised', strings.briefs.recommendation, 8),
 		guards: { policyCards: [] },
 		read: (state) => (advised(state) ? recommendationOutput(state) : undefined),
 		next: (_out, state) => (advice(state).referred ? 'confirmation' : 'warnings')
@@ -265,7 +274,7 @@ export const ADVICE_STAGES: StageSpec[] = [
 		obligations: ['fca:cobs-4:promotions', 'fca:cd:understanding'],
 		input: RECOMMENDATION_OUTPUT,
 		output: WARNINGS_OUTPUT,
-		executor: agent('warnings-given', strings.briefs.warnings),
+		executor: agent('warnings-given', strings.briefs.warnings, 8),
 		read: (state) => (warned(state) ? { warned: true } : undefined),
 		next: () => 'consent'
 	},
@@ -284,7 +293,7 @@ export const ADVICE_STAGES: StageSpec[] = [
 		name: names.execution,
 		input: CONSENT_OUTPUT,
 		output: EXECUTION_OUTPUT,
-		executor: agent('investment-executed', strings.briefs.execution),
+		executor: agent('investment-executed', strings.briefs.execution, 24),
 		irreversible: true,
 		// WP137: held at its input until the desk's file shows the steps before it done.
 		guards: { policyCards: [EXECUTION_WAITS_FOR_THE_FILE.id] },

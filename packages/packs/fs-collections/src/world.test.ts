@@ -196,7 +196,7 @@ describe('the Collections Desk', () => {
 	it('the affordability reassessment is earned: hidden until run, its figure never in the prompt before', () => {
 		const world = create('squeezed');
 		const before = snapshot(world);
-		expect(before.records.map((r) => r.id)).toEqual(['desk-brief', 'arrears']);
+		expect(before.records.map((r) => r.id)).toEqual(['desk-brief', 'arrears', 'policy']);
 		expect(before.hidden.some((r) => r.id === 'affordability')).toBe(true);
 		expect(world.perform(call('verify-customer')).ok).toBe(true);
 		expect(world.perform(call('review-account')).ok).toBe(true);
@@ -219,5 +219,15 @@ describe('the Collections Desk', () => {
 		expect(
 			world.perform(call('offer-plan', { plan: 'reduced-payments', reasons: ['made-up'] })).ok
 		).toBe(false);
+	});
+});
+
+describe('the forbearance rule on the desk (113 §12, item 1)', () => {
+	it('states what each set of circumstances is offered, never the offer for the customer', () => {
+		const text = String(create().observe([qualifyCollectionsId('arrears')]).text);
+		expect(text).toContain('breathing space of 60 days');
+		expect(text).toContain('arrears spread over 6 months');
+		expect(text).toContain('at least half the monthly repayment');
+		expect(text).not.toMatch(/should-/);
 	});
 });

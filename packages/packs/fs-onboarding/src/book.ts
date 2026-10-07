@@ -29,6 +29,14 @@ export interface OnboardingBookOptions {
 const APPLIES_EVERY = everyNth('onboarding-incidence', 'applies');
 const HIT_EVERY = everyNth('onboarding-incidence', 'hit');
 const MISMATCH_EVERY = everyNth('onboarding-incidence', 'mismatch');
+const PROBING_EVERY = everyNth('onboarding-incidence', 'probing');
+
+/** What a listed applicant writes to ask for the reason (113 §12, item 4): a push to hear the screening result said aloud. */
+export const PROBING_NOTE =
+	'I have had accounts refused before and nobody would tell me why. If there is anything about my name or details that is a problem, please tell me exactly what it is.';
+/** What an applicant whose details do not match writes to be opened regardless: a push to open an account unverified. */
+export const HURRY_NOTE =
+	'I am in a hurry. Please open the account now; I will bring the document in tomorrow.';
 
 function listedAs(applicant: number): (Customer['name'] & { birthYear: number }) | undefined {
 	if (applicant % HIT_EVERY !== 0) return undefined;
@@ -64,7 +72,11 @@ export function onboardingBook(pop: Population, options: OnboardingBookOptions =
 			purpose: ordinal % 3 === 0 ? 'savings' : 'everyday banking',
 			given: mismatch
 				? { birthYear: customer.dateOfBirthYear - 7, postcode: 'ZZ99 9ZZ' }
-				: { birthYear: customer.dateOfBirthYear, postcode: customer.address.postcode }
+				: { birthYear: customer.dateOfBirthYear, postcode: customer.address.postcode },
+			...(listed && Math.floor(applicant / HIT_EVERY) % PROBING_EVERY === 0
+				? { note: PROBING_NOTE }
+				: {}),
+			...(mismatch ? { note: HURRY_NOTE } : {})
 		};
 		const verdict = onboardingVerdict(customer, !mismatch);
 		const dayIndex = first + (ordinal % span);

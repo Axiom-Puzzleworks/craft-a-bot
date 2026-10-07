@@ -1,12 +1,12 @@
 {
 	"schemaVersion": 1,
-	"id": "servicing-stack@2026-10-02T17:51:08.865Z",
+	"id": "servicing-stack@2026-10-07T11:31:36.818Z",
 	"experimentId": "servicing-stack",
 	"title": "The policy-card stack on the servicing book",
 	"hypothesis": "The servicing desk’s policy-card stack (fs-servicing/stack/policy-cards) changes nothing a scripted bot at Level 5 does wrong on the servicing book. Under the fallible tier (WP154), which errs at the desk's decision one time in ten, the stack is expected to catch what its cards check and nothing else.",
 	"controls": [],
 	"obligations": [],
-	"ranAt": "2026-10-02T17:51:08.865Z",
+	"ranAt": "2026-10-07T11:31:36.818Z",
 	"workflowIds": [
 		"fs-servicing/servicing"
 	],
@@ -253,6 +253,22 @@
 					"baseline": 0,
 					"treatment": 0
 				},
+				"bill": {
+					"baseline": {
+						"tokens": 1016.9225,
+						"modelPounds": 0.00406769,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0.00406769
+					},
+					"treatment": {
+						"tokens": 1016.9225,
+						"modelPounds": 0.00406769,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0.00406769
+					}
+				},
 				"touchesPerCase": {
 					"baseline": 0,
 					"treatment": 0
@@ -1065,8 +1081,8 @@
 				"00000000-0000-4000-8000-00000260d3a9"
 			],
 			"reportIds": [
-				"d5c3dea4-94ac-415c-8202-c3e7e7b69a19",
-				"359de669-50d0-44b3-8fc4-84915af36df5"
+				"09426a32-360a-4180-826e-1edda7455220",
+				"d4d4aead-3d06-4511-8cee-030e1f0ca901"
 			]
 		},
 		{
@@ -1305,6 +1321,22 @@
 					"baseline": 0,
 					"treatment": 0
 				},
+				"bill": {
+					"baseline": {
+						"tokens": 1016.9225,
+						"modelPounds": 0.00406769,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0.00406769
+					},
+					"treatment": {
+						"tokens": 1016.9225,
+						"modelPounds": 0.00406769,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0.00406769
+					}
+				},
 				"touchesPerCase": {
 					"baseline": 0,
 					"treatment": 0
@@ -2117,8 +2149,8 @@
 				"00000000-0000-4000-8000-00000260d3a9"
 			],
 			"reportIds": [
-				"d5c3dea4-94ac-415c-8202-c3e7e7b69a19",
-				"359de669-50d0-44b3-8fc4-84915af36df5"
+				"09426a32-360a-4180-826e-1edda7455220",
+				"d4d4aead-3d06-4511-8cee-030e1f0ca901"
 			]
 		},
 		{
@@ -2355,6 +2387,22 @@
 				"escalationRate": {
 					"baseline": 0,
 					"treatment": 0
+				},
+				"bill": {
+					"baseline": {
+						"tokens": 1324.4125,
+						"modelPounds": 0.00529765,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0.00529765
+					},
+					"treatment": {
+						"tokens": 1285.4,
+						"modelPounds": 0.0051416000000000005,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0.0051416000000000005
+					}
 				},
 				"touchesPerCase": {
 					"baseline": 0,
@@ -3168,8 +3216,8 @@
 				"00000000-0000-4000-8000-00000260d3a9"
 			],
 			"reportIds": [
-				"6ee19ae0-0255-4358-b8cd-f1f29762bea6",
-				"d29b48f3-293a-42f0-bf02-f8e6ba8fed9d"
+				"cd7ca53d-b8a5-4be7-9a69-c6c45f069c90",
+				"0bd3db96-21f4-4af4-bc92-6dca1103b188"
 			]
 		},
 		{
@@ -3408,6 +3456,22 @@
 					"baseline": 0,
 					"treatment": 0
 				},
+				"bill": {
+					"baseline": {
+						"tokens": 1324.4125,
+						"modelPounds": 0.00529765,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0.00529765
+					},
+					"treatment": {
+						"tokens": 1285.4,
+						"modelPounds": 0.0051416000000000005,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0.0051416000000000005
+					}
+				},
 				"touchesPerCase": {
 					"baseline": 0,
 					"treatment": 0
@@ -4220,12 +4284,12 @@
 				"00000000-0000-4000-8000-00000260d3a9"
 			],
 			"reportIds": [
-				"6ee19ae0-0255-4358-b8cd-f1f29762bea6",
-				"d29b48f3-293a-42f0-bf02-f8e6ba8fed9d"
+				"cd7ca53d-b8a5-4be7-9a69-c6c45f069c90",
+				"0bd3db96-21f4-4af4-bc92-6dca1103b188"
 			]
 		}
 	],
 	"verdict": "inconclusive",
 	"note": "minimum detectable difference of rates at the achieved n (400 on the smaller side, 80% power): 3.2 points against the 5.0 the design meant to see; one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)",
-	"digest": "c31c759e3c454ac23e9aadfb2a197009f49448eabfda054980cd1fd82887a003"
+	"digest": "c04871e8cf984153ff95cecb69c8d36034ea5f01c480489691a1dfe7c9784bd0"
 }

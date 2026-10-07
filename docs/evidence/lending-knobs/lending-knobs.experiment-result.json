@@ -1,6 +1,6 @@
 {
 	"schemaVersion": 1,
-	"id": "lending-knobs@2026-10-02T17:47:55.697Z",
+	"id": "lending-knobs@2026-10-07T11:28:00.705Z",
 	"experimentId": "lending-knobs",
 	"title": "Loosening the refer ratio on the loan book",
 	"hypothesis": "Lowering referRatioPercent from 60 to 45 raises over-approval when the bot decides alone, and a person at the decision removes it at a stated escalation cost.",
@@ -11,7 +11,7 @@
 		"fca:conc:affordability",
 		"pra:ss1-23:mitigants"
 	],
-	"ranAt": "2026-10-02T17:47:55.697Z",
+	"ranAt": "2026-10-07T11:28:00.705Z",
 	"workflowIds": [
 		"fs-lending/lending"
 	],
@@ -263,8 +263,8 @@
 			],
 			"cost": {
 				"tokensPerCase": {
-					"baseline": 1360.7369093231162,
-					"treatment": 1360.7369093231162
+					"baseline": 1960.742017879949,
+					"treatment": 1960.742017879949
 				},
 				"approvalsPerCase": {
 					"baseline": 0,
@@ -273,6 +273,22 @@
 				"escalationRate": {
 					"baseline": 0,
 					"treatment": 0
+				},
+				"bill": {
+					"baseline": {
+						"tokens": 1960.742017879949,
+						"modelPounds": 0.007842968071519796,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0.007842968071519796
+					},
+					"treatment": {
+						"tokens": 1960.742017879949,
+						"modelPounds": 0.007842968071519796,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0.007842968071519796
+					}
 				},
 				"touchesPerCase": {
 					"baseline": 0,
@@ -1852,8 +1868,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"5bd0c54e-d72f-4445-b46a-23b214cd2919",
-				"019a3134-864f-47d3-92cb-b91504a64091"
+				"ece0bf4f-8457-487f-a6ac-4aa96eb4388d",
+				"a1be1457-1517-4988-a1cb-a6c1ac5af60d"
 			]
 		},
 		{
@@ -2093,8 +2109,8 @@
 			],
 			"cost": {
 				"tokensPerCase": {
-					"baseline": 1360.7369093231162,
-					"treatment": 1360.7369093231162
+					"baseline": 1960.742017879949,
+					"treatment": 1960.742017879949
 				},
 				"approvalsPerCase": {
 					"baseline": 0,
@@ -2103,6 +2119,22 @@
 				"escalationRate": {
 					"baseline": 0,
 					"treatment": 0
+				},
+				"bill": {
+					"baseline": {
+						"tokens": 1960.742017879949,
+						"modelPounds": 0.007842968071519796,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0.007842968071519796
+					},
+					"treatment": {
+						"tokens": 1960.742017879949,
+						"modelPounds": 0.007842968071519796,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0.007842968071519796
+					}
 				},
 				"touchesPerCase": {
 					"baseline": 0,
@@ -3682,8 +3714,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"5bd0c54e-d72f-4445-b46a-23b214cd2919",
-				"019a3134-864f-47d3-92cb-b91504a64091"
+				"ece0bf4f-8457-487f-a6ac-4aa96eb4388d",
+				"a1be1457-1517-4988-a1cb-a6c1ac5af60d"
 			]
 		},
 		{
@@ -3922,8 +3954,8 @@
 			],
 			"cost": {
 				"tokensPerCase": {
-					"baseline": 1354.7841634738186,
-					"treatment": 1354.7841634738186
+					"baseline": 1952.2222222222222,
+					"treatment": 1952.2222222222222
 				},
 				"approvalsPerCase": {
 					"baseline": 0,
@@ -3932,6 +3964,22 @@
 				"escalationRate": {
 					"baseline": 0,
 					"treatment": 0
+				},
+				"bill": {
+					"baseline": {
+						"tokens": 1952.2222222222222,
+						"modelPounds": 0.007808888888888889,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0.007808888888888889
+					},
+					"treatment": {
+						"tokens": 1952.2222222222222,
+						"modelPounds": 0.007808888888888889,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0.007808888888888889
+					}
 				},
 				"touchesPerCase": {
 					"baseline": 0,
@@ -5511,8 +5559,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"e0a61cbc-000d-490f-87e2-4ad7c7725219",
-				"f54aa13f-3a1c-4d54-a80f-7a6114ed3886"
+				"866b47ea-271d-41af-8713-f16c35f3e200",
+				"a4ba1858-fe9e-49bf-bd06-3cafc5b38854"
 			]
 		},
 		{
@@ -5752,8 +5800,8 @@
 			],
 			"cost": {
 				"tokensPerCase": {
-					"baseline": 1354.7841634738186,
-					"treatment": 1354.7841634738186
+					"baseline": 1952.2222222222222,
+					"treatment": 1952.2222222222222
 				},
 				"approvalsPerCase": {
 					"baseline": 0,
@@ -5762,6 +5810,22 @@
 				"escalationRate": {
 					"baseline": 0,
 					"treatment": 0
+				},
+				"bill": {
+					"baseline": {
+						"tokens": 1952.2222222222222,
+						"modelPounds": 0.007808888888888889,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0.007808888888888889
+					},
+					"treatment": {
+						"tokens": 1952.2222222222222,
+						"modelPounds": 0.007808888888888889,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0.007808888888888889
+					}
 				},
 				"touchesPerCase": {
 					"baseline": 0,
@@ -7341,8 +7405,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"e0a61cbc-000d-490f-87e2-4ad7c7725219",
-				"f54aa13f-3a1c-4d54-a80f-7a6114ed3886"
+				"866b47ea-271d-41af-8713-f16c35f3e200",
+				"a4ba1858-fe9e-49bf-bd06-3cafc5b38854"
 			]
 		},
 		{
@@ -7582,8 +7646,8 @@
 			],
 			"cost": {
 				"tokensPerCase": {
-					"baseline": 1360.7369093231162,
-					"treatment": 1354.3805874840357
+					"baseline": 1960.742017879949,
+					"treatment": 1951.647509578544
 				},
 				"approvalsPerCase": {
 					"baseline": 0,
@@ -7592,6 +7656,22 @@
 				"escalationRate": {
 					"baseline": 0,
 					"treatment": 0.006385696040868455
+				},
+				"bill": {
+					"baseline": {
+						"tokens": 1960.742017879949,
+						"modelPounds": 0.007842968071519796,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0.007842968071519796
+					},
+					"treatment": {
+						"tokens": 1951.647509578544,
+						"modelPounds": 0.007806590038314176,
+						"humanSeconds": 174.55938697318007,
+						"humanPounds": 1.3576841209025117,
+						"pounds": 1.3654907109408259
+					}
 				},
 				"touchesPerCase": {
 					"baseline": 0,
@@ -9171,8 +9251,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"5bd0c54e-d72f-4445-b46a-23b214cd2919",
-				"a96b1157-8055-47d6-8a18-450c49212aa4"
+				"ece0bf4f-8457-487f-a6ac-4aa96eb4388d",
+				"7eb529e8-691c-42f0-b456-4ac35326a1a3"
 			]
 		},
 		{
@@ -9411,8 +9491,8 @@
 			],
 			"cost": {
 				"tokensPerCase": {
-					"baseline": 1360.7369093231162,
-					"treatment": 1354.3805874840357
+					"baseline": 1960.742017879949,
+					"treatment": 1951.647509578544
 				},
 				"approvalsPerCase": {
 					"baseline": 0,
@@ -9421,6 +9501,22 @@
 				"escalationRate": {
 					"baseline": 0,
 					"treatment": 0.006385696040868455
+				},
+				"bill": {
+					"baseline": {
+						"tokens": 1960.742017879949,
+						"modelPounds": 0.007842968071519796,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0.007842968071519796
+					},
+					"treatment": {
+						"tokens": 1951.647509578544,
+						"modelPounds": 0.007806590038314176,
+						"humanSeconds": 174.55938697318007,
+						"humanPounds": 1.3576841209025117,
+						"pounds": 1.3654907109408259
+					}
 				},
 				"touchesPerCase": {
 					"baseline": 0,
@@ -11000,8 +11096,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"5bd0c54e-d72f-4445-b46a-23b214cd2919",
-				"a96b1157-8055-47d6-8a18-450c49212aa4"
+				"ece0bf4f-8457-487f-a6ac-4aa96eb4388d",
+				"7eb529e8-691c-42f0-b456-4ac35326a1a3"
 			]
 		},
 		{
@@ -11240,8 +11336,8 @@
 			],
 			"cost": {
 				"tokensPerCase": {
-					"baseline": 1354.7841634738186,
-					"treatment": 1343.2490421455939
+					"baseline": 1952.2222222222222,
+					"treatment": 1935.7241379310344
 				},
 				"approvalsPerCase": {
 					"baseline": 0,
@@ -11250,6 +11346,22 @@
 				"escalationRate": {
 					"baseline": 0,
 					"treatment": 0.013250319284802043
+				},
+				"bill": {
+					"baseline": {
+						"tokens": 1952.2222222222222,
+						"modelPounds": 0.007808888888888889,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0.007808888888888889
+					},
+					"treatment": {
+						"tokens": 1935.7241379310344,
+						"modelPounds": 0.007742896551724138,
+						"humanSeconds": 173.79310344827587,
+						"humanPounds": 1.3517241379310345,
+						"pounds": 1.3594670344827586
+					}
 				},
 				"touchesPerCase": {
 					"baseline": 0,
@@ -12829,8 +12941,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"e0a61cbc-000d-490f-87e2-4ad7c7725219",
-				"bd82afbb-f4e7-4a0b-8f9b-33ae933f289f"
+				"866b47ea-271d-41af-8713-f16c35f3e200",
+				"ab1e02ed-a79f-42c1-b793-ff02fc4b9db3"
 			]
 		},
 		{
@@ -13069,8 +13181,8 @@
 			],
 			"cost": {
 				"tokensPerCase": {
-					"baseline": 1354.7841634738186,
-					"treatment": 1343.2490421455939
+					"baseline": 1952.2222222222222,
+					"treatment": 1935.7241379310344
 				},
 				"approvalsPerCase": {
 					"baseline": 0,
@@ -13079,6 +13191,22 @@
 				"escalationRate": {
 					"baseline": 0,
 					"treatment": 0.013250319284802043
+				},
+				"bill": {
+					"baseline": {
+						"tokens": 1952.2222222222222,
+						"modelPounds": 0.007808888888888889,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0.007808888888888889
+					},
+					"treatment": {
+						"tokens": 1935.7241379310344,
+						"modelPounds": 0.007742896551724138,
+						"humanSeconds": 173.79310344827587,
+						"humanPounds": 1.3517241379310345,
+						"pounds": 1.3594670344827586
+					}
 				},
 				"touchesPerCase": {
 					"baseline": 0,
@@ -14658,12 +14786,12 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"e0a61cbc-000d-490f-87e2-4ad7c7725219",
-				"bd82afbb-f4e7-4a0b-8f9b-33ae933f289f"
+				"866b47ea-271d-41af-8713-f16c35f3e200",
+				"ab1e02ed-a79f-42c1-b793-ff02fc4b9db3"
 			]
 		}
 	],
 	"verdict": "not-supported",
 	"note": "minimum detectable difference of rates at the achieved n (783 on the smaller side, 80% power): 1.1 points against the 5.0 the design meant to see; one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)",
-	"digest": "8043e568120489e3db32e3faea601404183bd061f51fca16e9699d69c5c9b87b"
+	"digest": "3f0f4d790e9c4291d843c8061c9750471e38f30688b55e0b9bf62b9e030a7d68"
 }

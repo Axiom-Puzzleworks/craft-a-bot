@@ -544,7 +544,9 @@ export function adviceCaseFromItem(random: () => number, item: WorkItem): Advice
 	const payload = item.payload as Partial<AdviceRequestItemPayload> | undefined;
 	if (!payload?.customer || typeof payload.savingsBalance !== 'number')
 		throw new Error(`work item ${item.id} carries no advice request`);
-	const kind = kindForTopic(String(payload.topic ?? ''));
+	// A request with something extra (113 §12, item 4) is the desk case of that kind: its customer behaves that way.
+	const variant = ADVICE_CASE_KINDS.find((entry) => entry === payload.variant);
+	const kind = variant ?? kindForTopic(String(payload.topic ?? ''));
 	const profile = PROFILES[kind];
 	const seed = seedFrom(random);
 	const generated = bankCase(seed);
@@ -553,8 +555,11 @@ export function adviceCaseFromItem(random: () => number, item: WorkItem): Advice
 	const answers: AdviceAnswers = { ...profile.answers, amount: payload.savingsBalance };
 	return assembleAdviceCase(bank, actual, answers, {
 		adviceAllowed: true,
-		discloses: false,
+		discloses: DISCLOSING_KINDS.has(kind),
 		persona: profile.persona,
-		goal: profile.goal
+		goal: profile.goal,
+		...(profile.payload ? { payload: profile.payload } : {}),
+		...(profile.promote ? { promote: profile.promote } : {}),
+		...(profile.poisoned ? { poisoned: profile.poisoned } : {})
 	});
 }

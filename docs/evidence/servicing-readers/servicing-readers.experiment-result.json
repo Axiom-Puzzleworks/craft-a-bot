@@ -1,6 +1,6 @@
 {
 	"schemaVersion": 1,
-	"id": "servicing-readers@2026-10-02T17:50:40.722Z",
+	"id": "servicing-readers@2026-10-07T11:31:02.612Z",
 	"experimentId": "servicing-readers",
 	"title": "The servicing readers on the held-out corpus: the bank’s regex against Jev as first asked (q1), Jev with the guide’s rules in its questions (q2), and q2 behind a confidence gate",
 	"hypothesis": "On calls no question was fitted to, stating the labelling guide’s rules in the questions (q2) reduces Jev’s false needs without losing any disclosed one, and the steer check sends callers who dictate the label to a person.",
@@ -9,7 +9,7 @@
 		"fca:fg21-1:vulnerability",
 		"fca:cd:support"
 	],
-	"ranAt": "2026-10-02T17:50:40.722Z",
+	"ranAt": "2026-10-07T11:31:02.612Z",
 	"workflowIds": [
 		"typesafe/servicing-jev-v3"
 	],
@@ -238,6 +238,22 @@
 					"baseline": 0,
 					"treatment": 0
 				},
+				"bill": {
+					"baseline": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					},
+					"treatment": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					}
+				},
 				"touchesPerCase": {
 					"baseline": 0.19791666666666666,
 					"treatment": 0.15625
@@ -249,8 +265,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"90b37353-4977-4433-8ded-52a3a5df7eaa",
-				"584a2386-e472-4da8-bb85-045b8ccc364b"
+				"c693dd71-d950-4965-a843-4a4671e79f93",
+				"d551f84d-d68c-44d2-b73e-3852c14d5d6f"
 			]
 		},
 		{
@@ -470,6 +486,22 @@
 					"baseline": 0,
 					"treatment": 0
 				},
+				"bill": {
+					"baseline": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					},
+					"treatment": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					}
+				},
 				"touchesPerCase": {
 					"baseline": 0.19791666666666666,
 					"treatment": 0.15625
@@ -481,8 +513,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"90b37353-4977-4433-8ded-52a3a5df7eaa",
-				"584a2386-e472-4da8-bb85-045b8ccc364b"
+				"c693dd71-d950-4965-a843-4a4671e79f93",
+				"d551f84d-d68c-44d2-b73e-3852c14d5d6f"
 			]
 		},
 		{
@@ -702,6 +734,22 @@
 					"baseline": 0,
 					"treatment": 0
 				},
+				"bill": {
+					"baseline": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					},
+					"treatment": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					}
+				},
 				"touchesPerCase": {
 					"baseline": 0.19791666666666666,
 					"treatment": 0.15625
@@ -713,8 +761,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"90b37353-4977-4433-8ded-52a3a5df7eaa",
-				"584a2386-e472-4da8-bb85-045b8ccc364b"
+				"c693dd71-d950-4965-a843-4a4671e79f93",
+				"d551f84d-d68c-44d2-b73e-3852c14d5d6f"
 			]
 		},
 		{
@@ -934,6 +982,22 @@
 					"baseline": 0,
 					"treatment": 0
 				},
+				"bill": {
+					"baseline": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					},
+					"treatment": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					}
+				},
 				"touchesPerCase": {
 					"baseline": 0.19791666666666666,
 					"treatment": 0.15625
@@ -945,8 +1009,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"90b37353-4977-4433-8ded-52a3a5df7eaa",
-				"584a2386-e472-4da8-bb85-045b8ccc364b"
+				"c693dd71-d950-4965-a843-4a4671e79f93",
+				"d551f84d-d68c-44d2-b73e-3852c14d5d6f"
 			]
 		},
 		{
@@ -1166,6 +1230,22 @@
 					"baseline": 0,
 					"treatment": 0
 				},
+				"bill": {
+					"baseline": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					},
+					"treatment": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					}
+				},
 				"touchesPerCase": {
 					"baseline": 0.19791666666666666,
 					"treatment": 0.15625
@@ -1177,8 +1257,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"90b37353-4977-4433-8ded-52a3a5df7eaa",
-				"584a2386-e472-4da8-bb85-045b8ccc364b"
+				"c693dd71-d950-4965-a843-4a4671e79f93",
+				"d551f84d-d68c-44d2-b73e-3852c14d5d6f"
 			]
 		},
 		{
@@ -1398,6 +1478,22 @@
 					"baseline": 0,
 					"treatment": 0
 				},
+				"bill": {
+					"baseline": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					},
+					"treatment": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					}
+				},
 				"touchesPerCase": {
 					"baseline": 0.19791666666666666,
 					"treatment": 0.15625
@@ -1409,8 +1505,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"90b37353-4977-4433-8ded-52a3a5df7eaa",
-				"584a2386-e472-4da8-bb85-045b8ccc364b"
+				"c693dd71-d950-4965-a843-4a4671e79f93",
+				"d551f84d-d68c-44d2-b73e-3852c14d5d6f"
 			]
 		},
 		{
@@ -1630,6 +1726,22 @@
 					"baseline": 0,
 					"treatment": 0
 				},
+				"bill": {
+					"baseline": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					},
+					"treatment": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					}
+				},
 				"touchesPerCase": {
 					"baseline": 0.19791666666666666,
 					"treatment": 0.15625
@@ -1641,8 +1753,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"90b37353-4977-4433-8ded-52a3a5df7eaa",
-				"68b1f8f2-312a-48ac-89dc-64edff380fac"
+				"c693dd71-d950-4965-a843-4a4671e79f93",
+				"bebf04ac-1a6a-497e-aa0b-794ba1071ce2"
 			]
 		},
 		{
@@ -1862,6 +1974,22 @@
 					"baseline": 0,
 					"treatment": 0
 				},
+				"bill": {
+					"baseline": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					},
+					"treatment": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					}
+				},
 				"touchesPerCase": {
 					"baseline": 0.19791666666666666,
 					"treatment": 0.15625
@@ -1873,8 +2001,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"90b37353-4977-4433-8ded-52a3a5df7eaa",
-				"68b1f8f2-312a-48ac-89dc-64edff380fac"
+				"c693dd71-d950-4965-a843-4a4671e79f93",
+				"bebf04ac-1a6a-497e-aa0b-794ba1071ce2"
 			]
 		},
 		{
@@ -2094,6 +2222,22 @@
 					"baseline": 0,
 					"treatment": 0
 				},
+				"bill": {
+					"baseline": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					},
+					"treatment": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					}
+				},
 				"touchesPerCase": {
 					"baseline": 0.19791666666666666,
 					"treatment": 0.15625
@@ -2105,8 +2249,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"90b37353-4977-4433-8ded-52a3a5df7eaa",
-				"68b1f8f2-312a-48ac-89dc-64edff380fac"
+				"c693dd71-d950-4965-a843-4a4671e79f93",
+				"bebf04ac-1a6a-497e-aa0b-794ba1071ce2"
 			]
 		},
 		{
@@ -2326,6 +2470,22 @@
 					"baseline": 0,
 					"treatment": 0
 				},
+				"bill": {
+					"baseline": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					},
+					"treatment": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					}
+				},
 				"touchesPerCase": {
 					"baseline": 0.19791666666666666,
 					"treatment": 0.15625
@@ -2337,8 +2497,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"90b37353-4977-4433-8ded-52a3a5df7eaa",
-				"68b1f8f2-312a-48ac-89dc-64edff380fac"
+				"c693dd71-d950-4965-a843-4a4671e79f93",
+				"bebf04ac-1a6a-497e-aa0b-794ba1071ce2"
 			]
 		},
 		{
@@ -2558,6 +2718,22 @@
 					"baseline": 0,
 					"treatment": 0
 				},
+				"bill": {
+					"baseline": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					},
+					"treatment": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					}
+				},
 				"touchesPerCase": {
 					"baseline": 0.19791666666666666,
 					"treatment": 0.15625
@@ -2569,8 +2745,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"90b37353-4977-4433-8ded-52a3a5df7eaa",
-				"68b1f8f2-312a-48ac-89dc-64edff380fac"
+				"c693dd71-d950-4965-a843-4a4671e79f93",
+				"bebf04ac-1a6a-497e-aa0b-794ba1071ce2"
 			]
 		},
 		{
@@ -2790,6 +2966,22 @@
 					"baseline": 0,
 					"treatment": 0
 				},
+				"bill": {
+					"baseline": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					},
+					"treatment": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					}
+				},
 				"touchesPerCase": {
 					"baseline": 0.19791666666666666,
 					"treatment": 0.15625
@@ -2801,8 +2993,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"90b37353-4977-4433-8ded-52a3a5df7eaa",
-				"68b1f8f2-312a-48ac-89dc-64edff380fac"
+				"c693dd71-d950-4965-a843-4a4671e79f93",
+				"bebf04ac-1a6a-497e-aa0b-794ba1071ce2"
 			]
 		},
 		{
@@ -3022,6 +3214,22 @@
 					"baseline": 0,
 					"treatment": 0.02936921296296296
 				},
+				"bill": {
+					"baseline": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					},
+					"treatment": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					}
+				},
 				"touchesPerCase": {
 					"baseline": 0.19791666666666666,
 					"treatment": 0.4479166666666667
@@ -3033,8 +3241,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"90b37353-4977-4433-8ded-52a3a5df7eaa",
-				"a46ffbac-af1f-4584-a974-adc6a003d6d3"
+				"c693dd71-d950-4965-a843-4a4671e79f93",
+				"b50a6a74-21cd-46b7-8eec-57f9b115622f"
 			]
 		},
 		{
@@ -3254,6 +3462,22 @@
 					"baseline": 0,
 					"treatment": 0.02936921296296296
 				},
+				"bill": {
+					"baseline": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					},
+					"treatment": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					}
+				},
 				"touchesPerCase": {
 					"baseline": 0.19791666666666666,
 					"treatment": 0.4479166666666667
@@ -3265,8 +3489,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"90b37353-4977-4433-8ded-52a3a5df7eaa",
-				"a46ffbac-af1f-4584-a974-adc6a003d6d3"
+				"c693dd71-d950-4965-a843-4a4671e79f93",
+				"b50a6a74-21cd-46b7-8eec-57f9b115622f"
 			]
 		},
 		{
@@ -3486,6 +3710,22 @@
 					"baseline": 0,
 					"treatment": 0.02936921296296296
 				},
+				"bill": {
+					"baseline": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					},
+					"treatment": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					}
+				},
 				"touchesPerCase": {
 					"baseline": 0.19791666666666666,
 					"treatment": 0.4479166666666667
@@ -3497,8 +3737,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"90b37353-4977-4433-8ded-52a3a5df7eaa",
-				"a46ffbac-af1f-4584-a974-adc6a003d6d3"
+				"c693dd71-d950-4965-a843-4a4671e79f93",
+				"b50a6a74-21cd-46b7-8eec-57f9b115622f"
 			]
 		},
 		{
@@ -3718,6 +3958,22 @@
 					"baseline": 0,
 					"treatment": 0.02936921296296296
 				},
+				"bill": {
+					"baseline": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					},
+					"treatment": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					}
+				},
 				"touchesPerCase": {
 					"baseline": 0.19791666666666666,
 					"treatment": 0.4479166666666667
@@ -3729,8 +3985,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"90b37353-4977-4433-8ded-52a3a5df7eaa",
-				"a46ffbac-af1f-4584-a974-adc6a003d6d3"
+				"c693dd71-d950-4965-a843-4a4671e79f93",
+				"b50a6a74-21cd-46b7-8eec-57f9b115622f"
 			]
 		},
 		{
@@ -3950,6 +4206,22 @@
 					"baseline": 0,
 					"treatment": 0.02936921296296296
 				},
+				"bill": {
+					"baseline": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					},
+					"treatment": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					}
+				},
 				"touchesPerCase": {
 					"baseline": 0.19791666666666666,
 					"treatment": 0.4479166666666667
@@ -3961,8 +4233,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"90b37353-4977-4433-8ded-52a3a5df7eaa",
-				"a46ffbac-af1f-4584-a974-adc6a003d6d3"
+				"c693dd71-d950-4965-a843-4a4671e79f93",
+				"b50a6a74-21cd-46b7-8eec-57f9b115622f"
 			]
 		},
 		{
@@ -4182,6 +4454,22 @@
 					"baseline": 0,
 					"treatment": 0.02936921296296296
 				},
+				"bill": {
+					"baseline": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					},
+					"treatment": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					}
+				},
 				"touchesPerCase": {
 					"baseline": 0.19791666666666666,
 					"treatment": 0.4479166666666667
@@ -4193,8 +4481,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"90b37353-4977-4433-8ded-52a3a5df7eaa",
-				"a46ffbac-af1f-4584-a974-adc6a003d6d3"
+				"c693dd71-d950-4965-a843-4a4671e79f93",
+				"b50a6a74-21cd-46b7-8eec-57f9b115622f"
 			]
 		},
 		{
@@ -4414,6 +4702,22 @@
 					"baseline": 0,
 					"treatment": 0.03327546296296296
 				},
+				"bill": {
+					"baseline": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					},
+					"treatment": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					}
+				},
 				"touchesPerCase": {
 					"baseline": 0.19791666666666666,
 					"treatment": 0.4791666666666667
@@ -4425,8 +4729,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"90b37353-4977-4433-8ded-52a3a5df7eaa",
-				"da86c459-b482-4ad4-b24b-e6bdfb4e1a14"
+				"c693dd71-d950-4965-a843-4a4671e79f93",
+				"b4236bc6-1f4d-49fb-a54e-0096e8b5f7f9"
 			]
 		},
 		{
@@ -4646,6 +4950,22 @@
 					"baseline": 0,
 					"treatment": 0.03327546296296296
 				},
+				"bill": {
+					"baseline": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					},
+					"treatment": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					}
+				},
 				"touchesPerCase": {
 					"baseline": 0.19791666666666666,
 					"treatment": 0.4791666666666667
@@ -4657,8 +4977,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"90b37353-4977-4433-8ded-52a3a5df7eaa",
-				"da86c459-b482-4ad4-b24b-e6bdfb4e1a14"
+				"c693dd71-d950-4965-a843-4a4671e79f93",
+				"b4236bc6-1f4d-49fb-a54e-0096e8b5f7f9"
 			]
 		},
 		{
@@ -4878,6 +5198,22 @@
 					"baseline": 0,
 					"treatment": 0.03327546296296296
 				},
+				"bill": {
+					"baseline": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					},
+					"treatment": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					}
+				},
 				"touchesPerCase": {
 					"baseline": 0.19791666666666666,
 					"treatment": 0.4791666666666667
@@ -4889,8 +5225,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"90b37353-4977-4433-8ded-52a3a5df7eaa",
-				"da86c459-b482-4ad4-b24b-e6bdfb4e1a14"
+				"c693dd71-d950-4965-a843-4a4671e79f93",
+				"b4236bc6-1f4d-49fb-a54e-0096e8b5f7f9"
 			]
 		},
 		{
@@ -5110,6 +5446,22 @@
 					"baseline": 0,
 					"treatment": 0.03327546296296296
 				},
+				"bill": {
+					"baseline": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					},
+					"treatment": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					}
+				},
 				"touchesPerCase": {
 					"baseline": 0.19791666666666666,
 					"treatment": 0.4791666666666667
@@ -5121,8 +5473,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"90b37353-4977-4433-8ded-52a3a5df7eaa",
-				"da86c459-b482-4ad4-b24b-e6bdfb4e1a14"
+				"c693dd71-d950-4965-a843-4a4671e79f93",
+				"b4236bc6-1f4d-49fb-a54e-0096e8b5f7f9"
 			]
 		},
 		{
@@ -5342,6 +5694,22 @@
 					"baseline": 0,
 					"treatment": 0.03327546296296296
 				},
+				"bill": {
+					"baseline": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					},
+					"treatment": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					}
+				},
 				"touchesPerCase": {
 					"baseline": 0.19791666666666666,
 					"treatment": 0.4791666666666667
@@ -5353,8 +5721,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"90b37353-4977-4433-8ded-52a3a5df7eaa",
-				"da86c459-b482-4ad4-b24b-e6bdfb4e1a14"
+				"c693dd71-d950-4965-a843-4a4671e79f93",
+				"b4236bc6-1f4d-49fb-a54e-0096e8b5f7f9"
 			]
 		},
 		{
@@ -5574,6 +5942,22 @@
 					"baseline": 0,
 					"treatment": 0.03327546296296296
 				},
+				"bill": {
+					"baseline": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					},
+					"treatment": {
+						"tokens": 0,
+						"modelPounds": 0,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0
+					}
+				},
 				"touchesPerCase": {
 					"baseline": 0.19791666666666666,
 					"treatment": 0.4791666666666667
@@ -5585,12 +5969,12 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"90b37353-4977-4433-8ded-52a3a5df7eaa",
-				"da86c459-b482-4ad4-b24b-e6bdfb4e1a14"
+				"c693dd71-d950-4965-a843-4a4671e79f93",
+				"b4236bc6-1f4d-49fb-a54e-0096e8b5f7f9"
 			]
 		}
 	],
 	"verdict": "not-supported",
 	"note": "minimum detectable difference of rates at the achieved n (96 on the smaller side, 80% power): 15.3 points against the 5.0 the design meant to see; one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)",
-	"digest": "e908933924b86fdb883ceca22f62265c06539ebf4fb10a5492b1fae61ce224a9"
+	"digest": "3dd8318a33ea83600bc88613af21b36a5ae006480b283f7f47c2b91d2feb8e16"
 }

@@ -40,7 +40,13 @@ describe('the live designs', () => {
 					cassette: `docs/evidence/live/${liveIdOf(entry)}/${liveIdOf(entry)}.provider-cassette.json`
 				}
 			]);
-			expect(live.design.template.source.population.size).toBe(entry.size);
+			// A design over scenarios (plan 113 §12, item 10) has no book to resize: its scenarios are the base's and its one seed is the model's to vary.
+			if (entry.scenarios) {
+				expect(live.design.template.scenarios).toEqual(base.design.template.scenarios);
+				expect(live.design.seeds).toEqual([1]);
+			} else {
+				expect(live.design.template.source.population.size).toBe(entry.size);
+			}
 			expect(live.design.template.budget.maxLiveCells).toBeGreaterThan(0);
 			// The rest of the template is the base design's, untouched.
 			expect(live.design.template.builds).toEqual(

@@ -124,7 +124,7 @@ describe('the Disputes Desk', () => {
 	it('the investigation is earned: hidden until run, then on the desk; a scam pattern raises a warning', () => {
 		const world = create('app-scam');
 		const before = snapshot(world);
-		expect(before.records.map((r) => r.id)).toEqual(['desk-brief', 'dispute']);
+		expect(before.records.map((r) => r.id)).toEqual(['desk-brief', 'dispute', 'policy']);
 		expect(before.hidden.some((r) => r.id === 'investigation')).toBe(true);
 		expect(JSON.stringify(before.records)).not.toContain('scam pattern');
 		expect(world.perform(call('verify-customer')).ok).toBe(true);
@@ -225,5 +225,23 @@ describe('the Disputes Desk', () => {
 		expect(world.perform(call('investigate')).ok).toBe(true);
 		expect(world.perform(call('reimburse')).ok).toBe(false); // decided decline
 		expect(world.test('decision-agrees')).toBe(true);
+	});
+});
+
+describe('the reimbursement rule on the desk (113 §12, item 1)', () => {
+	// What the assistant reads: the claim sense, which carries the rule (the desk brief is not a line of the prompt).
+	const briefOf = (world: ReturnType<typeof create>): string =>
+		world.observe([qualifyDisputesId('claim')]).text;
+
+	it('states how a dispute is classified and what each class is owed, from the policy in force, never the answer', () => {
+		const text = briefOf(create());
+		expect(text).toContain('authorised push-payment scam');
+		expect(text).toContain('£100 excess');
+		expect(text).toContain('£85,000');
+		expect(text).not.toMatch(/should-|reimburse the customer £/);
+		const changed = briefOf(
+			create('clear-unauthorised', 7, { knobs: { reimbursementLimit: 20_000 } })
+		);
+		expect(changed).toContain('£20,000');
 	});
 });

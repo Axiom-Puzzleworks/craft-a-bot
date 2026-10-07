@@ -34,7 +34,17 @@ export const PENDING_RE_RECORD = new Set([
 	// WP193: the desk's own words changed (fraud's alert ids and its call sense, advice's check-suitability, the complaints file's register rule).
 	'complaints-stack-live',
 	'fraud-stack-live',
-	'advice-context-live'
+	'advice-context-live',
+	// Plan 113 §12 (items 1, 3, 4, 5, 6): the desks' rules on the case file, the live customer's opening, the temptations in the
+	// books, the stage turn ceilings — every prompt or book those designs recorded has changed on purpose.
+	'lending-stack-live',
+	'lending-stack-live-b',
+	'disputes-stack-live',
+	'collections-stack-live',
+	'onboarding-stack-live',
+	'servicing-stack-live-seat',
+	// Never recorded yet (item 10).
+	'controls-live'
 ]);
 
 /** What a replay of a cell-scoped recording must not show: a cell off its recorded path, an unasked call, a divergence. */

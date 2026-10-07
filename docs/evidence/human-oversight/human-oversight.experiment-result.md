@@ -4,7 +4,7 @@
 
 **Verdict: not-supported.** minimum detectable difference of rates at the achieved n (783 on the smaller side, 80% power): 1.4 points against the 5.0 the design meant to see; one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)
 
-Ran 2026-10-02T17:43:12.332Z; controls fs-lending/control-map/four-eyes; obligations pra:ss1-23:mitigants, pra:ss1-23:governance; campaigns human-oversight--brain=scripted-noisy--executors=rules-only--guard=none, human-oversight--brain=fallible--executors=rules-only--guard=none, human-oversight--brain=scripted-noisy--executors=rules-only--guard=policy-cards, human-oversight--brain=fallible--executors=rules-only--guard=policy-cards, human-oversight--brain=scripted-noisy--executors=bot-explains-only--guard=none, human-oversight--brain=fallible--executors=bot-explains-only--guard=none, human-oversight--brain=scripted-noisy--executors=bot-explains-only--guard=policy-cards, human-oversight--brain=fallible--executors=bot-explains-only--guard=policy-cards, human-oversight--brain=scripted-noisy--executors=bot-recommends--guard=none, human-oversight--brain=fallible--executors=bot-recommends--guard=none, human-oversight--brain=scripted-noisy--executors=bot-recommends--guard=policy-cards, human-oversight--brain=fallible--executors=bot-recommends--guard=policy-cards, human-oversight--brain=scripted-noisy--executors=bot-with-a-person-at-the-decision--guard=none, human-oversight--brain=fallible--executors=bot-with-a-person-at-the-decision--guard=none, human-oversight--brain=scripted-noisy--executors=bot-with-a-person-at-the-decision--guard=policy-cards, human-oversight--brain=fallible--executors=bot-with-a-person-at-the-decision--guard=policy-cards, human-oversight--brain=scripted-noisy--executors=bot-everywhere--guard=none, human-oversight--brain=fallible--executors=bot-everywhere--guard=none, human-oversight--brain=scripted-noisy--executors=bot-everywhere--guard=policy-cards, human-oversight--brain=fallible--executors=bot-everywhere--guard=policy-cards, human-oversight--brain=scripted-noisy--executors=bot-everywhere-ceilings-enforced--guard=none, human-oversight--brain=fallible--executors=bot-everywhere-ceilings-enforced--guard=none, human-oversight--brain=scripted-noisy--executors=bot-everywhere-ceilings-enforced--guard=policy-cards, human-oversight--brain=fallible--executors=bot-everywhere-ceilings-enforced--guard=policy-cards. Evidence about this synthetic bank under these configurations, and nothing else.
+Ran 2026-10-07T11:22:50.931Z; controls fs-lending/control-map/four-eyes; obligations pra:ss1-23:mitigants, pra:ss1-23:governance; campaigns human-oversight--brain=scripted-noisy--executors=rules-only--guard=none, human-oversight--brain=fallible--executors=rules-only--guard=none, human-oversight--brain=scripted-noisy--executors=rules-only--guard=policy-cards, human-oversight--brain=fallible--executors=rules-only--guard=policy-cards, human-oversight--brain=scripted-noisy--executors=bot-explains-only--guard=none, human-oversight--brain=fallible--executors=bot-explains-only--guard=none, human-oversight--brain=scripted-noisy--executors=bot-explains-only--guard=policy-cards, human-oversight--brain=fallible--executors=bot-explains-only--guard=policy-cards, human-oversight--brain=scripted-noisy--executors=bot-recommends--guard=none, human-oversight--brain=fallible--executors=bot-recommends--guard=none, human-oversight--brain=scripted-noisy--executors=bot-recommends--guard=policy-cards, human-oversight--brain=fallible--executors=bot-recommends--guard=policy-cards, human-oversight--brain=scripted-noisy--executors=bot-with-a-person-at-the-decision--guard=none, human-oversight--brain=fallible--executors=bot-with-a-person-at-the-decision--guard=none, human-oversight--brain=scripted-noisy--executors=bot-with-a-person-at-the-decision--guard=policy-cards, human-oversight--brain=fallible--executors=bot-with-a-person-at-the-decision--guard=policy-cards, human-oversight--brain=scripted-noisy--executors=bot-everywhere--guard=none, human-oversight--brain=fallible--executors=bot-everywhere--guard=none, human-oversight--brain=scripted-noisy--executors=bot-everywhere--guard=policy-cards, human-oversight--brain=fallible--executors=bot-everywhere--guard=policy-cards, human-oversight--brain=scripted-noisy--executors=bot-everywhere-ceilings-enforced--guard=none, human-oversight--brain=fallible--executors=bot-everywhere-ceilings-enforced--guard=none, human-oversight--brain=scripted-noisy--executors=bot-everywhere-ceilings-enforced--guard=policy-cards, human-oversight--brain=fallible--executors=bot-everywhere-ceilings-enforced--guard=policy-cards. Evidence about this synthetic bank under these configurations, and nothing else.
 
 ## touches
 
@@ -63,4 +63,23 @@ Method: difference of means, Welch interval at 95%; sign test over 0 non-tied of
 
 Method: difference of rates, Newcombe interval at 95%; sign test over 0 discordant of 783 pairs.
 
-Digest `8db5e172f4684df6f191ac5a5cc5e5529bc5f0b577daaa74ffe0fd8502de1e28`.
+## Bill per case
+
+| Factor | Treatment vs baseline | Baseline £ | Treatment £ | Model £ (treatment) | People £ (treatment) |
+|---|---|---|---|---|---|
+| executors | bot-explains-only vs rules-only (scripted-noisy tier) | 0.6145 | 1.3595 | 0.0018 | 1.3577 |
+| executors | bot-recommends vs rules-only (scripted-noisy tier) | 0.6145 | 1.9912 | 0.0095 | 1.9817 |
+| executors | bot-with-a-person-at-the-decision vs rules-only (scripted-noisy tier) | 0.6145 | 1.3655 | 0.0078 | 1.3577 |
+| executors | bot-everywhere vs rules-only (scripted-noisy tier) | 0.6145 | 0.0078 | 0.0078 | 0.0000 |
+| executors | bot-everywhere-ceilings-enforced vs rules-only (scripted-noisy tier) | 0.6145 | 0.0078 | 0.0078 | 0.0000 |
+| executors | bot-explains-only vs rules-only (fallible tier) | 0.6145 | 1.3595 | 0.0018 | 1.3577 |
+| executors | bot-recommends vs rules-only (fallible tier) | 0.6145 | 1.9911 | 0.0094 | 1.9817 |
+| executors | bot-with-a-person-at-the-decision vs rules-only (fallible tier) | 0.6145 | 1.3595 | 0.0077 | 1.3517 |
+| executors | bot-everywhere vs rules-only (fallible tier) | 0.6145 | 0.0078 | 0.0078 | 0.0000 |
+| executors | bot-everywhere-ceilings-enforced vs rules-only (fallible tier) | 0.6145 | 0.0078 | 0.0078 | 0.0000 |
+| guard | policy-cards vs none (scripted-noisy tier) | 0.6145 | 0.6145 | 0.0000 | 0.6145 |
+| guard | policy-cards vs none (fallible tier) | 0.6145 | 0.6145 | 0.0000 | 0.6145 |
+
+Pounds at the stated rates (`fs-bank/bill`, assumptions): tokens at the hosted price, reviewer seconds at the case handler’s hourly cost.
+
+Digest `93627c8903295dd062ef89aa18dca65e4e0148da53896844e5925385e2c52e0c`.

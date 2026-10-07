@@ -193,7 +193,11 @@ describe('the Lending Desk (WP63 stage A)', () => {
 		let state = snapshot(world);
 		expect(isDeskWorldState(state)).toBe(true);
 		expect(state.queue).toEqual([expect.objectContaining({ id: 'application', status: 'open' })]);
-		expect(state.records.map((record) => record.id)).toEqual(['desk-brief', 'application']);
+		expect(state.records.map((record) => record.id)).toEqual([
+			'desk-brief',
+			'application',
+			'policy'
+		]);
 		expect(world.observe([qualifyLendingId('affordability-worksheet')]).text).toContain(
 			'Not yet assessed'
 		);
@@ -376,5 +380,28 @@ describe('the Lending Desk (WP63 stage A)', () => {
 		expect(
 			texts.filter(([, text]) => text.includes('pack-fs-advice') || text.includes('pack-fs-fraud'))
 		).toEqual([]);
+	});
+});
+
+describe('the lending rule on the desk (113 §12, item 1)', () => {
+	// What the assistant reads: the application sense, which carries the rule (the desk brief is not a line of the prompt).
+	const briefOf = (world: ReturnType<typeof create>): string =>
+		world.observe([qualifyLendingId('application')]).text;
+
+	it('states the bank’s thresholds in the brief, from the policy in force, and never the answer for the case', () => {
+		const text = briefOf(create());
+		expect(text).toContain('Decline if the bureau score band is poor');
+		expect(text).toContain('2 or more defaults');
+		expect(text).toContain('ratio is over 100%');
+		expect(text).toContain('ratio is over 60%');
+		expect(text).toContain('or if the score band is fair');
+		expect(text).not.toMatch(/should-(approve|decline|refer)/);
+		const stricter = lendingDesk.create('clear-approve', {
+			random: seededRandom(7),
+			config: { knobs: { referRatioPercent: 45, referOnFair: false } }
+		});
+		const changed = briefOf(stricter as ReturnType<typeof create>);
+		expect(changed).toContain('ratio is over 45%');
+		expect(changed).not.toContain('score band is fair');
 	});
 });

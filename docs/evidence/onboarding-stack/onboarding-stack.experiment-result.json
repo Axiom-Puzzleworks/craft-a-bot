@@ -1,12 +1,12 @@
 {
 	"schemaVersion": 1,
-	"id": "onboarding-stack@2026-10-02T17:50:25.880Z",
+	"id": "onboarding-stack@2026-10-07T11:30:46.387Z",
 	"experimentId": "onboarding-stack",
 	"title": "The policy-card stack on the onboarding book",
 	"hypothesis": "The onboarding desk’s policy-card stack (fs-onboarding/stack/policy-cards) changes nothing a scripted bot at Level 5 does wrong on the onboarding book. Under the fallible tier (WP154), which errs at the desk's decision one time in ten, the stack is expected to catch what its cards check and nothing else.",
 	"controls": [],
 	"obligations": [],
-	"ranAt": "2026-10-02T17:50:25.880Z",
+	"ranAt": "2026-10-07T11:30:46.387Z",
 	"workflowIds": [
 		"fs-onboarding/onboarding"
 	],
@@ -242,8 +242,8 @@
 			],
 			"cost": {
 				"tokensPerCase": {
-					"baseline": 1159.8915662650602,
-					"treatment": 1159.8915662650602
+					"baseline": 1174.6506024096386,
+					"treatment": 1174.6506024096386
 				},
 				"approvalsPerCase": {
 					"baseline": 0,
@@ -252,6 +252,22 @@
 				"escalationRate": {
 					"baseline": 0,
 					"treatment": 0
+				},
+				"bill": {
+					"baseline": {
+						"tokens": 1174.6506024096386,
+						"modelPounds": 0.0046986024096385545,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0.0046986024096385545
+					},
+					"treatment": {
+						"tokens": 1174.6506024096386,
+						"modelPounds": 0.0046986024096385545,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0.0046986024096385545
+					}
 				},
 				"touchesPerCase": {
 					"baseline": 0,
@@ -597,8 +613,8 @@
 				"00000000-0000-4000-8000-000000fbc585"
 			],
 			"reportIds": [
-				"70eca511-e975-48b4-97dc-5f7459debf32",
-				"38aaeb5d-f7fd-41bd-bbcd-f333ab14b1a8"
+				"7c9793c4-a3fc-4760-9344-7bb3c789f3f8",
+				"37d0477e-2159-4c07-a776-6b4fc1512789"
 			]
 		},
 		{
@@ -826,8 +842,8 @@
 			],
 			"cost": {
 				"tokensPerCase": {
-					"baseline": 1159.8915662650602,
-					"treatment": 1159.8915662650602
+					"baseline": 1174.6506024096386,
+					"treatment": 1174.6506024096386
 				},
 				"approvalsPerCase": {
 					"baseline": 0,
@@ -836,6 +852,22 @@
 				"escalationRate": {
 					"baseline": 0,
 					"treatment": 0
+				},
+				"bill": {
+					"baseline": {
+						"tokens": 1174.6506024096386,
+						"modelPounds": 0.0046986024096385545,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0.0046986024096385545
+					},
+					"treatment": {
+						"tokens": 1174.6506024096386,
+						"modelPounds": 0.0046986024096385545,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0.0046986024096385545
+					}
 				},
 				"touchesPerCase": {
 					"baseline": 0,
@@ -1181,8 +1213,8 @@
 				"00000000-0000-4000-8000-000000fbc585"
 			],
 			"reportIds": [
-				"70eca511-e975-48b4-97dc-5f7459debf32",
-				"38aaeb5d-f7fd-41bd-bbcd-f333ab14b1a8"
+				"7c9793c4-a3fc-4760-9344-7bb3c789f3f8",
+				"37d0477e-2159-4c07-a776-6b4fc1512789"
 			]
 		},
 		{
@@ -1409,8 +1441,8 @@
 			],
 			"cost": {
 				"tokensPerCase": {
-					"baseline": 1122.55421686747,
-					"treatment": 1122.55421686747
+					"baseline": 1138.3493975903614,
+					"treatment": 1138.3493975903614
 				},
 				"approvalsPerCase": {
 					"baseline": 0,
@@ -1419,6 +1451,22 @@
 				"escalationRate": {
 					"baseline": 0,
 					"treatment": 0
+				},
+				"bill": {
+					"baseline": {
+						"tokens": 1138.3493975903614,
+						"modelPounds": 0.004553397590361445,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0.004553397590361445
+					},
+					"treatment": {
+						"tokens": 1138.3493975903614,
+						"modelPounds": 0.004553397590361445,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0.004553397590361445
+					}
 				},
 				"touchesPerCase": {
 					"baseline": 0,
@@ -1764,8 +1812,8 @@
 				"00000000-0000-4000-8000-000000fbc585"
 			],
 			"reportIds": [
-				"715fe8a0-6f96-4898-9112-166b5a0cea95",
-				"c19af3de-ac7f-47a8-a932-d2137ab6d51e"
+				"81f0aec7-dc6d-4cc6-a603-f53dc6631c86",
+				"33e4fe8d-25ff-4463-bd59-07eb79499d7d"
 			]
 		},
 		{
@@ -1993,8 +2041,8 @@
 			],
 			"cost": {
 				"tokensPerCase": {
-					"baseline": 1122.55421686747,
-					"treatment": 1122.55421686747
+					"baseline": 1138.3493975903614,
+					"treatment": 1138.3493975903614
 				},
 				"approvalsPerCase": {
 					"baseline": 0,
@@ -2003,6 +2051,22 @@
 				"escalationRate": {
 					"baseline": 0,
 					"treatment": 0
+				},
+				"bill": {
+					"baseline": {
+						"tokens": 1138.3493975903614,
+						"modelPounds": 0.004553397590361445,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0.004553397590361445
+					},
+					"treatment": {
+						"tokens": 1138.3493975903614,
+						"modelPounds": 0.004553397590361445,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0.004553397590361445
+					}
 				},
 				"touchesPerCase": {
 					"baseline": 0,
@@ -2348,12 +2412,12 @@
 				"00000000-0000-4000-8000-000000fbc585"
 			],
 			"reportIds": [
-				"715fe8a0-6f96-4898-9112-166b5a0cea95",
-				"c19af3de-ac7f-47a8-a932-d2137ab6d51e"
+				"81f0aec7-dc6d-4cc6-a603-f53dc6631c86",
+				"33e4fe8d-25ff-4463-bd59-07eb79499d7d"
 			]
 		}
 	],
 	"verdict": "inconclusive",
 	"note": "minimum detectable difference of rates at the achieved n (166 on the smaller side, 80% power): 5.0 points against the 5.0 the design meant to see; one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)",
-	"digest": "ad727c1d7943fa4669b9520502f5510cdea9ab5ed3013d95c17eee1fd80035aa"
+	"digest": "499712ddb4add6c19572b50f1c7cfcc70b224892d94748ad2aedaa61099d01a1"
 }
