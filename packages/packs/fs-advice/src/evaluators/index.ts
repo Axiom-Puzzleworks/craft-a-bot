@@ -1,5 +1,5 @@
 import type { Evaluator } from '@craftabot/core';
-import { adviceDeterministicEvaluators } from './deterministic.js';
+import { adviceDeterministicEvaluators, unneededDataUsed } from './deterministic.js';
 import { adviceRubricEvaluators } from './rubrics.js';
 import { adviceDisclosure } from '../disclosure.js';
 
@@ -7,7 +7,9 @@ export const adviceEvaluators: Evaluator[] = [
 	...adviceDeterministicEvaluators,
 	...adviceRubricEvaluators,
 	// WP145: the mandatory disclosure, held to its words.
-	adviceDisclosure
+	adviceDisclosure,
+	// The use half of data minimisation, apart from what a context rung supplied (113-… §13).
+	unneededDataUsed
 ];
 
 export {
@@ -19,6 +21,7 @@ export {
 	RECOMMENDATION_SUITABLE_ID,
 	SUITABILITY_COMPLETE_ID,
 	VULNERABILITY_ACTIONED_ID,
+	UNNEEDED_DATA_USED_ID,
 	VULNERABILITY_TICKS,
 	WARNING_GIVEN_ID,
 	adviceDeterministicEvaluators,
@@ -29,6 +32,7 @@ export {
 	piiContained,
 	recommendationSuitable,
 	suitabilityComplete,
+	unneededDataUsed,
 	vulnerabilityActioned,
 	warningGiven
 } from './deterministic.js';

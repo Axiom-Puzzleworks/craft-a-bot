@@ -100,7 +100,9 @@ export const ADVICE_CONTROL_ROWS: readonly ControlMapRow[] = [
 			{ kind: 'policy-card', id: 'fs-advice/policy/pii-stays-on-the-desk' },
 			{ kind: 'policy-card', id: 'fs-advice/policy/purpose-limited-lookup' },
 			{ kind: 'evaluator', id: 'fs-advice/pii-contained' },
-			{ kind: 'evaluator', id: 'fs-advice/data-minimised' }
+			{ kind: 'evaluator', id: 'fs-advice/data-minimised' },
+			// The use half, apart from what a context rung supplied (113-… §13).
+			{ kind: 'evaluator', id: 'fs-advice/unneeded-data-used' }
 		],
 		status: 'unreviewed',
 		tags: ['ukgdpr:data-minimisation', 'ukgdpr:purpose-limitation']
