@@ -1942,7 +1942,7 @@ async function runBookCell(
 		options,
 		pathDigestOf(
 			agentRuns.map((agent) => agent.events),
-			{ events: run.events, digest: run.digest }
+			{ events: run.events, stages: run.stages }
 		),
 		agentRuns.map((agent) => agent.runId),
 		run.id

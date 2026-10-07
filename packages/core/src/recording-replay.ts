@@ -193,14 +193,20 @@ const PATH_EVENTS = new Set([
 ]);
 /** Wall-clock and wire detail: left out, so a replay (which has no wall clock) can reproduce the digest. */
 const OFF_PATH = new Set(['durationMs', 'latencyMs', 'timestamp', 'raw']);
+/**
+ * Identity, not path: ids are allocated by a counter that every event advances, and a live provider streams in its own
+ * chunks while a replay splits the recorded text on whitespace, so the same decisions leave different numbers of
+ * `think.token` events and the ids after them differ. A journey's stage records name the agent runs by id.
+ */
+const IDENTITY = new Set(['runId', 'runIds', 'eventId', 'workflowRunId']);
 
-function onPath(value: unknown): unknown {
-	if (Array.isArray(value)) return value.map(onPath);
+function onPath(value: unknown, off: ReadonlySet<string> = OFF_PATH): unknown {
+	if (Array.isArray(value)) return value.map((held) => onPath(held, off));
 	if (value !== null && typeof value === 'object') {
 		return Object.fromEntries(
 			Object.entries(value as Record<string, unknown>)
-				.filter(([key]) => !OFF_PATH.has(key))
-				.map(([key, held]) => [key, onPath(held)])
+				.filter(([key]) => !off.has(key))
+				.map(([key, held]) => [key, onPath(held, off)])
 		);
 	}
 	return value;
@@ -215,7 +221,7 @@ function onPath(value: unknown): unknown {
  */
 export function pathDigestOf(
 	runs: ReadonlyArray<readonly EngineEvent[]>,
-	workflow?: { events: readonly EngineEvent[]; digest: string }
+	workflow?: { events: readonly EngineEvent[]; stages: readonly unknown[] }
 ): string {
 	// Over the events as a store reads them back (12-… D21): parsed, so the live run in memory and its stored copy digest alike.
 	const keep = (held: readonly EngineEvent[]) =>
@@ -227,7 +233,15 @@ export function pathDigestOf(
 	return sha256Hex(
 		canonicalJson({
 			runs: runs.map(keep),
-			...(workflow ? { workflow: { events: keep(workflow.events), digest: workflow.digest } } : {})
+			// The stages by what they decided and how they ended — not the workflow run's own digest, which hashes the agent run ids in them.
+			...(workflow
+				? {
+						workflow: {
+							events: keep(workflow.events),
+							stages: onPath(workflow.stages, new Set([...OFF_PATH, ...IDENTITY]))
+						}
+					}
+				: {})
 		})
 	);
 }

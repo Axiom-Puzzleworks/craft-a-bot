@@ -166,18 +166,17 @@ export function recordingProvider(
 	return { provider, entries };
 }
 
-/** An error as the recording keeps it: its kind (a provider error's own, else its name), its message and any retry hint. */
+/**
+ * An error as the recording keeps it: its kind, its message and any retry hint. The kind is what the session will report
+ * for it — a provider error's own, else `engine` — so a replay that raises the recorded error leaves the same `error`
+ * event (`113-…` §11, WP190's note: a live abort first replayed as kind `AbortError` against the live run's `engine`).
+ */
 export function describeError(error: unknown): NonNullable<TappedCall['error']> {
 	const held =
 		error !== null && typeof error === 'object' ? (error as Record<string, unknown>) : {};
 	const retryAfter = held['retryAfterMs'];
 	return {
-		kind:
-			typeof held['kind'] === 'string'
-				? held['kind']
-				: error instanceof Error
-					? error.name
-					: 'unknown',
+		kind: typeof held['kind'] === 'string' ? held['kind'] : 'engine',
 		message: error instanceof Error ? error.message : String(error),
 		...(typeof retryAfter === 'number' && retryAfter >= 0 ? { retryAfterMs: retryAfter } : {})
 	};

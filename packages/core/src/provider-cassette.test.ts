@@ -530,4 +530,22 @@ describe('exact replay of a recording (WP190)', () => {
 		// And so is a run that stopped sooner.
 		expect(pathDigestOf([events.slice(0, -2)])).not.toBe(base);
 	});
+
+	it('the workflow part is read by what each stage decided, not by the run ids it names', async () => {
+		const events = await runWith(createMockProvider({ script: PLAN }));
+		const stages = (runId: string, outcome: string) => [
+			{ stageId: 'a', status: 'completed', runId, runIds: [runId], outcome, durationMs: 5 }
+		];
+		const base = pathDigestOf([events], { events: [], stages: stages('run-1', 'done') });
+		// The same stages under other run ids and another wall-clock time are the same path.
+		const renumbered = pathDigestOf([events], {
+			events: [],
+			stages: [{ ...stages('run-9', 'done')[0]!, durationMs: 900 }]
+		});
+		expect(renumbered).toBe(base);
+		// A stage that ended differently is not.
+		expect(pathDigestOf([events], { events: [], stages: stages('run-1', 'stopped') })).not.toBe(
+			base
+		);
+	});
 });

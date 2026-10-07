@@ -196,7 +196,7 @@ async function checkLiveStore(
 				complete &&
 				pathDigestOf(
 					runs,
-					held ? { events: held.run.events, digest: held.run.digest } : undefined
+					held ? { events: held.run.events, stages: held.run.stages } : undefined
 				) === cell.pathDigest;
 		}
 		if (!matches) report.liveMismatch.push(cell.cellKey);
