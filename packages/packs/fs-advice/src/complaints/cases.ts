@@ -332,7 +332,12 @@ export function complaintCaseFromItem(random: () => number, item: WorkItem): Com
 		kind: 'notice',
 		title: complaintsStrings.records.register.title,
 		classification: 'public',
-		fields: { rule: complaintsStrings.records.register.rule([...UPHELD_CATEGORIES].sort()) }
+		fields: {
+			rule: complaintsStrings.records.register.rule([...UPHELD_CATEGORIES].sort()),
+			redress: complaintsStrings.records.redress(
+				...PROFILES[kindForCategory(category, upheld)].redress
+			)
+		}
 	};
 	const extra: ComplaintsExtra = {
 		...built.extra,

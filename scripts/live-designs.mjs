@@ -29,8 +29,12 @@ export const CARTRIDGE = 'dgx-spark/giant-qwen';
  * The reply limit a live design gives its agents. The stage agents inherit the starter's 256, and the first lending
  * recording (2026-10-06) found 35 of its 791 replies, 4.4%, cut off by it with no call made: a measurement of the cap, not of
  * the model. A scripted brain never reads it, so raising it moves nothing but the live tier.
+ *
+ * 1,024 until 2026-10-07 (plan 113 §12, preflight): with the desks' rules on the case file a bot sometimes re-derives the rule at
+ * length, and one lending cell spent eleven calls cut off at 1,024 with no call made, each reply feeding the next. 2,048 lets
+ * the first long reply finish; the ordinary reply is 100–300 tokens, so it costs only the tail.
  */
-export const MAX_TOKENS = 1024;
+export const MAX_TOKENS = 2048;
 
 /**
  * The designs and the book each is recorded at. The size is chosen so a
@@ -39,21 +43,25 @@ export const MAX_TOKENS = 1024;
  * cassettes is the live tier's own variance.
  */
 export const LIVE = [
-	{ base: 'lending-stack', size: 800 },
-	{ base: 'lending-stack', size: 800, variant: 'b' },
+	// Cheapest first, so a stopped run has the most designs behind it. `trials` is how often a design is performed
+	// (`113-RECORDING-AND-RELIABILITY.md` §12): 2 where a second performance can change a conclusion, 1 where the design
+	// sits at a ceiling (servicing) and the model's variance there would only cost hours. At k = 3 a design would read pass^3.
+	{ base: 'onboarding-stack', size: 400, trials: 2 },
+	{ base: 'disputes-stack', size: 400, trials: 2 },
+	{ base: 'complaints-stack', size: 200, trials: 2 },
 	{ base: 'servicing-stack', size: 200 },
 	// WP169: the same design with a live customer across the desk, answering back (the book's caller drawn by the desk).
 	{ base: 'servicing-stack', size: 100, seat: true },
-	{ base: 'disputes-stack', size: 400 },
-	{ base: 'collections-stack', size: 300 },
-	{ base: 'onboarding-stack', size: 400 },
-	{ base: 'complaints-stack', size: 200 },
-	{ base: 'fraud-stack', size: 6 },
-	{ base: 'advice-context', size: 1200 },
 	// Plan 113 §12, item 10: a design over scenarios, not a book — the agent-security components against the attacks the Playroom
 	// carries, with a live model as the agent. No population to resize; one seed, since a scenario's world is deterministic and
 	// the model's own variance is read from trials.
-	{ base: 'controls', scenarios: true }
+	{ base: 'controls', scenarios: true, trials: 2 },
+	{ base: 'collections-stack', size: 300, trials: 2 },
+	// `lending-stack` was recorded twice (a variant `b`) to read the live tier's own variance; trials now measure that directly, so
+	// the second design is retired (its committed evidence stays as the record of that first measurement).
+	{ base: 'lending-stack', size: 800, trials: 2 },
+	{ base: 'advice-context', size: 1200, trials: 2 },
+	{ base: 'fraud-stack', size: 6, trials: 2 }
 ];
 
 export const liveIdOf = ({ base, variant, seat }) =>
@@ -85,6 +93,9 @@ export function liveDesign(entry, cassetteRoot) {
 		}
 	];
 	d.design.template.budget = { maxLiveCells: 1000 };
+	// Performed more than once (113 §12): the design itself says how often, so its replay — here, in CI and after a recording — runs
+	// as many performances as were recorded, and the result carries the reliability.
+	if ((entry.trials ?? 1) > 1) d.design.trials = entry.trials;
 	// A live customer (WP169): the seat takes the same cartridge as the brain, and answers from the same cassette on replay.
 	if (entry.seat)
 		d.design.template.counterpart = { tier: 'live', cartridgeId: CARTRIDGE, maxRounds: 12 };

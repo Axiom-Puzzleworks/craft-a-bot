@@ -1,6 +1,6 @@
 {
 	"schemaVersion": 1,
-	"id": "lending-stack@2026-10-07T11:30:25.690Z",
+	"id": "lending-stack@2026-10-07T12:59:48.968Z",
 	"experimentId": "lending-stack",
 	"title": "The policy-card stack on the loan book",
 	"hypothesis": "The policy-card stack raises agreement with the lending rule and lowers over-approval across the reference configurations, at a stated approval-load cost.",
@@ -11,7 +11,7 @@
 		"fca:conc:affordability",
 		"fca:conc:creditworthiness"
 	],
-	"ranAt": "2026-10-07T11:30:25.690Z",
+	"ranAt": "2026-10-07T12:59:48.968Z",
 	"workflowIds": [
 		"fs-lending/lending"
 	],
@@ -267,8 +267,8 @@
 			],
 			"cost": {
 				"tokensPerCase": {
-					"baseline": 1960.742017879949,
-					"treatment": 2033.5185185185185
+					"baseline": 1967.6526181353768,
+					"treatment": 2040.463601532567
 				},
 				"approvalsPerCase": {
 					"baseline": 0,
@@ -280,18 +280,18 @@
 				},
 				"bill": {
 					"baseline": {
-						"tokens": 1960.742017879949,
-						"modelPounds": 0.007842968071519796,
+						"tokens": 1967.6526181353768,
+						"modelPounds": 0.007870610472541508,
 						"humanSeconds": 0,
 						"humanPounds": 0,
-						"pounds": 0.007842968071519796
+						"pounds": 0.007870610472541508
 					},
 					"treatment": {
-						"tokens": 2033.5185185185185,
-						"modelPounds": 0.008134074074074073,
+						"tokens": 2040.463601532567,
+						"modelPounds": 0.00816185440613027,
 						"humanSeconds": 0,
 						"humanPounds": 0,
-						"pounds": 0.008134074074074073
+						"pounds": 0.00816185440613027
 					}
 				},
 				"touchesPerCase": {
@@ -1872,8 +1872,8 @@
 				"00000000-0000-4000-8000-000004a93d17"
 			],
 			"reportIds": [
-				"d232f918-54fd-4a60-8c76-dcfbf9e94a98",
-				"be664eee-a20e-47a3-8eba-b162ce255949"
+				"4e803377-e5bb-483a-8f3d-137b40021782",
+				"507f4d0b-0009-4ff3-8ebc-011d88f0d850"
 			]
 		},
 		{
@@ -2113,8 +2113,8 @@
 			],
 			"cost": {
 				"tokensPerCase": {
-					"baseline": 1960.742017879949,
-					"treatment": 2033.5185185185185
+					"baseline": 1967.6526181353768,
+					"treatment": 2040.463601532567
 				},
 				"approvalsPerCase": {
 					"baseline": 0,
@@ -2126,18 +2126,18 @@
 				},
 				"bill": {
 					"baseline": {
-						"tokens": 1960.742017879949,
-						"modelPounds": 0.007842968071519796,
+						"tokens": 1967.6526181353768,
+						"modelPounds": 0.007870610472541508,
 						"humanSeconds": 0,
 						"humanPounds": 0,
-						"pounds": 0.007842968071519796
+						"pounds": 0.007870610472541508
 					},
 					"treatment": {
-						"tokens": 2033.5185185185185,
-						"modelPounds": 0.008134074074074073,
+						"tokens": 2040.463601532567,
+						"modelPounds": 0.00816185440613027,
 						"humanSeconds": 0,
 						"humanPounds": 0,
-						"pounds": 0.008134074074074073
+						"pounds": 0.00816185440613027
 					}
 				},
 				"touchesPerCase": {
@@ -3718,8 +3718,8 @@
 				"00000000-0000-4000-8000-000004a93d17"
 			],
 			"reportIds": [
-				"d232f918-54fd-4a60-8c76-dcfbf9e94a98",
-				"be664eee-a20e-47a3-8eba-b162ce255949"
+				"4e803377-e5bb-483a-8f3d-137b40021782",
+				"507f4d0b-0009-4ff3-8ebc-011d88f0d850"
 			]
 		},
 		{
@@ -3958,8 +3958,8 @@
 			],
 			"cost": {
 				"tokensPerCase": {
-					"baseline": 1952.2222222222222,
-					"treatment": 2024.6922094508302
+					"baseline": 1958.859514687101,
+					"treatment": 2031.3537675606642
 				},
 				"approvalsPerCase": {
 					"baseline": 0,
@@ -3971,18 +3971,18 @@
 				},
 				"bill": {
 					"baseline": {
-						"tokens": 1952.2222222222222,
-						"modelPounds": 0.007808888888888889,
+						"tokens": 1958.859514687101,
+						"modelPounds": 0.007835438058748404,
 						"humanSeconds": 0,
 						"humanPounds": 0,
-						"pounds": 0.007808888888888889
+						"pounds": 0.007835438058748404
 					},
 					"treatment": {
-						"tokens": 2024.6922094508302,
-						"modelPounds": 0.008098768837803322,
+						"tokens": 2031.3537675606642,
+						"modelPounds": 0.008125415070242656,
 						"humanSeconds": 0,
 						"humanPounds": 0,
-						"pounds": 0.008098768837803322
+						"pounds": 0.008125415070242656
 					}
 				},
 				"touchesPerCase": {
@@ -5563,8 +5563,8 @@
 				"00000000-0000-4000-8000-000004a93d17"
 			],
 			"reportIds": [
-				"92c55bb9-eb3a-4d4d-b854-d7becb42d3ee",
-				"89dcd0b3-f555-470b-813a-3b554b601110"
+				"f7e8d789-fa42-4e36-99f4-00cf861e348d",
+				"b1b269dd-1f88-4020-b497-e38ac1fce7fe"
 			]
 		},
 		{
@@ -5803,8 +5803,8 @@
 			],
 			"cost": {
 				"tokensPerCase": {
-					"baseline": 1952.2222222222222,
-					"treatment": 2024.6922094508302
+					"baseline": 1958.859514687101,
+					"treatment": 2031.3537675606642
 				},
 				"approvalsPerCase": {
 					"baseline": 0,
@@ -5816,18 +5816,18 @@
 				},
 				"bill": {
 					"baseline": {
-						"tokens": 1952.2222222222222,
-						"modelPounds": 0.007808888888888889,
+						"tokens": 1958.859514687101,
+						"modelPounds": 0.007835438058748404,
 						"humanSeconds": 0,
 						"humanPounds": 0,
-						"pounds": 0.007808888888888889
+						"pounds": 0.007835438058748404
 					},
 					"treatment": {
-						"tokens": 2024.6922094508302,
-						"modelPounds": 0.008098768837803322,
+						"tokens": 2031.3537675606642,
+						"modelPounds": 0.008125415070242656,
 						"humanSeconds": 0,
 						"humanPounds": 0,
-						"pounds": 0.008098768837803322
+						"pounds": 0.008125415070242656
 					}
 				},
 				"touchesPerCase": {
@@ -7408,8 +7408,8 @@
 				"00000000-0000-4000-8000-000004a93d17"
 			],
 			"reportIds": [
-				"92c55bb9-eb3a-4d4d-b854-d7becb42d3ee",
-				"89dcd0b3-f555-470b-813a-3b554b601110"
+				"f7e8d789-fa42-4e36-99f4-00cf861e348d",
+				"b1b269dd-1f88-4020-b497-e38ac1fce7fe"
 			]
 		},
 		{
@@ -7649,7 +7649,7 @@
 			],
 			"cost": {
 				"tokensPerCase": {
-					"baseline": 1960.742017879949,
+					"baseline": 1967.6526181353768,
 					"treatment": 0
 				},
 				"approvalsPerCase": {
@@ -7662,11 +7662,11 @@
 				},
 				"bill": {
 					"baseline": {
-						"tokens": 1960.742017879949,
-						"modelPounds": 0.007842968071519796,
+						"tokens": 1967.6526181353768,
+						"modelPounds": 0.007870610472541508,
 						"humanSeconds": 0,
 						"humanPounds": 0,
-						"pounds": 0.007842968071519796
+						"pounds": 0.007870610472541508
 					},
 					"treatment": {
 						"tokens": 0,
@@ -8471,8 +8471,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"d232f918-54fd-4a60-8c76-dcfbf9e94a98",
-				"dabd0680-fffe-4349-8960-f7599bcc4b06"
+				"4e803377-e5bb-483a-8f3d-137b40021782",
+				"43c5452f-dc6f-4111-9330-fe448a400c2f"
 			]
 		},
 		{
@@ -8712,7 +8712,7 @@
 			],
 			"cost": {
 				"tokensPerCase": {
-					"baseline": 1960.742017879949,
+					"baseline": 1967.6526181353768,
 					"treatment": 0
 				},
 				"approvalsPerCase": {
@@ -8725,11 +8725,11 @@
 				},
 				"bill": {
 					"baseline": {
-						"tokens": 1960.742017879949,
-						"modelPounds": 0.007842968071519796,
+						"tokens": 1967.6526181353768,
+						"modelPounds": 0.007870610472541508,
 						"humanSeconds": 0,
 						"humanPounds": 0,
-						"pounds": 0.007842968071519796
+						"pounds": 0.007870610472541508
 					},
 					"treatment": {
 						"tokens": 0,
@@ -9534,8 +9534,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"d232f918-54fd-4a60-8c76-dcfbf9e94a98",
-				"dabd0680-fffe-4349-8960-f7599bcc4b06"
+				"4e803377-e5bb-483a-8f3d-137b40021782",
+				"43c5452f-dc6f-4111-9330-fe448a400c2f"
 			]
 		},
 		{
@@ -9775,8 +9775,8 @@
 			],
 			"cost": {
 				"tokensPerCase": {
-					"baseline": 1960.742017879949,
-					"treatment": 1951.647509578544
+					"baseline": 1967.6526181353768,
+					"treatment": 1958.2656449553
 				},
 				"approvalsPerCase": {
 					"baseline": 0,
@@ -9788,18 +9788,18 @@
 				},
 				"bill": {
 					"baseline": {
-						"tokens": 1960.742017879949,
-						"modelPounds": 0.007842968071519796,
+						"tokens": 1967.6526181353768,
+						"modelPounds": 0.007870610472541508,
 						"humanSeconds": 0,
 						"humanPounds": 0,
-						"pounds": 0.007842968071519796
+						"pounds": 0.007870610472541508
 					},
 					"treatment": {
-						"tokens": 1951.647509578544,
-						"modelPounds": 0.007806590038314176,
+						"tokens": 1958.2656449553,
+						"modelPounds": 0.007833062579821201,
 						"humanSeconds": 174.55938697318007,
 						"humanPounds": 1.3576841209025117,
-						"pounds": 1.3654907109408259
+						"pounds": 1.365517183482333
 					}
 				},
 				"touchesPerCase": {
@@ -11380,8 +11380,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"d232f918-54fd-4a60-8c76-dcfbf9e94a98",
-				"2846793c-3fb7-4d8b-afe5-e303f6faf63f"
+				"4e803377-e5bb-483a-8f3d-137b40021782",
+				"364b13b4-4c7e-49fc-981d-c5d5e632252c"
 			]
 		},
 		{
@@ -11621,8 +11621,8 @@
 			],
 			"cost": {
 				"tokensPerCase": {
-					"baseline": 1960.742017879949,
-					"treatment": 1951.647509578544
+					"baseline": 1967.6526181353768,
+					"treatment": 1958.2656449553
 				},
 				"approvalsPerCase": {
 					"baseline": 0,
@@ -11634,18 +11634,18 @@
 				},
 				"bill": {
 					"baseline": {
-						"tokens": 1960.742017879949,
-						"modelPounds": 0.007842968071519796,
+						"tokens": 1967.6526181353768,
+						"modelPounds": 0.007870610472541508,
 						"humanSeconds": 0,
 						"humanPounds": 0,
-						"pounds": 0.007842968071519796
+						"pounds": 0.007870610472541508
 					},
 					"treatment": {
-						"tokens": 1951.647509578544,
-						"modelPounds": 0.007806590038314176,
+						"tokens": 1958.2656449553,
+						"modelPounds": 0.007833062579821201,
 						"humanSeconds": 174.55938697318007,
 						"humanPounds": 1.3576841209025117,
-						"pounds": 1.3654907109408259
+						"pounds": 1.365517183482333
 					}
 				},
 				"touchesPerCase": {
@@ -13226,8 +13226,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"d232f918-54fd-4a60-8c76-dcfbf9e94a98",
-				"2846793c-3fb7-4d8b-afe5-e303f6faf63f"
+				"4e803377-e5bb-483a-8f3d-137b40021782",
+				"364b13b4-4c7e-49fc-981d-c5d5e632252c"
 			]
 		},
 		{
@@ -13466,7 +13466,7 @@
 			],
 			"cost": {
 				"tokensPerCase": {
-					"baseline": 1952.2222222222222,
+					"baseline": 1958.859514687101,
 					"treatment": 0
 				},
 				"approvalsPerCase": {
@@ -13479,11 +13479,11 @@
 				},
 				"bill": {
 					"baseline": {
-						"tokens": 1952.2222222222222,
-						"modelPounds": 0.007808888888888889,
+						"tokens": 1958.859514687101,
+						"modelPounds": 0.007835438058748404,
 						"humanSeconds": 0,
 						"humanPounds": 0,
-						"pounds": 0.007808888888888889
+						"pounds": 0.007835438058748404
 					},
 					"treatment": {
 						"tokens": 0,
@@ -14288,8 +14288,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"92c55bb9-eb3a-4d4d-b854-d7becb42d3ee",
-				"5b148b13-d522-47f1-84c8-2a7b15fd3fa1"
+				"f7e8d789-fa42-4e36-99f4-00cf861e348d",
+				"53c2da60-0afd-4141-aa93-71b6fcf0d4fb"
 			]
 		},
 		{
@@ -14528,7 +14528,7 @@
 			],
 			"cost": {
 				"tokensPerCase": {
-					"baseline": 1952.2222222222222,
+					"baseline": 1958.859514687101,
 					"treatment": 0
 				},
 				"approvalsPerCase": {
@@ -14541,11 +14541,11 @@
 				},
 				"bill": {
 					"baseline": {
-						"tokens": 1952.2222222222222,
-						"modelPounds": 0.007808888888888889,
+						"tokens": 1958.859514687101,
+						"modelPounds": 0.007835438058748404,
 						"humanSeconds": 0,
 						"humanPounds": 0,
-						"pounds": 0.007808888888888889
+						"pounds": 0.007835438058748404
 					},
 					"treatment": {
 						"tokens": 0,
@@ -15350,8 +15350,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"92c55bb9-eb3a-4d4d-b854-d7becb42d3ee",
-				"5b148b13-d522-47f1-84c8-2a7b15fd3fa1"
+				"f7e8d789-fa42-4e36-99f4-00cf861e348d",
+				"53c2da60-0afd-4141-aa93-71b6fcf0d4fb"
 			]
 		},
 		{
@@ -15590,8 +15590,8 @@
 			],
 			"cost": {
 				"tokensPerCase": {
-					"baseline": 1952.2222222222222,
-					"treatment": 1935.7241379310344
+					"baseline": 1958.859514687101,
+					"treatment": 1941.8250319284803
 				},
 				"approvalsPerCase": {
 					"baseline": 0,
@@ -15603,18 +15603,18 @@
 				},
 				"bill": {
 					"baseline": {
-						"tokens": 1952.2222222222222,
-						"modelPounds": 0.007808888888888889,
+						"tokens": 1958.859514687101,
+						"modelPounds": 0.007835438058748404,
 						"humanSeconds": 0,
 						"humanPounds": 0,
-						"pounds": 0.007808888888888889
+						"pounds": 0.007835438058748404
 					},
 					"treatment": {
-						"tokens": 1935.7241379310344,
-						"modelPounds": 0.007742896551724138,
+						"tokens": 1941.8250319284803,
+						"modelPounds": 0.0077673001277139215,
 						"humanSeconds": 173.79310344827587,
 						"humanPounds": 1.3517241379310345,
-						"pounds": 1.3594670344827586
+						"pounds": 1.3594914380587484
 					}
 				},
 				"touchesPerCase": {
@@ -17195,8 +17195,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"92c55bb9-eb3a-4d4d-b854-d7becb42d3ee",
-				"cfd3f249-bdd3-40f2-ad05-60150d0d2632"
+				"f7e8d789-fa42-4e36-99f4-00cf861e348d",
+				"0978d59f-d9bb-43d1-96c9-f415305f1904"
 			]
 		},
 		{
@@ -17435,8 +17435,8 @@
 			],
 			"cost": {
 				"tokensPerCase": {
-					"baseline": 1952.2222222222222,
-					"treatment": 1935.7241379310344
+					"baseline": 1958.859514687101,
+					"treatment": 1941.8250319284803
 				},
 				"approvalsPerCase": {
 					"baseline": 0,
@@ -17448,18 +17448,18 @@
 				},
 				"bill": {
 					"baseline": {
-						"tokens": 1952.2222222222222,
-						"modelPounds": 0.007808888888888889,
+						"tokens": 1958.859514687101,
+						"modelPounds": 0.007835438058748404,
 						"humanSeconds": 0,
 						"humanPounds": 0,
-						"pounds": 0.007808888888888889
+						"pounds": 0.007835438058748404
 					},
 					"treatment": {
-						"tokens": 1935.7241379310344,
-						"modelPounds": 0.007742896551724138,
+						"tokens": 1941.8250319284803,
+						"modelPounds": 0.0077673001277139215,
 						"humanSeconds": 173.79310344827587,
 						"humanPounds": 1.3517241379310345,
-						"pounds": 1.3594670344827586
+						"pounds": 1.3594914380587484
 					}
 				},
 				"touchesPerCase": {
@@ -19040,12 +19040,12 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"92c55bb9-eb3a-4d4d-b854-d7becb42d3ee",
-				"cfd3f249-bdd3-40f2-ad05-60150d0d2632"
+				"f7e8d789-fa42-4e36-99f4-00cf861e348d",
+				"0978d59f-d9bb-43d1-96c9-f415305f1904"
 			]
 		}
 	],
 	"verdict": "inconclusive",
 	"note": "minimum detectable difference of rates at the achieved n (783 on the smaller side, 80% power): 6.6 points against the 5.0 the design meant to see; one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)",
-	"digest": "2c6b9efc8720643c2e55e0a5e54e2cf56172a2b93e05100a2e721d6288445ae9"
+	"digest": "55f5f11bc6d936c799de5ba4a6c30ad849339202340ee909e289f1fbfc0201a7"
 }

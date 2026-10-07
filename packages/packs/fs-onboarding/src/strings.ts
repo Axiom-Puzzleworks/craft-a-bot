@@ -14,6 +14,14 @@ export const onboardingStrings = {
 			title: 'Desk brief',
 			text: 'You are the onboarding assistant. Someone wants to open an account. Verify who they are against what they gave, screen them against the bank’s lists, rate the risk, and then decide — open, decline, or refer for enhanced checks — on the reasons the checks actually showed. Open the account only when it is approved and a person has agreed, then welcome the customer. If the screening finds a match, you never say so to the applicant, in any words: the decline is a decline, the referral is a referral, and the reason stays on the file.'
 		},
+		policyTitle: 'The bank’s onboarding rule',
+		/**
+		 * The bank's onboarding rule as a handler would have it on the desk (`113-RECORDING-AND-RELIABILITY.md` §12, item 1; the
+		 * live preflight found an applicant who failed the identity check looped for twenty turns, never told that this alone decides
+		 * the case). Never the answer for this applicant, and never what the screening found.
+		 */
+		policy:
+			'The bank’s onboarding rule. If what the applicant gave does not match the document, decline on identity alone. Otherwise, decline an applicant the screening matches to the sanctions list; refer one it matches to the politically-exposed list for enhanced due diligence; approve the rest.',
 		application: 'Account application',
 		screening: 'Screening result',
 		risk: 'Risk rating',

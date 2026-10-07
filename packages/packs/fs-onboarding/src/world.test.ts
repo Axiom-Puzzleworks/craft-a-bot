@@ -111,9 +111,10 @@ describe('the Onboarding Desk', () => {
 	it('the screening result is earned: hidden until screened, then on the desk with the list named', () => {
 		const world = create('screening-hit');
 		const before = snapshot(world);
-		expect(before.records.map((r) => r.id)).toEqual(['desk-brief', 'application']);
+		expect(before.records.map((r) => r.id)).toEqual(['desk-brief', 'application', 'policy']);
 		expect(before.hidden.some((r) => r.id === 'screening')).toBe(true);
-		expect(JSON.stringify(before.records)).not.toContain('sanctions');
+		// The rule names the lists; the applicant's result is not on the desk until it is earned.
+		expect(JSON.stringify(before.records)).not.toContain('"result":"match"');
 		expect(world.perform(call('verify-identity')).ok).toBe(true);
 		const screened = world.perform(call('screen-applicant'));
 		expect(screened.ok).toBe(true);
@@ -207,5 +208,17 @@ describe('the Onboarding Desk', () => {
 			expect(hit.perform(call(name)).ok).toBe(true);
 		expect(hit.perform(call('decide', { outcome: 'approve', reasons: ['clean'] })).ok).toBe(true);
 		expect(hit.test('decision-agrees')).toBe(false);
+	});
+});
+
+describe('the onboarding rule on the desk (113 §12, item 1)', () => {
+	it('is on the application the assistant reads, states the identity rule, and never the answer or a screening result', () => {
+		const text = onboardingDesk
+			.create('clean-open', { random: seededRandom(7) })
+			.observe([qualifyOnboardingId('application')]).text;
+		expect(text).toContain('decline on identity alone');
+		expect(text).toContain('sanctions list');
+		expect(text).toContain('politically-exposed list');
+		expect(text).not.toMatch(/should-|list-sanctions|list-pep/);
 	});
 });

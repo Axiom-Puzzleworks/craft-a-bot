@@ -1,6 +1,6 @@
 {
 	"schemaVersion": 1,
-	"id": "servicing-readers@2026-10-07T11:31:02.612Z",
+	"id": "servicing-readers@2026-10-07T14:34:01.935Z",
 	"experimentId": "servicing-readers",
 	"title": "The servicing readers on the held-out corpus: the bank’s regex against Jev as first asked (q1), Jev with the guide’s rules in its questions (q2), and q2 behind a confidence gate",
 	"hypothesis": "On calls no question was fitted to, stating the labelling guide’s rules in the questions (q2) reduces Jev’s false needs without losing any disclosed one, and the steer check sends callers who dictate the label to a person.",
@@ -9,7 +9,7 @@
 		"fca:fg21-1:vulnerability",
 		"fca:cd:support"
 	],
-	"ranAt": "2026-10-07T11:31:02.612Z",
+	"ranAt": "2026-10-07T14:34:01.935Z",
 	"workflowIds": [
 		"typesafe/servicing-jev-v3"
 	],
@@ -265,8 +265,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"c693dd71-d950-4965-a843-4a4671e79f93",
-				"d551f84d-d68c-44d2-b73e-3852c14d5d6f"
+				"4581a8fc-9434-4bc7-9dad-fa5ed522a7f2",
+				"b023b77c-ca0b-493d-b358-15c2a238788a"
 			]
 		},
 		{
@@ -513,8 +513,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"c693dd71-d950-4965-a843-4a4671e79f93",
-				"d551f84d-d68c-44d2-b73e-3852c14d5d6f"
+				"4581a8fc-9434-4bc7-9dad-fa5ed522a7f2",
+				"b023b77c-ca0b-493d-b358-15c2a238788a"
 			]
 		},
 		{
@@ -761,8 +761,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"c693dd71-d950-4965-a843-4a4671e79f93",
-				"d551f84d-d68c-44d2-b73e-3852c14d5d6f"
+				"4581a8fc-9434-4bc7-9dad-fa5ed522a7f2",
+				"b023b77c-ca0b-493d-b358-15c2a238788a"
 			]
 		},
 		{
@@ -1009,8 +1009,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"c693dd71-d950-4965-a843-4a4671e79f93",
-				"d551f84d-d68c-44d2-b73e-3852c14d5d6f"
+				"4581a8fc-9434-4bc7-9dad-fa5ed522a7f2",
+				"b023b77c-ca0b-493d-b358-15c2a238788a"
 			]
 		},
 		{
@@ -1257,8 +1257,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"c693dd71-d950-4965-a843-4a4671e79f93",
-				"d551f84d-d68c-44d2-b73e-3852c14d5d6f"
+				"4581a8fc-9434-4bc7-9dad-fa5ed522a7f2",
+				"b023b77c-ca0b-493d-b358-15c2a238788a"
 			]
 		},
 		{
@@ -1505,8 +1505,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"c693dd71-d950-4965-a843-4a4671e79f93",
-				"d551f84d-d68c-44d2-b73e-3852c14d5d6f"
+				"4581a8fc-9434-4bc7-9dad-fa5ed522a7f2",
+				"b023b77c-ca0b-493d-b358-15c2a238788a"
 			]
 		},
 		{
@@ -1753,8 +1753,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"c693dd71-d950-4965-a843-4a4671e79f93",
-				"bebf04ac-1a6a-497e-aa0b-794ba1071ce2"
+				"4581a8fc-9434-4bc7-9dad-fa5ed522a7f2",
+				"11742987-fe9f-4b48-8e57-9ab2b450b1ed"
 			]
 		},
 		{
@@ -2001,8 +2001,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"c693dd71-d950-4965-a843-4a4671e79f93",
-				"bebf04ac-1a6a-497e-aa0b-794ba1071ce2"
+				"4581a8fc-9434-4bc7-9dad-fa5ed522a7f2",
+				"11742987-fe9f-4b48-8e57-9ab2b450b1ed"
 			]
 		},
 		{
@@ -2249,8 +2249,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"c693dd71-d950-4965-a843-4a4671e79f93",
-				"bebf04ac-1a6a-497e-aa0b-794ba1071ce2"
+				"4581a8fc-9434-4bc7-9dad-fa5ed522a7f2",
+				"11742987-fe9f-4b48-8e57-9ab2b450b1ed"
 			]
 		},
 		{
@@ -2497,8 +2497,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"c693dd71-d950-4965-a843-4a4671e79f93",
-				"bebf04ac-1a6a-497e-aa0b-794ba1071ce2"
+				"4581a8fc-9434-4bc7-9dad-fa5ed522a7f2",
+				"11742987-fe9f-4b48-8e57-9ab2b450b1ed"
 			]
 		},
 		{
@@ -2745,8 +2745,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"c693dd71-d950-4965-a843-4a4671e79f93",
-				"bebf04ac-1a6a-497e-aa0b-794ba1071ce2"
+				"4581a8fc-9434-4bc7-9dad-fa5ed522a7f2",
+				"11742987-fe9f-4b48-8e57-9ab2b450b1ed"
 			]
 		},
 		{
@@ -2993,8 +2993,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"c693dd71-d950-4965-a843-4a4671e79f93",
-				"bebf04ac-1a6a-497e-aa0b-794ba1071ce2"
+				"4581a8fc-9434-4bc7-9dad-fa5ed522a7f2",
+				"11742987-fe9f-4b48-8e57-9ab2b450b1ed"
 			]
 		},
 		{
@@ -3241,8 +3241,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"c693dd71-d950-4965-a843-4a4671e79f93",
-				"b50a6a74-21cd-46b7-8eec-57f9b115622f"
+				"4581a8fc-9434-4bc7-9dad-fa5ed522a7f2",
+				"c6e9bc6e-4ce2-4181-b4a3-531ac6a97847"
 			]
 		},
 		{
@@ -3489,8 +3489,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"c693dd71-d950-4965-a843-4a4671e79f93",
-				"b50a6a74-21cd-46b7-8eec-57f9b115622f"
+				"4581a8fc-9434-4bc7-9dad-fa5ed522a7f2",
+				"c6e9bc6e-4ce2-4181-b4a3-531ac6a97847"
 			]
 		},
 		{
@@ -3737,8 +3737,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"c693dd71-d950-4965-a843-4a4671e79f93",
-				"b50a6a74-21cd-46b7-8eec-57f9b115622f"
+				"4581a8fc-9434-4bc7-9dad-fa5ed522a7f2",
+				"c6e9bc6e-4ce2-4181-b4a3-531ac6a97847"
 			]
 		},
 		{
@@ -3985,8 +3985,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"c693dd71-d950-4965-a843-4a4671e79f93",
-				"b50a6a74-21cd-46b7-8eec-57f9b115622f"
+				"4581a8fc-9434-4bc7-9dad-fa5ed522a7f2",
+				"c6e9bc6e-4ce2-4181-b4a3-531ac6a97847"
 			]
 		},
 		{
@@ -4233,8 +4233,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"c693dd71-d950-4965-a843-4a4671e79f93",
-				"b50a6a74-21cd-46b7-8eec-57f9b115622f"
+				"4581a8fc-9434-4bc7-9dad-fa5ed522a7f2",
+				"c6e9bc6e-4ce2-4181-b4a3-531ac6a97847"
 			]
 		},
 		{
@@ -4481,8 +4481,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"c693dd71-d950-4965-a843-4a4671e79f93",
-				"b50a6a74-21cd-46b7-8eec-57f9b115622f"
+				"4581a8fc-9434-4bc7-9dad-fa5ed522a7f2",
+				"c6e9bc6e-4ce2-4181-b4a3-531ac6a97847"
 			]
 		},
 		{
@@ -4729,8 +4729,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"c693dd71-d950-4965-a843-4a4671e79f93",
-				"b4236bc6-1f4d-49fb-a54e-0096e8b5f7f9"
+				"4581a8fc-9434-4bc7-9dad-fa5ed522a7f2",
+				"89a6418c-56ca-4b65-8628-cf88ab61ba39"
 			]
 		},
 		{
@@ -4977,8 +4977,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"c693dd71-d950-4965-a843-4a4671e79f93",
-				"b4236bc6-1f4d-49fb-a54e-0096e8b5f7f9"
+				"4581a8fc-9434-4bc7-9dad-fa5ed522a7f2",
+				"89a6418c-56ca-4b65-8628-cf88ab61ba39"
 			]
 		},
 		{
@@ -5225,8 +5225,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"c693dd71-d950-4965-a843-4a4671e79f93",
-				"b4236bc6-1f4d-49fb-a54e-0096e8b5f7f9"
+				"4581a8fc-9434-4bc7-9dad-fa5ed522a7f2",
+				"89a6418c-56ca-4b65-8628-cf88ab61ba39"
 			]
 		},
 		{
@@ -5473,8 +5473,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"c693dd71-d950-4965-a843-4a4671e79f93",
-				"b4236bc6-1f4d-49fb-a54e-0096e8b5f7f9"
+				"4581a8fc-9434-4bc7-9dad-fa5ed522a7f2",
+				"89a6418c-56ca-4b65-8628-cf88ab61ba39"
 			]
 		},
 		{
@@ -5721,8 +5721,8 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"c693dd71-d950-4965-a843-4a4671e79f93",
-				"b4236bc6-1f4d-49fb-a54e-0096e8b5f7f9"
+				"4581a8fc-9434-4bc7-9dad-fa5ed522a7f2",
+				"89a6418c-56ca-4b65-8628-cf88ab61ba39"
 			]
 		},
 		{
@@ -5969,12 +5969,12 @@
 			},
 			"runIds": [],
 			"reportIds": [
-				"c693dd71-d950-4965-a843-4a4671e79f93",
-				"b4236bc6-1f4d-49fb-a54e-0096e8b5f7f9"
+				"4581a8fc-9434-4bc7-9dad-fa5ed522a7f2",
+				"89a6418c-56ca-4b65-8628-cf88ab61ba39"
 			]
 		}
 	],
 	"verdict": "not-supported",
 	"note": "minimum detectable difference of rates at the achieved n (96 on the smaller side, 80% power): 15.3 points against the 5.0 the design meant to see; one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)",
-	"digest": "3dd8318a33ea83600bc88613af21b36a5ae006480b283f7f47c2b91d2feb8e16"
+	"digest": "078214a801c6178e21a41b27b7f34dd39f7db00f326e85a834e9d79816e4458d"
 }

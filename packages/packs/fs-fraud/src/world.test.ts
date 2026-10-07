@@ -270,3 +270,20 @@ describe('naming an alert as the queue shows it (WP193)', () => {
 		);
 	});
 });
+
+describe('look-up finds an account by what the alert names (113 §12 audit)', () => {
+	it('opens the record that carries the last four digits, and lists records with what they are when none is found', () => {
+		const world = create();
+		const state = snapshot(world);
+		const opened = [...state.records, ...state.hidden].find((record) =>
+			record.title.includes('••••')
+		);
+		const four = opened?.title.match(/••••(\d{4})/)?.[1];
+		expect(four).toBeDefined();
+		const byFour = world.perform(call('look-up', { record: `account ••••${four}` }));
+		expect(byFour.ok).toBe(true);
+		const missing = world.perform(call('look-up', { record: 'nothing-like-this' }));
+		expect(missing.ok).toBe(false);
+		expect(missing.narration).toMatch(/\(.*••••\d{4}.*\)/);
+	});
+});

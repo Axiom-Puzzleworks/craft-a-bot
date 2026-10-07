@@ -51,6 +51,15 @@ import { writeCampaignStories } from './story.js';
  * `craftabot bundle`. The same `runCampaign` the Workshop calls; the harness
  * only adds persistence, providers and files.
  */
+/**
+ * The per-request timeout a host sets for a slow live model (`CRAFTABOT_REQUEST_TIMEOUT_MS`, milliseconds; `113-…` §12):
+ * absent or not a positive number, the floor's 60 s.
+ */
+export function requestTimeoutFromEnv(env: NodeJS.ProcessEnv = process.env): number | undefined {
+	const value = Number(env['CRAFTABOT_REQUEST_TIMEOUT_MS']);
+	return Number.isFinite(value) && value > 0 ? Math.round(value) : undefined;
+}
+
 export interface CampaignFileOptions {
 	file: string;
 	out: string;
@@ -252,6 +261,9 @@ export async function runCampaignFile(options: CampaignFileOptions): Promise<Cam
 		let leaked: string | undefined;
 		report = await runCampaign(campaign, {
 			...(baseline ? { baseline } : {}),
+			...(requestTimeoutFromEnv() !== undefined
+				? { requestTimeoutMs: requestTimeoutFromEnv() as number }
+				: {}),
 			// Reuse what a stopped run finished (WP68), then the pool or the runner's own way.
 			execute: (spec, run) => {
 				const kept = reusable.get(spec.ordinal);

@@ -7,6 +7,7 @@
  *   node scripts/live-record.mjs --replay-only <live-design-id> [...]   no Sparks: rebuild the evidence from the cassette
  *   node scripts/live-record.mjs --replay-only --all
  *   node scripts/live-record.mjs --trials 2 --trial 0 <id>   one pass of a design performed twice; then --trial 1 (WP191)
+ *   node scripts/live-record.mjs --all [--resume]   the plan: every design's trial 0, then every design's trial 1 where it has two (113 §12)
  *
  * For each design, in order:
  *   1. `craftabot spark verify --for` — the Sparks serve the design's cartridge, or stop with the pattern to stand up;
@@ -51,7 +52,15 @@ function run(args, { quiet = false } = {}) {
 		const child = spawn(
 			process.execPath,
 			['--env-file-if-exists=.env', 'packages/harness/dist/main.js', ...args],
-			{ cwd: ROOT, stdio: ['ignore', 'pipe', 'pipe'] }
+			{
+				cwd: ROOT,
+				env: {
+					...process.env,
+					// A live model under sixteen concurrent calls streams at about five tokens a second; the floor's 60 s timed out one call in 629 (113-… §12).
+					CRAFTABOT_REQUEST_TIMEOUT_MS: process.env.CRAFTABOT_REQUEST_TIMEOUT_MS ?? '180000'
+				},
+				stdio: ['ignore', 'pipe', 'pipe']
+			}
 		);
 		let stdout = '';
 		let stderr = '';
@@ -161,7 +170,7 @@ function readdirSyncSafe(path) {
 	}
 }
 
-async function one(id, { replayOnly = false, trials, trial } = {}) {
+async function one(id, { replayOnly = false, trials, trial, resume = false } = {}) {
 	const entry = LIVE.find((e) => liveIdOf(e) === id);
 	if (!entry) throw new Error(`no live design "${id}"; known: ${LIVE.map(liveIdOf).join(', ')}`);
 	const file = `experiments/live/${id}.json`;
@@ -183,6 +192,12 @@ async function one(id, { replayOnly = false, trials, trial } = {}) {
 			throw new Error(`the Sparks do not serve ${id}'s cartridge; stand a pattern up first`);
 		}
 		const liveStore = join(RECORDINGS, id, `trial-${trial ?? 0}`);
+		if (existsSync(liveStore) && resume) {
+			console.log(
+				`${id}: trial ${trial ?? 0} is already recorded under ${liveStore}; skipped (--resume)`
+			);
+			return;
+		}
 		if (existsSync(liveStore))
 			throw new Error(
 				`${liveStore} already holds a live run; move or delete it first — this script never overwrites the record of a live run`
@@ -247,6 +262,7 @@ async function one(id, { replayOnly = false, trials, trial } = {}) {
 			model: 'Qwen3.5-122B-A10B-NVFP4',
 			cartridge: 'dgx-spark/giant-qwen',
 			size: entry.size,
+			trials: trials ?? 1,
 			cells: Number(cells),
 			entries: Number(entries),
 			wallSeconds: wall,
@@ -273,6 +289,22 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
 		args[args.indexOf('--trials') + 1],
 		args[args.indexOf('--trial') + 1]
 	]);
+	const resume = args.includes('--resume');
+	// `--all` (not replay-only) is the plan: pass 0 of every design, then pass 1 of every design performed twice, and so on, so a stopped
+	// run leaves every design recorded once before any is recorded twice (113 §12). `--resume` skips a pass already on disk.
+	if (args.includes('--all') && !replayOnly) {
+		const most = Math.max(...LIVE.map((e) => e.trials ?? 1));
+		for (let pass = 0; pass < most; pass += 1)
+			for (const entry of LIVE) {
+				const k = entry.trials ?? 1;
+				if (pass >= k) continue;
+				await one(liveIdOf(entry), {
+					resume,
+					...(k > 1 ? { trials: k, trial: pass } : {})
+				});
+			}
+		process.exit(0);
+	}
 	const ids = args.includes('--all')
 		? LIVE.map(liveIdOf)
 		: args.filter((a) => !a.startsWith('--') && !(flagValues.has(a) && /^\d+$/.test(a)));

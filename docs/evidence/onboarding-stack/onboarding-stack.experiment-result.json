@@ -1,12 +1,12 @@
 {
 	"schemaVersion": 1,
-	"id": "onboarding-stack@2026-10-07T11:30:46.387Z",
+	"id": "onboarding-stack@2026-10-07T12:56:36.584Z",
 	"experimentId": "onboarding-stack",
 	"title": "The policy-card stack on the onboarding book",
 	"hypothesis": "The onboarding desk’s policy-card stack (fs-onboarding/stack/policy-cards) changes nothing a scripted bot at Level 5 does wrong on the onboarding book. Under the fallible tier (WP154), which errs at the desk's decision one time in ten, the stack is expected to catch what its cards check and nothing else.",
 	"controls": [],
 	"obligations": [],
-	"ranAt": "2026-10-07T11:30:46.387Z",
+	"ranAt": "2026-10-07T12:56:36.584Z",
 	"workflowIds": [
 		"fs-onboarding/onboarding"
 	],
@@ -242,8 +242,8 @@
 			],
 			"cost": {
 				"tokensPerCase": {
-					"baseline": 1174.6506024096386,
-					"treatment": 1174.6506024096386
+					"baseline": 1488.9036144578313,
+					"treatment": 1488.9036144578313
 				},
 				"approvalsPerCase": {
 					"baseline": 0,
@@ -255,18 +255,18 @@
 				},
 				"bill": {
 					"baseline": {
-						"tokens": 1174.6506024096386,
-						"modelPounds": 0.0046986024096385545,
+						"tokens": 1488.9036144578313,
+						"modelPounds": 0.0059556144578313255,
 						"humanSeconds": 0,
 						"humanPounds": 0,
-						"pounds": 0.0046986024096385545
+						"pounds": 0.0059556144578313255
 					},
 					"treatment": {
-						"tokens": 1174.6506024096386,
-						"modelPounds": 0.0046986024096385545,
+						"tokens": 1488.9036144578313,
+						"modelPounds": 0.0059556144578313255,
 						"humanSeconds": 0,
 						"humanPounds": 0,
-						"pounds": 0.0046986024096385545
+						"pounds": 0.0059556144578313255
 					}
 				},
 				"touchesPerCase": {
@@ -613,8 +613,8 @@
 				"00000000-0000-4000-8000-000000fbc585"
 			],
 			"reportIds": [
-				"7c9793c4-a3fc-4760-9344-7bb3c789f3f8",
-				"37d0477e-2159-4c07-a776-6b4fc1512789"
+				"595ca8b4-3eaa-453a-bd4d-2edea4318128",
+				"b099873e-dcd8-4b94-aa78-8f81191c3cef"
 			]
 		},
 		{
@@ -842,8 +842,8 @@
 			],
 			"cost": {
 				"tokensPerCase": {
-					"baseline": 1174.6506024096386,
-					"treatment": 1174.6506024096386
+					"baseline": 1488.9036144578313,
+					"treatment": 1488.9036144578313
 				},
 				"approvalsPerCase": {
 					"baseline": 0,
@@ -855,18 +855,18 @@
 				},
 				"bill": {
 					"baseline": {
-						"tokens": 1174.6506024096386,
-						"modelPounds": 0.0046986024096385545,
+						"tokens": 1488.9036144578313,
+						"modelPounds": 0.0059556144578313255,
 						"humanSeconds": 0,
 						"humanPounds": 0,
-						"pounds": 0.0046986024096385545
+						"pounds": 0.0059556144578313255
 					},
 					"treatment": {
-						"tokens": 1174.6506024096386,
-						"modelPounds": 0.0046986024096385545,
+						"tokens": 1488.9036144578313,
+						"modelPounds": 0.0059556144578313255,
 						"humanSeconds": 0,
 						"humanPounds": 0,
-						"pounds": 0.0046986024096385545
+						"pounds": 0.0059556144578313255
 					}
 				},
 				"touchesPerCase": {
@@ -1213,8 +1213,8 @@
 				"00000000-0000-4000-8000-000000fbc585"
 			],
 			"reportIds": [
-				"7c9793c4-a3fc-4760-9344-7bb3c789f3f8",
-				"37d0477e-2159-4c07-a776-6b4fc1512789"
+				"595ca8b4-3eaa-453a-bd4d-2edea4318128",
+				"b099873e-dcd8-4b94-aa78-8f81191c3cef"
 			]
 		},
 		{
@@ -1441,8 +1441,8 @@
 			],
 			"cost": {
 				"tokensPerCase": {
-					"baseline": 1138.3493975903614,
-					"treatment": 1138.3493975903614
+					"baseline": 1442.012048192771,
+					"treatment": 1442.012048192771
 				},
 				"approvalsPerCase": {
 					"baseline": 0,
@@ -1454,18 +1454,18 @@
 				},
 				"bill": {
 					"baseline": {
-						"tokens": 1138.3493975903614,
-						"modelPounds": 0.004553397590361445,
+						"tokens": 1442.012048192771,
+						"modelPounds": 0.005768048192771085,
 						"humanSeconds": 0,
 						"humanPounds": 0,
-						"pounds": 0.004553397590361445
+						"pounds": 0.005768048192771085
 					},
 					"treatment": {
-						"tokens": 1138.3493975903614,
-						"modelPounds": 0.004553397590361445,
+						"tokens": 1442.012048192771,
+						"modelPounds": 0.005768048192771085,
 						"humanSeconds": 0,
 						"humanPounds": 0,
-						"pounds": 0.004553397590361445
+						"pounds": 0.005768048192771085
 					}
 				},
 				"touchesPerCase": {
@@ -1812,8 +1812,8 @@
 				"00000000-0000-4000-8000-000000fbc585"
 			],
 			"reportIds": [
-				"81f0aec7-dc6d-4cc6-a603-f53dc6631c86",
-				"33e4fe8d-25ff-4463-bd59-07eb79499d7d"
+				"11955214-e4be-4b9e-a8b9-66f8ccc47af5",
+				"1b63d1be-328a-4a2b-8c09-d08ad65c98f6"
 			]
 		},
 		{
@@ -2041,8 +2041,8 @@
 			],
 			"cost": {
 				"tokensPerCase": {
-					"baseline": 1138.3493975903614,
-					"treatment": 1138.3493975903614
+					"baseline": 1442.012048192771,
+					"treatment": 1442.012048192771
 				},
 				"approvalsPerCase": {
 					"baseline": 0,
@@ -2054,18 +2054,18 @@
 				},
 				"bill": {
 					"baseline": {
-						"tokens": 1138.3493975903614,
-						"modelPounds": 0.004553397590361445,
+						"tokens": 1442.012048192771,
+						"modelPounds": 0.005768048192771085,
 						"humanSeconds": 0,
 						"humanPounds": 0,
-						"pounds": 0.004553397590361445
+						"pounds": 0.005768048192771085
 					},
 					"treatment": {
-						"tokens": 1138.3493975903614,
-						"modelPounds": 0.004553397590361445,
+						"tokens": 1442.012048192771,
+						"modelPounds": 0.005768048192771085,
 						"humanSeconds": 0,
 						"humanPounds": 0,
-						"pounds": 0.004553397590361445
+						"pounds": 0.005768048192771085
 					}
 				},
 				"touchesPerCase": {
@@ -2412,12 +2412,12 @@
 				"00000000-0000-4000-8000-000000fbc585"
 			],
 			"reportIds": [
-				"81f0aec7-dc6d-4cc6-a603-f53dc6631c86",
-				"33e4fe8d-25ff-4463-bd59-07eb79499d7d"
+				"11955214-e4be-4b9e-a8b9-66f8ccc47af5",
+				"1b63d1be-328a-4a2b-8c09-d08ad65c98f6"
 			]
 		}
 	],
 	"verdict": "inconclusive",
 	"note": "minimum detectable difference of rates at the achieved n (166 on the smaller side, 80% power): 5.0 points against the 5.0 the design meant to see; one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)",
-	"digest": "499712ddb4add6c19572b50f1c7cfcc70b224892d94748ad2aedaa61099d01a1"
+	"digest": "3cb8854f290b98c419cdb47f2defae8c505a458a7793c1d49a0f8d7b43210c4b"
 }

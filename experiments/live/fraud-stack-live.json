@@ -2,7 +2,7 @@
 	"schemaVersion": 1,
 	"id": "fraud-stack-live",
 	"title": "The tipping-off card and the four-eyes freeze on the alert book — with the 122B on the DGX Sparks as the brain",
-	"hypothesis": "The policy-card stack and a person at the SAR remove tip-offs without lowering the alert decision’s accuracy, at a stated precision cost. Here the decisions are made by a live model, `dgx-spark/giant-qwen` (Qwen3.5-122B-A10B-NVFP4 on the builder's DGX Sparks), at temperature 0 with a 1024-token reply limit, over a book of 6: a single sample, recorded once and replayed from its cassette. The design's scripted and fallible columns are `fraud-stack`.",
+	"hypothesis": "The policy-card stack and a person at the SAR remove tip-offs without lowering the alert decision’s accuracy, at a stated precision cost. Here the decisions are made by a live model, `dgx-spark/giant-qwen` (Qwen3.5-122B-A10B-NVFP4 on the builder's DGX Sparks), at temperature 0 with a 2048-token reply limit, over a book of 6: a single sample, recorded once and replayed from its cassette. The design's scripted and fallible columns are `fraud-stack`.",
 	"controls": ["fs-fraud/control-map/tipping-off", "fs-fraud/control-map/verify-before-acting"],
 	"obligations": ["poca:tipping-off", "mlr:kyc"],
 	"design": {
@@ -43,7 +43,7 @@
 							"fs-fraud/the-fraud-desk/verify-caller"
 						],
 						"reviewer": "fs-bank/reviewer/case-handler",
-						"maxTokens": 1024
+						"maxTokens": 2048
 					}
 				}
 			],
@@ -127,7 +127,8 @@
 		"seeds": [1],
 		"replicates": 1,
 		"confidence": 0.95,
-		"minimumDetectableEffect": 0.05
+		"minimumDetectableEffect": 0.05,
+		"trials": 2
 	},
 	"campaigns": []
 }

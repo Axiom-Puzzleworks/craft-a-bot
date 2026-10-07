@@ -1091,6 +1091,12 @@ export function cellKeyOfSpec(campaign: Campaign, cell: CampaignCellSpec): strin
 }
 
 export interface RunCampaignOptions {
+	/**
+	 * The per-request timeout a live cell's provider call gets (`113-RECORDING-AND-RELIABILITY.md` §12): the floor is 60 s, and a
+	 * model streaming at five tokens a second under sixteen concurrent calls meets it about once in six hundred calls — a cell
+	 * lost to the transport, not the model. A host override; absent, the floor.
+	 */
+	requestTimeoutMs?: number;
 	/** Where a `live` cell's provider comes from; a live cell with none is recorded as an error, never faked. */
 	/** A live brain's provider — asked per cell, and per agent stage in a book cell, with the card it plays when there is one (WP114: a recorder needs it). */
 	providerFor?: (brain: CampaignBrain, context?: ProviderContext) => LLMProvider;
@@ -1687,6 +1693,9 @@ async function runCell(
 			idOffset: cell.ordinal * ID_STRIDE,
 			seed,
 			...(maxTicks !== undefined ? { maxTicks } : {}),
+			...(options.requestTimeoutMs !== undefined
+				? { requestTimeoutMs: options.requestTimeoutMs }
+				: {}),
 			...(brain.tier === 'live'
 				? {
 						provider: providerForLive(brain, options, goalCardId, { scope, role: 'agent' })
@@ -1890,6 +1899,9 @@ async function runBookCell(
 			newId: seat.newId,
 			random: seat.random,
 			tickDelayMs: 0,
+			...(options.requestTimeoutMs !== undefined
+				? { budgets: { requestTimeoutMs: options.requestTimeoutMs } }
+				: {}),
 			...(options.egress !== undefined ? { egress: options.egress } : {}),
 			...(options.principal !== undefined ? { principal: options.principal } : {})
 		},
@@ -2115,7 +2127,16 @@ async function runDuoCell(
 			tickDelayMs: 0,
 			...(options.egress !== undefined ? { egress: options.egress } : {}),
 			...(options.principal !== undefined ? { principal: options.principal } : {}),
-			...(maxTicks !== undefined ? { budgets: { maxTicks } } : {}),
+			...(maxTicks !== undefined || options.requestTimeoutMs !== undefined
+				? {
+						budgets: {
+							...(maxTicks !== undefined ? { maxTicks } : {}),
+							...(options.requestTimeoutMs !== undefined
+								? { requestTimeoutMs: options.requestTimeoutMs }
+								: {})
+						}
+					}
+				: {}),
 			maxRounds: counterpart.maxRounds ?? 30,
 			...(stack.observers.length > 0 ? { observers: stack.observers } : {})
 		}

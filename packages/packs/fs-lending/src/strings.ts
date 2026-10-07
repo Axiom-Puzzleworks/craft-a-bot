@@ -159,7 +159,8 @@ export const lendingStrings = {
 				'The affordability worksheet is on the desk. Decide — approve, decline, or refer to an underwriter — giving the reasons the assessment actually showed.',
 			explanation:
 				'A decision is on the file. Explain it to the applicant in the reasons it rested on — all of them, and no others.',
-			disbursement: 'The loan is approved and a person has agreed. Pay it out.',
+			disbursement:
+				'The loan is approved and a person has agreed. Pay it out with Disburse; the decision is made, do not make it again.',
 			appeal:
 				'The applicant is appealing the decision. Log the appeal with their grounds and say what happens next.',
 			fourEyes: 'Confirm the decision as it stands, return it for another look, or overturn it.',

@@ -78,6 +78,17 @@ describe('the questions a trace has to answer on its own', () => {
 		expect(budgets?.['requestTimeoutMs']).toBeGreaterThan(0);
 	});
 
+	it('shows a host’s longer request timeout as the effective one (plan 113 §12)', async () => {
+		const run = await runToCompletion({
+			script: obedient([{ say: 'Hello.', call: 'say', args: { text: 'Hello.' } }]),
+			spec: buildSpec({ goalCardId: 'starter/sums-for-teddy' }),
+			requestTimeoutMs: 180_000
+		});
+		const budgets = payloadOf(run.events, 'run.started')?.['budgets'] as
+			Record<string, number> | undefined;
+		expect(budgets?.['requestTimeoutMs']).toBe(180_000);
+	});
+
 	it('“what policy was in force, and did it ever actually run?”', async () => {
 		const run = await auditableRun();
 
