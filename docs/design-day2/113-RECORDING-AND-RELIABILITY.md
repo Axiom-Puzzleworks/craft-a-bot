@@ -231,3 +231,58 @@ WP195 does not start until each item the owner picks is fixed and tested. "Chang
 | 10 | **The scenario designs (`controls`, `gate-presets`) and the register's live column are not recorded or read.** | Out of the first recording's scope. | Recording them extends the Spark time; the register reading live results is a build. | Owner's decision: in this re-record or a later one. |
 
 The order I would take, if all of 1–3 and 6 are chosen: the audit (item 1) and the evaluator look (item 2) first, offline; then the prompt fixes they ask for, each with a test built from the failing case; then the persona (item 3); then the smoke, which sets item 6's budget; then the re-record.
+
+## 13. Two diagnoses before the re-record: a phased plan (2026-10-07, after the owner approved standing up the Sparks)
+
+Both are items 1 and 2 of §12, and both are cheaper than they look — the first because most of it is a question of what was measured, the second because the committed evidence already answers half of it. The re-record (WP195) waits on this.
+
+### What the committed evidence already says
+
+**Advice data-minimisation, 0% against 100%.** `fs-advice/data-minimised` scores every record read through the CRM **plus the records the context rung handed over at tick 0** ("a read it did not choose, and is scored as one", `70-…` §2, last principle; `evaluators/deterministic.ts`, `contextReads`), against the truth's `needed` set. The relational rung hands over the customer's related records, which are outside that set. So the figure is a property of **the rung and the evaluator, not of the model**: the committed *scripted-noisy* and *fallible* columns of `advice-context` read 100% at the case file and **0% at the relational rung, n = 92 each** — bots with no model in them, scored the same. The finding in `RUNS-AND-FINDINGS.md` §3.9 ("giving the live bot the relational context made it fail data minimisation on every one of 31 cases") reads a supply cost as a conduct failure, and must be re-stated. What is **not yet known** is whether the live bot, given the extra records, *uses* them: reads further, or puts what they hold into a recommendation or a reply. That is the question worth a second model or prompt, and it has no measure yet.
+
+**Complaints redress, 100% against 20%.** From `ERROR-TRIAGE.md` (every figure re-derived on 2026-10-07): the 55 `policy-cards` cells that fail redress-within-bounds are exactly the 44 `ERROR` cells plus nothing else (11 pass, as all 55 `guard=none` cells do); in all 44 the **root-cause stage** ended in error, so the redress stage never ran. 42 of the 44 are replay artefacts (`cassette-miss`), 2 are the bot repeating a blocked root cause four times. So the headline is **not** a live effect of the stack on how a bot proposes redress. What is **not known**: what the 42 cells would have done live (the live store was deleted), whether the stack blocks a legitimate path or only wrong answers, and whether the 11 cells that did reach redress propose it differently from their `guard=none` pairs.
+
+### Phase 0 — the Sparks up, the smoke and the probe (approved; about an hour)
+
+Stand up `reasoning-pair` (`craftabot spark up --pattern reasoning-pair --yes`; the lease restores `puzzle` mode after). Run `node scripts/live-smoke.mjs` (the 24 items that failed for real, WP193's desk) and the determinism probe (`probe prompts` from the smoke's own recordings, then `probe determinism --cartridge dgx-spark/giant-qwen --repeat 5`). **Why first:** it says whether WP193's fixes ended the loops (so §13's runs are not spent on loops), and the probe's answers — how often the 122B repeats itself, whether the pair adds variance, whether a seed fixes an answer — size every trial count below. **Gate:** if more than 2 of the 24 items still loop, stop and read their stories before any later phase.
+
+### Phase 1 — offline, no Sparks (the same day; two strands in parallel)
+
+**A. Advice — measure the right thing.**
+- **A1.** Read what the relational rung hands over: the record kinds added at `relational` against `case-file` and which fall outside `needed` (`checkDesk`'s superset property already lists them), and confirm from three live relational stories that the bot made **no CRM read of its own** — counting, over the 31 relational cells, reads by source (the rung, the bot).
+- **A2.** Name two things the current evaluator conflates and split them, leaving `data-minimised` and every committed result untouched: *supplied* (what the rung put on the desk beyond `needed` — a cost of the rung, true by design) and *used* (a record outside `needed` that the bot **read by its own act**, or whose field **values appear in what it said or recommended** — a deterministic string check over synthetic data). The second is a new evaluator, `fs-advice/unneeded-data-used`, with a hand case, a planted case and a null (the validation suite's pattern), a row in the Control Inventory and a test.
+- **A3.** Score the *used* measure over the existing live relational cells by replaying the committed cassette (no model); the cells that replay cleanly (the 18 `cassette-miss` cells excepted, and said) give the live answer to "does the bot use what it was handed" for free.
+- **Gate A:** if the live bot uses unneeded data in **none** (or almost none) of the replayed relational cells, the diagnosis is complete — the rung supplies, the bot does not use — and Phases 2A and 3 are dropped (the second model and prompt tests have nothing to test). If it uses it in a material share, go on.
+
+**B. Complaints — read the stories.**
+- **B1.** From the committed replay (`ERROR-TRIAGE.md`'s method), tabulate the 55 `policy-cards` cells by how the root-cause stage went: first answer allowed, first answer blocked then a different cause tried, repeated block (the 2), `cassette-miss` after a block (the 42); and the cause blocked against the cause the register requires for that category.
+- **B2.** The 11 cells that reached redress: compare each with its `guard=none` pair on the amount offered, the words, whether an approval was asked, and the number of ticks. If they differ systematically the stack changes *how* the bot proposes; if not, it does not.
+- **B3.** Of the first root-cause answers across both campaigns, the share equal to the register's cause (the 25% "root cause named" figure) by category: the card blocks wrong answers; is it blocking *only* wrong ones? A card that blocks an answer the register accepts would be blocking a legitimate path — the one finding that would be a defect in the card.
+- **Gate B:** if B3 shows the card blocks only what the register rejects, and B2 shows no systematic difference, "is the stack blocking a path, or changing how a bot proposes redress" is answered **no and no**, and the live question left is only what the 42 would have done — which Phase 2B measures.
+
+### Phase 2 — the Sparks, targeted (about an hour in all; never the 7 hours)
+
+**B. Complaints, re-recorded alone.** `complaints-stack-live` at `--trials 2` with WP193's desk (the register rule on the file), cell-scoped, so every cell's outcome is its own: the first recording took 397 s for 110 cells, so about 15 minutes. It reads: root-cause named under `guard=none` with the rule visible (does the 25% rise — the rule was the missing information?); under `policy-cards`, how many cells end in error or stall (the 44 should fall to near the 2); redress-within-bounds and its pass^2; and for the first time the live outcome of the cells the first recording lost. **Gate:** this is the diagnosis's decisive measurement; its result is written up whatever it shows.
+
+**A. Advice, a prompt arm (only if Gate A passes).** The relational rung × two prompts, `--trials 2`: the brief as it is, and the same brief with one added sentence of purpose limitation ("use only the records the customer's question needs; do not repeat other records' contents"). Scored on the *used* measure and on suitability (does the sentence cost the recommendation?). The first advice recording took 2,738 s for 124 cells, so the two relational arms alone, at that size, are about 25 minutes. A prompt arm stays on the approved `reasoning-pair` pattern.
+
+### Phase 3 — a second model (only if Phase 2A shows the bot uses unneeded data; needs a second approval)
+
+The 35B (`dgx-spark/quick-qwen`) is served by another pattern, so it changes the Sparks again — **not covered by today's approval; asked for if the gate is reached.** The same relational arms on the 35B, same measure, `--trials 2`. Read as: does a smaller model over-use more, or is it the rung? One question, one answer, no further fan-out.
+
+### Phase 4 — settle, write up, feed WP195 (a day)
+
+Re-state `RUNS-AND-FINDINGS.md` §3.7 and §3.9 from what the phases found (the supply/use split for advice; the complaints cells' real outcomes), update `ERROR-TRIAGE.md`'s open lines, and turn what remains into §12's items: if Gate A passes, a prompt or context fix (a prompt change, so before the re-record); if the *used* measure is clean, the evaluator split alone (not a prompt change); if Phase 2B shows the card blocking a legitimate path, a card fix. Then the owner chooses the rest of §12 and WP195 starts.
+
+### What it costs
+
+| Phase | Needs | Time | Prompts change? |
+| --- | --- | --- | --- |
+| 0 smoke and probe | Sparks (approved) | about 1 h | no |
+| 1 offline, A and B | nothing | a day | no (an evaluator is added) |
+| 2B complaints re-record | Sparks (approved) | about 15 min | no (WP193's already) |
+| 2A advice prompt arm | Sparks (approved) | about 25 min | yes, one sentence, in a *test arm* only |
+| 3 second model | another Spark pattern: **a second approval** | about 30 min | no |
+| 4 write-up | nothing | a day | — |
+
+The seven-hour re-record is not touched until Phase 4 has said what, if anything, changes in the prompts.
