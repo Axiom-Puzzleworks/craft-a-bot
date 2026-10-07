@@ -511,7 +511,8 @@
 		"seeds": [1],
 		"replicates": 1,
 		"confidence": 0.95,
-		"minimumDetectableEffect": 0.1
+		"minimumDetectableEffect": 0.1,
+		"trials": 2
 	},
 	"campaigns": []
 }

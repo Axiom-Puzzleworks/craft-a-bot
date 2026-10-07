@@ -134,6 +134,26 @@ export function finishReasons(cassette) {
 	return counts;
 }
 
+/**
+ * The reliability of a design performed more than once (`113-RECORDING-AND-RELIABILITY.md` §4.7): over the items, never the
+ * trials, the primary metric's pass@1, pass^k (every performance passes — the figure for a control) and consistency, for the
+ * reference configuration (no guard; `bot-everywhere` where a design has executors).
+ */
+export function reliabilityRows(result, metric) {
+	const all = result.reliability ?? [];
+	const none = all.filter((r) => r.campaignId.includes('guard=none'));
+	const everywhere = none.filter((r) => r.campaignId.includes('bot-everywhere'));
+	const picked = everywhere.length > 0 ? everywhere : none.length > 0 ? none : all;
+	return picked
+		.map((r) => ({
+			campaignId: r.campaignId,
+			k: r.k,
+			items: r.items,
+			m: r.metrics.find((x) => x.metricId === metric)
+		}))
+		.filter((r) => r.m !== undefined);
+}
+
 export async function render() {
 	const timingsFile = join(LIVE, 'timings.json');
 	if (!existsSync(timingsFile)) return undefined;
@@ -182,12 +202,34 @@ export async function render() {
 		'',
 		'## What each recording cost',
 		'',
-		'| Design | Recorded | Book size | Cells | Cassette entries | Wall time | Stories |',
-		'|---|---|---|---|---|---|---|'
+		'| Design | Recorded | Book size | Performed | Cells | Cassette entries | Wall time | Stories |',
+		'|---|---|---|---|---|---|---|---|'
 	);
 	for (const [id, t] of Object.entries(timings))
 		lines.push(
-			`| \`${id}\` | ${t.recordedOn} | ${t.size} | ${t.cells} | ${t.entries} | ${Math.round(t.wallSeconds / 60)} min | ${t.stories} |`
+			`| \`${id}\` | ${t.recordedOn} | ${t.size ?? 'scenarios'} | ${t.trials ?? 1}× | ${t.cells} | ${t.entries} | ${Math.round(t.wallSeconds / 60)} min | ${t.stories} |`
+		);
+	// Plan 113: a design performed more than once reads its own reliability.
+	const reliable = [];
+	for (const [base, spec] of Object.entries(PRIMARY)) {
+		const id = `${base}-live`;
+		const file = join(LIVE, id, `${id}.experiment-result.json`);
+		if (!(timings[id]?.trials > 1) || !existsSync(file)) continue;
+		for (const r of reliabilityRows(read(file), spec.metric))
+			reliable.push(
+				`| \`${base}\` | ${spec.what} | ${r.items} items × ${r.k} | ${pct(r.m.pass1.value)} (${band(r.m.pass1.interval)}) | ${pct(r.m.passHatK.value)} (${band(r.m.passHatK.interval)}) | ${pct(r.m.consistency.value)} (${band(r.m.consistency.interval)}) |`
+			);
+	}
+	if (reliable.length > 0)
+		lines.push(
+			'',
+			'## Reliability over trials',
+			'',
+			'Each item is a case performed more than once with fresh model draws; every figure is over items, never trials, so repeating a case does not inflate *n*. **pass^k** (every performance passes) is the figure for a control; **pass@1** is one performance; **consistency** is the share of items the trials agreed on.',
+			'',
+			'| Design | What is measured | Performed | pass@1 | pass^k | Consistency |',
+			'|---|---|---|---|---|---|',
+			...reliable
 		);
 	// WP169: the same desk, the customer a live model as well.
 	const seatId = 'servicing-stack-live-seat';
@@ -215,7 +257,7 @@ export async function render() {
 				`| the desk's own scripted visitor | ${pct(alone.value)} (${band(alone.interval)}, n ${alone.n}) | ${Math.round(tokens(soloResult) ?? 0)} | ${timings['servicing-stack-live'].cells} |`,
 				`| a live customer | ${pct(withSeat.value)} (${band(withSeat.interval)}, n ${withSeat.n}) | ${Math.round(tokens(seatResult) ?? 0)} | ${timings[seatId].cells} |`,
 				'',
-				'The two books are different sizes and the intervals overlap, so this reads as no difference at this n, not as a customer who makes the bot better. What it does show is that customers who answer back run end to end on the live tier. The drawn persona is general-purpose (the population draws one by cohort, not by what the request is), so its opening line does not always match the request it carries; the stories in `servicing-stack-live-seat/stories/` show the conversation.'
+				'The two books are different sizes and the intervals overlap, so this reads as no difference at this n, not as a customer who makes the bot better. What it does show is that customers who answer back run end to end on the live tier. Since plan 113 §12 the drawn customer opens with the request itself, in their words; the stories in `servicing-stack-live-seat/stories/` show the conversation.'
 			);
 	}
 	const a = join(LIVE, 'lending-stack-live', 'lending-stack-live.provider-cassette.json');

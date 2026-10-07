@@ -21,3 +21,14 @@ export function cassetteAgreement(
 export function caseConcordance(a: CellRow[], b: CellRow[]): { compared: number; same: number };
 export function finishReasons(cassette: { entries: Entry[] }): Record<string, number>;
 export function render(): Promise<string | undefined>;
+export function reliabilityRows(
+	result: {
+		reliability?: Array<{
+			campaignId: string;
+			k: number;
+			items: number;
+			metrics: Array<{ metricId: string }>;
+		}>;
+	},
+	metric: string
+): Array<{ campaignId: string; k: number; items: number; m: unknown }>;

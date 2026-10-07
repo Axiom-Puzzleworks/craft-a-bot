@@ -5,7 +5,7 @@ Written by `node scripts/live-column.mjs` from the committed results and cassett
 ## How it was set up
 
 - **The model** is `Qwen3.5-122B-A10B-NVFP4` through `dgx-spark/giant-qwen`, on whichever of the two Sparks was less loaded (both in `puzzle` mode, 8 streams each, MTP speculative decoding on), 16 cells at a time (`record --concurrency auto`).
-- **Temperature 0, and a 1,024-token reply limit.** The stage agents inherit the starter's 256-token limit. The first lending recording, made at 256 (2026-10-06, since replaced), found 35 of its 791 replies, 4.4%, cut off by the limit with no call made, and agreement of 10 of 23: a measurement of the cap, not of the model. The live designs set `maxTokens: 1024` on every build (a scripted brain never reads it), and no reply in a recording below was cut off.
+- **Temperature 0, and a 2,048-token reply limit (1,024 in the first recordings; raised at plan 113's preflight).** The stage agents inherit the starter's 256-token limit. The first lending recording, made at 256 (2026-10-06, since replaced), found 35 of its 791 replies, 4.4%, cut off by the limit with no call made, and agreement of 10 of 23: a measurement of the cap, not of the model. The live designs set `maxTokens: 2048` on every build (a scripted brain never reads it), and the recordings below say how many replies were cut off.
 - **Temperature 0 is not repeatable here.** The same prompt is not always answered the same way: the serving stack batches requests and speculates tokens, so even at temperature 0 the numerics move with what else is in flight. That is the live tier's variance, and it is measured below, not assumed away.
 - **Each design is a book of its own size** (the table below), one live brain, the design's other factors as in its reference design; the committed scripted and fallible columns are the full-size results one folder up.
 
@@ -28,18 +28,18 @@ The live side is the reference configuration with no guard (`bot-everywhere` whe
 
 ## What each recording cost
 
-| Design                      | Recorded   | Book size | Cells | Cassette entries | Wall time | Stories |
-| --------------------------- | ---------- | --------- | ----- | ---------------- | --------- | ------- |
-| `lending-stack-live`        | 2026-10-06 | 800       | 306   | 1238             | 30 min    | 18      |
-| `lending-stack-live-b`      | 2026-10-06 | 800       | 306   | 1099             | 27 min    | 18      |
-| `servicing-stack-live`      | 2026-10-06 | 200       | 66    | 260              | 9 min     | 4       |
-| `disputes-stack-live`       | 2026-10-06 | 400       | 80    | 265              | 6 min     | 4       |
-| `collections-stack-live`    | 2026-10-06 | 300       | 74    | 839              | 20 min    | 10      |
-| `onboarding-stack-live`     | 2026-10-06 | 400       | 66    | 289              | 6 min     | 2       |
-| `complaints-stack-live`     | 2026-10-06 | 200       | 110   | 302              | 7 min     | 5       |
-| `fraud-stack-live`          | 2026-10-06 | 6         | 108   | 2490             | 54 min    | 16      |
-| `advice-context-live`       | 2026-10-06 | 1200      | 124   | 1502             | 46 min    | 8       |
-| `servicing-stack-live-seat` | 2026-10-06 | 100       | 32    | 357              | 8 min     | 2       |
+| Design                      | Recorded   | Book size | Performed | Cells | Cassette entries | Wall time | Stories |
+| --------------------------- | ---------- | --------- | --------- | ----- | ---------------- | --------- | ------- |
+| `lending-stack-live`        | 2026-10-06 | 800       | 1×        | 306   | 1238             | 30 min    | 18      |
+| `lending-stack-live-b`      | 2026-10-06 | 800       | 1×        | 306   | 1099             | 27 min    | 18      |
+| `servicing-stack-live`      | 2026-10-06 | 200       | 1×        | 66    | 260              | 9 min     | 4       |
+| `disputes-stack-live`       | 2026-10-06 | 400       | 1×        | 80    | 265              | 6 min     | 4       |
+| `collections-stack-live`    | 2026-10-06 | 300       | 1×        | 74    | 839              | 20 min    | 10      |
+| `onboarding-stack-live`     | 2026-10-06 | 400       | 1×        | 66    | 289              | 6 min     | 2       |
+| `complaints-stack-live`     | 2026-10-06 | 200       | 1×        | 110   | 302              | 7 min     | 5       |
+| `fraud-stack-live`          | 2026-10-06 | 6         | 1×        | 108   | 2490             | 54 min    | 16      |
+| `advice-context-live`       | 2026-10-06 | 1200      | 1×        | 124   | 1502             | 46 min    | 8       |
+| `servicing-stack-live-seat` | 2026-10-06 | 100       | 1×        | 32    | 357              | 8 min     | 2       |
 
 ## The customer answers back
 
@@ -50,7 +50,7 @@ The live side is the reference configuration with no guard (`bot-everywhere` whe
 | the desk's own scripted visitor | 94% (80%–98%, n 33)         | 11775           | 66    |
 | a live customer                 | 100% (81%–100%, n 16)       | 8735            | 32    |
 
-The two books are different sizes and the intervals overlap, so this reads as no difference at this n, not as a customer who makes the bot better. What it does show is that customers who answer back run end to end on the live tier. The drawn persona is general-purpose (the population draws one by cohort, not by what the request is), so its opening line does not always match the request it carries; the stories in `servicing-stack-live-seat/stories/` show the conversation.
+The two books are different sizes and the intervals overlap, so this reads as no difference at this n, not as a customer who makes the bot better. What it does show is that customers who answer back run end to end on the live tier. Since plan 113 §12 the drawn customer opens with the request itself, in their words; the stories in `servicing-stack-live-seat/stories/` show the conversation.
 
 ## The live tier's own variance
 

@@ -48,6 +48,8 @@ describe('the live designs', () => {
 				expect(live.design.template.source.population.size).toBe(entry.size);
 			}
 			expect(live.design.template.budget.maxLiveCells).toBeGreaterThan(0);
+			// Performed more than once: the design says so, so its replay runs as many performances as were recorded (113 §12).
+			expect(live.design.trials).toBe((entry.trials ?? 1) > 1 ? entry.trials : undefined);
 			// The rest of the template is the base design's, untouched.
 			expect(live.design.template.builds).toEqual(
 				base.design.template.builds.map((build: { overrides?: object }) => ({
@@ -59,11 +61,17 @@ describe('the live designs', () => {
 		}
 	});
 
-	it('has unique ids, one design recorded twice, and each cassette in its own folder', () => {
+	it('has unique ids, no design recorded as two (trials measure the variance now), and each design’s trials planned (plan 113 §12)', () => {
 		const ids = LIVE.map(liveIdOf);
 		expect(new Set(ids).size).toBe(ids.length);
 		expect(ids).toContain('lending-stack-live');
-		expect(ids).toContain('lending-stack-live-b');
+		expect(ids).not.toContain('lending-stack-live-b');
+		// The designs where a second performance can change a conclusion are performed twice; the servicing designs, at a ceiling, once.
+		const trialsOf = (id: string) => LIVE.find((entry) => liveIdOf(entry) === id)?.trials ?? 1;
+		expect(trialsOf('lending-stack-live')).toBe(2);
+		expect(trialsOf('controls-live')).toBe(2);
+		expect(trialsOf('servicing-stack-live')).toBe(1);
+		expect(trialsOf('servicing-stack-live-seat')).toBe(1);
 	});
 });
 
@@ -172,5 +180,34 @@ describe('the live column', () => {
 		).toBe(0.5);
 		expect(baselineSide({ effects: [effect('executors')] }, 'agreement')?.value).toBe(0.9);
 		expect(baselineSide({ effects: [] }, 'agreement')).toBeUndefined();
+	});
+
+	it('reads a design performed twice by its reference configuration, over items (plan 113 §12)', async () => {
+		const { reliabilityRows } = await import('../../../../scripts/live-column.mjs');
+		const stat = (value: number) => ({ value, interval: [0, 1] as [number, number], method: 'm' });
+		const metrics = [
+			{
+				metricId: 'agreement',
+				pass1: stat(0.9),
+				passAtK: stat(1),
+				passHatK: stat(0.8),
+				consistency: stat(0.85)
+			}
+		];
+		const campaign = (campaignId: string) => ({ campaignId, k: 2, items: 50, metrics });
+		const rows = reliabilityRows(
+			{
+				reliability: [
+					campaign('x--executors=rules-only--guard=none'),
+					campaign('x--executors=bot-everywhere--guard=none'),
+					campaign('x--executors=bot-everywhere--guard=policy-cards')
+				]
+			},
+			'agreement'
+		);
+		// No guard, and the bot everywhere where the design has executors; nothing for a metric the design does not have.
+		expect(rows.map((row) => row.campaignId)).toEqual(['x--executors=bot-everywhere--guard=none']);
+		expect(reliabilityRows({ reliability: [campaign('y--guard=none')] }, 'nothing')).toEqual([]);
+		expect(reliabilityRows({}, 'agreement')).toEqual([]);
 	});
 });

@@ -10,6 +10,8 @@ export interface LiveEntry {
 	/** The seat is a live customer (WP169). */
 	seat?: boolean;
 	variant?: string;
+	/** How often the design is performed (absent: once); trials beyond the first are passes of their own. */
+	trials?: number;
 }
 export const LIVE: LiveEntry[];
 export function liveIdOf(entry: LiveEntry): string;
