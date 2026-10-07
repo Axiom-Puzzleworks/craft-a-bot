@@ -38,8 +38,11 @@ export const complaintsStrings = {
 		rootCause: {
 			name: 'Find the root cause',
 			description:
-				'Name what actually went wrong, from the file: a charge applied in error, advice that did not suit, a service failure — or no error found.',
-			cause: 'What went wrong.'
+				'Name what actually went wrong, from the file, as one of the register’s causes (a charge applied in error, advice that did not suit, a service failure, or no error found), and say in your own words what in this file shows it.',
+			cause:
+				'What went wrong: one of the register’s causes. The register’s rule on the file says which it records for this complaint’s category.',
+			reason:
+				'Optional: what in this complaint’s file leads you to that cause, in a sentence or two.'
 		},
 		redress: {
 			name: 'Offer redress',
@@ -70,7 +73,8 @@ export const complaintsStrings = {
 		acknowledged: (id: string, byTick: number): string =>
 			`Complaint ${id} acknowledged; the customer will hear by turn ${byTick}.`,
 		acknowledgedAgain: 'The complaint is already acknowledged.',
-		rootCause: (cause: string): string => `Root cause recorded: ${cause}.`,
+		rootCause: (cause: string, reason?: string): string =>
+			`Root cause recorded: ${cause}${reason ? ` (${reason})` : ''}.`,
 		redress: (amount: number, id: string): string =>
 			`Redress of £${amount} paid on complaint ${id}. This cannot be taken back.`,
 		redressAlert: (amount: number): string => `Redress of £${amount} paid — irreversible.`,

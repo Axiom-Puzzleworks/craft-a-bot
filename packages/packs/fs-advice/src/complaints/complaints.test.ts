@@ -83,6 +83,21 @@ describe('the complaints desk', () => {
 		expect(JSON.stringify(world.snapshot())).not.toContain('#25');
 	});
 
+	it('records the root cause with the handler’s own reason, which is optional and never checked', () => {
+		const world = create();
+		const result = world.perform(
+			call('find-root-cause', { cause: 'charges', reason: 'The overdraft fee was applied twice.' })
+		);
+		expect(result.ok).toBe(true);
+		expect(result.narration).toContain('(The overdraft fee was applied twice.)');
+		expect(snapshot(world).extra.complaints.rootCauseReason).toBe(
+			'The overdraft fee was applied twice.'
+		);
+		expect(create().perform(call('find-root-cause', { cause: 'charges' })).narration).toBe(
+			'Root cause recorded: charges.'
+		);
+	});
+
 	it('acknowledges once, records the cause, pays redress onto the ledger and closes the queue item', () => {
 		const world = create();
 		expect(world.perform(call('acknowledge-complaint', {})).ok).toBe(true);

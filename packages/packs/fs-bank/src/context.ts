@@ -16,7 +16,26 @@ import { bankRecords } from './records.js';
  */
 export const KNOWLEDGE_CARD_RECORD = 'knowledge-card';
 
-const RELATIONAL_KINDS = new Set(['customer', 'account', 'transactions', 'complaint', 'bureau']);
+const ALL_KINDS: readonly string[] = ['customer', 'account', 'transactions', 'complaint', 'bureau'];
+
+/**
+ * **The relational rung per desk** (`113-RECORDING-AND-RELIABILITY.md` §12, items 12–13): the record kinds a journey has a
+ * use for. A desk is not handed a record it has no business with — an advice bot a complaint about a health condition or the
+ * credit file, a fraud analyst the credit file, a dispute handler a complaint. The customer, the accounts and what moves
+ * through them serve every desk that handles an existing customer; the credit file belongs to lending (and to nobody else
+ * here); a complaint belongs to the complaints desk, where it is the case. Onboarding's customer has no accounts yet.
+ * A purpose not listed (reception, testing) keeps every kind.
+ */
+export const RELATIONAL_KINDS_BY_PURPOSE: Readonly<Record<string, readonly string[]>> = {
+	advice: ['customer', 'account', 'transactions'],
+	'fraud-operations': ['customer', 'account', 'transactions'],
+	lending: ['customer', 'account', 'transactions', 'bureau'],
+	complaints: ['customer', 'account', 'transactions', 'complaint'],
+	onboarding: ['customer'],
+	disputes: ['customer', 'account', 'transactions'],
+	collections: ['customer', 'account', 'transactions'],
+	servicing: ['customer', 'account', 'transactions']
+};
 
 export function bankContextRecords(
 	extra: unknown,
@@ -27,8 +46,9 @@ export function bankContextRecords(
 	const bank = bankExtraOf({ extra });
 	if (!bank) return [];
 	if (level === 'relational') {
+		const kinds = RELATIONAL_KINDS_BY_PURPOSE[bank.purpose] ?? ALL_KINDS;
 		return bankRecords(bank.bank).hidden.filter(
-			(record) => RELATIONAL_KINDS.has(record.kind) && record.classification !== 'special-category'
+			(record) => kinds.includes(record.kind) && record.classification !== 'special-category'
 		);
 	}
 	if (level === 'ontology') {

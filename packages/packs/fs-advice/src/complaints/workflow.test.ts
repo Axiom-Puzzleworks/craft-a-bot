@@ -293,7 +293,7 @@ export const FIXTURE_PATH = new URL('../fixtures/complaints-workflow-run.v1.json
 export const readFixture = (): unknown => JSON.parse(readFileSync(FIXTURE_PATH, 'utf8')) as unknown;
 
 describe('the register’s rule on the file (WP193)', () => {
-	it('is a record on the work-item case — the policy the root-cause card enforces — and the card still names no cause', () => {
+	it('is a record on the work-item case — the policy the root-cause card enforces — and the card’s refusal states the rule', () => {
 		const item = items[0]!;
 		const world = complaintsDesk.create(COMPLAINTS_WORK_ITEM_LAYOUT, {
 			random: () => 0.5,
@@ -304,12 +304,11 @@ describe('the register’s rule on the file (WP193)', () => {
 		expect(text).toContain('not upheld and is recorded as no-error');
 		// The rule, not this complaint's answer: it names both outcomes, so the category and the rule are the bot's to join.
 		expect(text).toContain('charges or data complaint');
-		// The block's own words are unchanged: it names no cause.
+		// The block says what the register records for each outcome and where case detail goes (113 §12, item 11) — the rule, not this complaint's answer.
 		const reason = ROOT_CAUSE_ON_THE_REGISTER.rules[0]!.reason ?? '';
-		expect(reason).toBe(
-			'That root cause is not the one the register gives for this complaint’s category.'
-		);
-		expect(reason).not.toMatch(/charges|no-error/);
+		expect(reason).toMatch(/charges where the register upholds/);
+		expect(reason).toMatch(/no-error where it does not/);
+		expect(reason).toMatch(/put what is particular to this case in the reason/);
 		// A deck case (not from the register) carries no such record.
 		const deck = complaintsDesk.create(COMPLAINT_KINDS[0]!, { random: () => 0.5 });
 		expect(deck.observe([qualifyComplaintsId('complaint-file')]).text).not.toContain('register');

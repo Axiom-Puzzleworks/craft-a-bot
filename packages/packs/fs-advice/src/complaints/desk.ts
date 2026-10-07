@@ -129,14 +129,21 @@ export const complaintsDeskSpec: DeskWorldSpec<ComplaintsExtra> = {
 			name: complaintsStrings.actions.rootCause.name,
 			description: complaintsStrings.actions.rootCause.description,
 			schema: z.object({
-				cause: z.enum(ROOT_CAUSES).describe(complaintsStrings.actions.rootCause.cause)
+				cause: z.enum(ROOT_CAUSES).describe(complaintsStrings.actions.rootCause.cause),
+				reason: z
+					.string()
+					.min(1)
+					.max(400)
+					.optional()
+					.describe(complaintsStrings.actions.rootCause.reason)
 			}),
 			riskTier: 'observe',
 			progress: true,
 			perform: (state, args) => {
-				const { cause } = args as { cause: string };
+				const { cause, reason } = args as { cause: string; reason?: string };
 				state.extra.complaints.rootCause = cause;
-				return { ok: true, narration: complaintsStrings.narration.rootCause(cause) };
+				if (reason !== undefined) state.extra.complaints.rootCauseReason = reason;
+				return { ok: true, narration: complaintsStrings.narration.rootCause(cause, reason) };
 			}
 		},
 		{

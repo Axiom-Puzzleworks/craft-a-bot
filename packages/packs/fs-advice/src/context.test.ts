@@ -11,8 +11,9 @@ import { adviceDesk } from './world/desk.js';
 /**
  * **The level is measurable** (WP81, `70-…` §7; `64-…` §6.3.1): the same
  * bot on the plain savings case — `data-minimised` passes at `minimal` and
- * fails at `relational`, because the accounts, the activity and the bureau
- * summary handed over by context are reads the question did not need.
+ * did fail at `relational` while the rung handed an advice bot the bureau summary and
+ * a complaint; since `113-…` §12 (item 12) it hands only the accounts and their activity,
+ * which the journey has a use for, so on this desk the level is no longer a cost.
  */
 const CARD = adviseCardId('rainy-day');
 const deps = {
@@ -47,7 +48,7 @@ async function runAt(level: 'minimal' | 'case-file' | 'relational'): Promise<Eng
 }
 
 describe('data-minimised across the context ladder', () => {
-	it('passes at minimal and at case-file, fails at relational, on the plain savings case', async () => {
+	it('passes at minimal and at case-file, and at relational too now it hands over only what advice has a use for, on the plain savings case', async () => {
 		const verdictAt = async (level: 'minimal' | 'case-file' | 'relational') => {
 			const events = await runAt(level);
 			const input = inputReadableBy(dataMinimised, evaluationInputFor(events));
@@ -57,11 +58,23 @@ describe('data-minimised across the context ladder', () => {
 		expect(minimal.verdict).toBe('pass');
 		const caseFile = await verdictAt('case-file');
 		expect(caseFile.verdict).toBe('pass');
+		// 113 §12, item 12: the rung hands an advice bot the customer, the accounts and what moves through them, which a
+		// recommendation weighs for affordability — not the complaints or the credit file — so nothing it supplies is unneeded.
 		const relational = await verdictAt('relational');
-		expect(relational.verdict).toBe('fail');
-		const said = JSON.stringify(relational);
-		expect(said).toContain('not needed');
-		expect(said).toMatch(/account-|transactions-|bureau/);
+		expect(relational.verdict).toBe('pass');
+	});
+
+	it('the relational rung hands an advice bot no complaint and no credit file', async () => {
+		const events = await runAt('relational');
+		const opening = events.find((event) => event.type === 'world.changed');
+		const state = (opening?.type === 'world.changed' ? opening.payload.state : {}) as {
+			contextRecordIds?: string[];
+		};
+		const ids = state.contextRecordIds ?? [];
+		expect(ids.some((id) => id.startsWith('account-') || id.startsWith('transactions-'))).toBe(
+			true
+		);
+		expect(ids.some((id) => id === 'bureau' || id.startsWith('complaint-'))).toBe(false);
 	});
 
 	it('the relational rung is on the desk at tick 0 and in the customer-record sense', async () => {

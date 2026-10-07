@@ -8,6 +8,8 @@ export interface ComplaintsState {
 	onTheRegister?: true;
 	acknowledgedTick?: number;
 	rootCause?: string;
+	/** The handler's own words on why, for this case (the cause is the checked part; the reason is the case's). */
+	rootCauseReason?: string;
 	redress?: { amount: number; tick: number };
 	declined?: { reason: string; tick: number };
 	escalated?: { reason: string; tick: number };
