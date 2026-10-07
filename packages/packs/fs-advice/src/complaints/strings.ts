@@ -23,7 +23,7 @@ export const complaintsStrings = {
 		register: {
 			title: 'The complaints register’s rule',
 			rule: (upheld: readonly string[]): string =>
-				`A ${upheld.join(' or ')} complaint is upheld and its root cause is recorded as charges; a complaint of any other category is not upheld and is recorded as no-error.`
+				`A ${upheld.join(' or ')} complaint is upheld and its root cause is recorded as charges; a complaint of any other category is not upheld and is recorded as no-error. The category on the file decides this, not what the complaint is about: ${upheld.join(' and ')} are upheld whatever they concern.`
 		},
 		finding: 'Finding (truth)'
 	},
