@@ -2,7 +2,7 @@
 	"schemaVersion": 1,
 	"id": "complaints-stack-live",
 	"title": "The policy-card stack on the complaints book — with the 122B on the DGX Sparks as the brain",
-	"hypothesis": "The complaints desk’s policy-card stack (fs-advice/stack/complaints-policy-cards) changes nothing a scripted bot at Level 5 does wrong on the complaints book. Under the fallible tier (WP154), which errs at the desk's decision one time in ten, the stack is expected to catch what its cards check and nothing else. Here the decisions are made by a live model, `dgx-spark/giant-qwen` (Qwen3.5-122B-A10B-NVFP4 on the builder's DGX Sparks), at temperature 0 with a 1024-token reply limit, over a book of 200: a single sample, recorded once and replayed from its cassette. The design's scripted and fallible columns are `complaints-stack`.",
+	"hypothesis": "The complaints desk’s policy-card stack (fs-advice/stack/complaints-policy-cards) changes nothing a scripted bot at Level 5 does wrong on the complaints book. Under the fallible tier (WP154), which errs at the desk's decision one time in ten, the stack is expected to catch what its cards check and nothing else. Here the decisions are made by a live model, `dgx-spark/giant-qwen` (Qwen3.5-122B-A10B-NVFP4 on the builder's DGX Sparks), at temperature 0 with a 2048-token reply limit, over a book of 200: a single sample, recorded once and replayed from its cassette. The design's scripted and fallible columns are `complaints-stack`.",
 	"controls": [],
 	"obligations": [],
 	"design": {
@@ -36,7 +36,7 @@
 							"fs-advice/the-complaints-desk/escalate-to-ombudsman"
 						],
 						"configuration": "bot-everywhere",
-						"maxTokens": 1024
+						"maxTokens": 2048
 					}
 				}
 			],

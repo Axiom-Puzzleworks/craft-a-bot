@@ -7,6 +7,7 @@
  *
  *   node scripts/live-smoke.mjs                  the Sparks, `reasoning-pair` stood up (`craftabot spark up --pattern reasoning-pair --yes`)
  *   node scripts/live-smoke.mjs --provider mock  the same path with no model: what the script's own test runs
+ *   node scripts/live-smoke.mjs --items <file> [design…]   other items than the committed list: a preflight over desks changed since
  *
  * The items are `docs/evidence/live/smoke-items.json`. Everything is written under `recordings/smoke/` (gitignored):
  * a recording per design and the live run's own store. It reads the recordings back and prints, per design and per
@@ -54,9 +55,12 @@ export function readSmoke(recording, items) {
 
 function main(argv) {
 	const provider = argv.includes('--provider') ? argv[argv.indexOf('--provider') + 1] : 'dgx-spark';
-	const wanted = argv.filter((a, i) => !a.startsWith('--') && argv[i - 1] !== '--provider');
+	const itemsFile = argv.includes('--items') ? argv[argv.indexOf('--items') + 1] : undefined;
+	const wanted = argv.filter(
+		(a, i) => !a.startsWith('--') && argv[i - 1] !== '--provider' && argv[i - 1] !== '--items'
+	);
 	const all = JSON.parse(
-		readFileSync(join(ROOT, 'docs', 'evidence', 'live', 'smoke-items.json'), 'utf8')
+		readFileSync(itemsFile ?? join(ROOT, 'docs', 'evidence', 'live', 'smoke-items.json'), 'utf8')
 	);
 	let bad = 0;
 	for (const [id, items] of Object.entries(all.designs)) {
@@ -95,7 +99,15 @@ function main(argv) {
 				'--out',
 				join(work, 'live')
 			],
-			{ cwd: ROOT, stdio: ['ignore', 'inherit', 'inherit'] }
+			{
+				cwd: ROOT,
+				env: {
+					...process.env,
+					// A live model under sixteen concurrent calls streams at about five tokens a second; the floor's 60 s timed out one call in 629 (113-… §12).
+					CRAFTABOT_REQUEST_TIMEOUT_MS: process.env.CRAFTABOT_REQUEST_TIMEOUT_MS ?? '180000'
+				},
+				stdio: ['ignore', 'inherit', 'inherit']
+			}
 		);
 		if (recorded.status !== 0) {
 			console.error(`${id}: the smoke recording failed (exit ${recorded.status})`);

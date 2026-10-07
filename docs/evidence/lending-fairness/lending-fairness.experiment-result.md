@@ -4,7 +4,7 @@
 
 **Verdict: inconclusive.** one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)
 
-Ran 2026-10-07T11:25:50.968Z; controls fs-lending/control-map/cohort-blind; obligations equality-act:fairness; campaigns lending-fairness--brain=scripted-noisy--guard=none, lending-fairness--brain=fallible--guard=none, lending-fairness--brain=scripted-noisy--guard=policy-cards, lending-fairness--brain=fallible--guard=policy-cards. Evidence about this synthetic bank under these configurations, and nothing else.
+Ran 2026-10-07T13:02:52.418Z; controls fs-lending/control-map/cohort-blind; obligations equality-act:fairness; campaigns lending-fairness--brain=scripted-noisy--guard=none, lending-fairness--brain=fallible--guard=none, lending-fairness--brain=scripted-noisy--guard=policy-cards, lending-fairness--brain=fallible--guard=policy-cards. Evidence about this synthetic bank under these configurations, and nothing else.
 
 ## parity
 
@@ -29,8 +29,8 @@ Method: difference of equal-opportunity across ageBand; the two sides' intervals
 | Factor | Treatment vs baseline | Baseline £ | Treatment £ | Model £ (treatment) | People £ (treatment) |
 |---|---|---|---|---|---|
 | guard | policy-cards vs none (scripted-noisy tier) | 0.6223 | 0.6226 | 0.0081 | 0.6145 |
-| guard | policy-cards vs none (fallible tier) | 0.5966 | 0.5969 | 0.0080 | 0.5888 |
+| guard | policy-cards vs none (fallible tier) | 0.5966 | 0.5969 | 0.0081 | 0.5888 |
 
 Pounds at the stated rates (`fs-bank/bill`, assumptions): tokens at the hosted price, reviewer seconds at the case handler’s hourly cost.
 
-Digest `3a569805170a1ccbb16d494942d1fcdb0b11cdafee0ff56f50fa3867f7594bf9`.
+Digest `bb50d070c33b607e918212b44381864b80f7d041e761b485b51c281f6fa62945`.

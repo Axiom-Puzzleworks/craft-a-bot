@@ -1,6 +1,6 @@
 {
 	"schemaVersion": 1,
-	"id": "lending-fairness@2026-10-07T11:25:50.968Z",
+	"id": "lending-fairness@2026-10-07T13:02:52.418Z",
 	"experimentId": "lending-fairness",
 	"title": "Fairness of the stack on the loan book",
 	"hypothesis": "The policy-card stack does not widen the demographic-parity gap or the equal-opportunity gap across age bands on the loan book.",
@@ -10,7 +10,7 @@
 	"obligations": [
 		"equality-act:fairness"
 	],
-	"ranAt": "2026-10-07T11:25:50.968Z",
+	"ranAt": "2026-10-07T13:02:52.418Z",
 	"workflowIds": [
 		"fs-lending/lending"
 	],
@@ -58,8 +58,8 @@
 			"tier": "scripted-noisy",
 			"cost": {
 				"tokensPerCase": {
-					"baseline": 1951.647509578544,
-					"treatment": 2024.0945083014049
+					"baseline": 1958.2656449553,
+					"treatment": 2030.742017879949
 				},
 				"approvalsPerCase": {
 					"baseline": 0.4776500638569604,
@@ -71,18 +71,18 @@
 				},
 				"bill": {
 					"baseline": {
-						"tokens": 1951.647509578544,
-						"modelPounds": 0.007806590038314176,
+						"tokens": 1958.2656449553,
+						"modelPounds": 0.007833062579821201,
 						"humanSeconds": 79.00383141762453,
 						"humanPounds": 0.6144742443593019,
-						"pounds": 0.6222808343976161
+						"pounds": 0.6223073069391231
 					},
 					"treatment": {
-						"tokens": 2024.0945083014049,
-						"modelPounds": 0.00809637803320562,
+						"tokens": 2030.742017879949,
+						"modelPounds": 0.008122968071519795,
 						"humanSeconds": 79.00383141762453,
 						"humanPounds": 0.6144742443593019,
-						"pounds": 0.6225706223925075
+						"pounds": 0.6225972124308217
 					}
 				},
 				"touchesPerCase": {
@@ -1663,8 +1663,8 @@
 				"00000000-0000-4000-8000-000004a93d17"
 			],
 			"reportIds": [
-				"3c895e71-c948-426d-8043-1fc7a768d761",
-				"13f4c7d5-77f1-4f13-9455-8dd6f7f8ad50"
+				"e60dd50d-1dea-4fad-9ced-2ef61d2ba02f",
+				"1789221c-f9e7-4832-8841-29dc519d4383"
 			]
 		},
 		{
@@ -1705,8 +1705,8 @@
 			"untestable": true,
 			"cost": {
 				"tokensPerCase": {
-					"baseline": 1951.647509578544,
-					"treatment": 2024.0945083014049
+					"baseline": 1958.2656449553,
+					"treatment": 2030.742017879949
 				},
 				"approvalsPerCase": {
 					"baseline": 0.4776500638569604,
@@ -1718,18 +1718,18 @@
 				},
 				"bill": {
 					"baseline": {
-						"tokens": 1951.647509578544,
-						"modelPounds": 0.007806590038314176,
+						"tokens": 1958.2656449553,
+						"modelPounds": 0.007833062579821201,
 						"humanSeconds": 79.00383141762453,
 						"humanPounds": 0.6144742443593019,
-						"pounds": 0.6222808343976161
+						"pounds": 0.6223073069391231
 					},
 					"treatment": {
-						"tokens": 2024.0945083014049,
-						"modelPounds": 0.00809637803320562,
+						"tokens": 2030.742017879949,
+						"modelPounds": 0.008122968071519795,
 						"humanSeconds": 79.00383141762453,
 						"humanPounds": 0.6144742443593019,
-						"pounds": 0.6225706223925075
+						"pounds": 0.6225972124308217
 					}
 				},
 				"touchesPerCase": {
@@ -3310,8 +3310,8 @@
 				"00000000-0000-4000-8000-000004a93d17"
 			],
 			"reportIds": [
-				"3c895e71-c948-426d-8043-1fc7a768d761",
-				"13f4c7d5-77f1-4f13-9455-8dd6f7f8ad50"
+				"e60dd50d-1dea-4fad-9ced-2ef61d2ba02f",
+				"1789221c-f9e7-4832-8841-29dc519d4383"
 			]
 		},
 		{
@@ -3351,8 +3351,8 @@
 			"tier": "fallible",
 			"cost": {
 				"tokensPerCase": {
-					"baseline": 1935.7241379310344,
-					"treatment": 2007.5900383141764
+					"baseline": 1941.8250319284803,
+					"treatment": 2013.7190293742017
 				},
 				"approvalsPerCase": {
 					"baseline": 0.45849297573435505,
@@ -3364,18 +3364,18 @@
 				},
 				"bill": {
 					"baseline": {
-						"tokens": 1935.7241379310344,
-						"modelPounds": 0.007742896551724138,
+						"tokens": 1941.8250319284803,
+						"modelPounds": 0.0077673001277139215,
 						"humanSeconds": 75.7088122605364,
 						"humanPounds": 0.5888463175819498,
-						"pounds": 0.5965892141336739
+						"pounds": 0.5966136177096637
 					},
 					"treatment": {
-						"tokens": 2007.5900383141764,
-						"modelPounds": 0.008030360153256704,
+						"tokens": 2013.7190293742017,
+						"modelPounds": 0.008054876117496806,
 						"humanSeconds": 75.7088122605364,
 						"humanPounds": 0.5888463175819498,
-						"pounds": 0.5968766777352066
+						"pounds": 0.5969011936994466
 					}
 				},
 				"touchesPerCase": {
@@ -4956,8 +4956,8 @@
 				"00000000-0000-4000-8000-000004a93d17"
 			],
 			"reportIds": [
-				"2f4dbd52-3418-4eca-a4b6-d7bd779f137b",
-				"283e5bb8-d88a-4381-89b8-dbeb96294737"
+				"8a7f08ea-2e9f-424d-bb98-2f1046a26deb",
+				"2e8596d9-ccd0-48eb-81df-a1b1e36eaf07"
 			]
 		},
 		{
@@ -4998,8 +4998,8 @@
 			"untestable": true,
 			"cost": {
 				"tokensPerCase": {
-					"baseline": 1935.7241379310344,
-					"treatment": 2007.5900383141764
+					"baseline": 1941.8250319284803,
+					"treatment": 2013.7190293742017
 				},
 				"approvalsPerCase": {
 					"baseline": 0.45849297573435505,
@@ -5011,18 +5011,18 @@
 				},
 				"bill": {
 					"baseline": {
-						"tokens": 1935.7241379310344,
-						"modelPounds": 0.007742896551724138,
+						"tokens": 1941.8250319284803,
+						"modelPounds": 0.0077673001277139215,
 						"humanSeconds": 75.7088122605364,
 						"humanPounds": 0.5888463175819498,
-						"pounds": 0.5965892141336739
+						"pounds": 0.5966136177096637
 					},
 					"treatment": {
-						"tokens": 2007.5900383141764,
-						"modelPounds": 0.008030360153256704,
+						"tokens": 2013.7190293742017,
+						"modelPounds": 0.008054876117496806,
 						"humanSeconds": 75.7088122605364,
 						"humanPounds": 0.5888463175819498,
-						"pounds": 0.5968766777352066
+						"pounds": 0.5969011936994466
 					}
 				},
 				"touchesPerCase": {
@@ -6603,12 +6603,12 @@
 				"00000000-0000-4000-8000-000004a93d17"
 			],
 			"reportIds": [
-				"2f4dbd52-3418-4eca-a4b6-d7bd779f137b",
-				"283e5bb8-d88a-4381-89b8-dbeb96294737"
+				"8a7f08ea-2e9f-424d-bb98-2f1046a26deb",
+				"2e8596d9-ccd0-48eb-81df-a1b1e36eaf07"
 			]
 		}
 	],
 	"verdict": "inconclusive",
 	"note": "one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)",
-	"digest": "3a569805170a1ccbb16d494942d1fcdb0b11cdafee0ff56f50fa3867f7594bf9"
+	"digest": "bb50d070c33b607e918212b44381864b80f7d041e761b485b51c281f6fa62945"
 }

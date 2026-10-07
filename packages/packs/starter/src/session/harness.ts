@@ -131,6 +131,8 @@ export interface RunOptions {
 	guardrails?: Guardrail[];
 	provider?: LLMProvider;
 	maxTicks?: number;
+	/** A host override of the per-request timeout, for a live model slower than the floor's 60 s (`113-…` §12); absent, the floor. */
+	requestTimeoutMs?: number;
 	/** Stop after this many `step()` calls, so a wandering bot cannot spin forever. */
 	stepLimit?: number;
 	/**
@@ -205,7 +207,16 @@ export async function runToCompletion(options: RunOptions): Promise<RunResult> {
 			now: clock.now,
 			newId: clock.newId,
 			random: clock.random,
-			...(options.maxTicks !== undefined ? { budgets: { maxTicks: options.maxTicks } } : {}),
+			...(options.maxTicks !== undefined || options.requestTimeoutMs !== undefined
+				? {
+						budgets: {
+							...(options.maxTicks !== undefined ? { maxTicks: options.maxTicks } : {}),
+							...(options.requestTimeoutMs !== undefined
+								? { requestTimeoutMs: options.requestTimeoutMs }
+								: {})
+						}
+					}
+				: {}),
 			...(options.strategies !== undefined ? { strategies: options.strategies } : {}),
 			...(options.egress !== undefined ? { egress: options.egress } : {}),
 			...(options.principal !== undefined ? { principal: options.principal } : {}),

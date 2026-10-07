@@ -1,6 +1,6 @@
 {
 	"schemaVersion": 1,
-	"id": "ceilings@2026-10-07T10:59:48.591Z",
+	"id": "ceilings@2026-10-07T13:05:59.229Z",
 	"experimentId": "ceilings",
 	"title": "The ceilings enforced at Level 5 on the loan book",
 	"hypothesis": "Enforcing the decision-rights ceilings at Level 5 (WP139) brings the ceiling-breach rate to zero, with agreement with the rules unchanged; the price, a person’s touch on each decision above its ceiling, is read from each effect’s cost.",
@@ -11,7 +11,7 @@
 		"pra:ss1-23:mitigants",
 		"pra:ss1-23:governance"
 	],
-	"ranAt": "2026-10-07T10:59:48.591Z",
+	"ranAt": "2026-10-07T13:05:59.229Z",
 	"workflowIds": [
 		"fs-lending/lending"
 	],
@@ -258,8 +258,8 @@
 			],
 			"cost": {
 				"tokensPerCase": {
-					"baseline": 1960.742017879949,
-					"treatment": 1960.742017879949
+					"baseline": 1967.6526181353768,
+					"treatment": 1967.6526181353768
 				},
 				"approvalsPerCase": {
 					"baseline": 0,
@@ -271,18 +271,18 @@
 				},
 				"bill": {
 					"baseline": {
-						"tokens": 1960.742017879949,
-						"modelPounds": 0.007842968071519796,
+						"tokens": 1967.6526181353768,
+						"modelPounds": 0.007870610472541508,
 						"humanSeconds": 0,
 						"humanPounds": 0,
-						"pounds": 0.007842968071519796
+						"pounds": 0.007870610472541508
 					},
 					"treatment": {
-						"tokens": 1960.742017879949,
-						"modelPounds": 0.007842968071519796,
+						"tokens": 1967.6526181353768,
+						"modelPounds": 0.007870610472541508,
 						"humanSeconds": 0,
 						"humanPounds": 0,
-						"pounds": 0.007842968071519796
+						"pounds": 0.007870610472541508
 					}
 				},
 				"touchesPerCase": {
@@ -1863,8 +1863,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"e307e361-1cea-42ea-bfad-6f23c6c62e36",
-				"d6e3b0d8-a2ff-4dc7-8d9d-b3a3b7d0ceb2"
+				"795a4797-5b3b-4ee4-b201-90d0dab441ed",
+				"27354071-694b-4246-903a-5071b9cbf385"
 			]
 		},
 		{
@@ -2104,8 +2104,8 @@
 			],
 			"cost": {
 				"tokensPerCase": {
-					"baseline": 1960.742017879949,
-					"treatment": 1960.742017879949
+					"baseline": 1967.6526181353768,
+					"treatment": 1967.6526181353768
 				},
 				"approvalsPerCase": {
 					"baseline": 0,
@@ -2117,18 +2117,18 @@
 				},
 				"bill": {
 					"baseline": {
-						"tokens": 1960.742017879949,
-						"modelPounds": 0.007842968071519796,
+						"tokens": 1967.6526181353768,
+						"modelPounds": 0.007870610472541508,
 						"humanSeconds": 0,
 						"humanPounds": 0,
-						"pounds": 0.007842968071519796
+						"pounds": 0.007870610472541508
 					},
 					"treatment": {
-						"tokens": 1960.742017879949,
-						"modelPounds": 0.007842968071519796,
+						"tokens": 1967.6526181353768,
+						"modelPounds": 0.007870610472541508,
 						"humanSeconds": 0,
 						"humanPounds": 0,
-						"pounds": 0.007842968071519796
+						"pounds": 0.007870610472541508
 					}
 				},
 				"touchesPerCase": {
@@ -3709,8 +3709,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"e307e361-1cea-42ea-bfad-6f23c6c62e36",
-				"d6e3b0d8-a2ff-4dc7-8d9d-b3a3b7d0ceb2"
+				"795a4797-5b3b-4ee4-b201-90d0dab441ed",
+				"27354071-694b-4246-903a-5071b9cbf385"
 			]
 		},
 		{
@@ -3949,8 +3949,8 @@
 			],
 			"cost": {
 				"tokensPerCase": {
-					"baseline": 1952.2222222222222,
-					"treatment": 1952.2222222222222
+					"baseline": 1958.859514687101,
+					"treatment": 1958.859514687101
 				},
 				"approvalsPerCase": {
 					"baseline": 0,
@@ -3962,18 +3962,18 @@
 				},
 				"bill": {
 					"baseline": {
-						"tokens": 1952.2222222222222,
-						"modelPounds": 0.007808888888888889,
+						"tokens": 1958.859514687101,
+						"modelPounds": 0.007835438058748404,
 						"humanSeconds": 0,
 						"humanPounds": 0,
-						"pounds": 0.007808888888888889
+						"pounds": 0.007835438058748404
 					},
 					"treatment": {
-						"tokens": 1952.2222222222222,
-						"modelPounds": 0.007808888888888889,
+						"tokens": 1958.859514687101,
+						"modelPounds": 0.007835438058748404,
 						"humanSeconds": 0,
 						"humanPounds": 0,
-						"pounds": 0.007808888888888889
+						"pounds": 0.007835438058748404
 					}
 				},
 				"touchesPerCase": {
@@ -5554,8 +5554,8 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"ffd4b4d0-b799-4c04-b9ca-03560f8a9543",
-				"0e64d347-ee76-4a6a-b204-f86b060f62e8"
+				"ba7b1d3b-a27b-4040-b2e1-54b44e946b0e",
+				"83902d17-064a-4b08-b5c9-0d039f0a1af3"
 			]
 		},
 		{
@@ -5794,8 +5794,8 @@
 			],
 			"cost": {
 				"tokensPerCase": {
-					"baseline": 1952.2222222222222,
-					"treatment": 1952.2222222222222
+					"baseline": 1958.859514687101,
+					"treatment": 1958.859514687101
 				},
 				"approvalsPerCase": {
 					"baseline": 0,
@@ -5807,18 +5807,18 @@
 				},
 				"bill": {
 					"baseline": {
-						"tokens": 1952.2222222222222,
-						"modelPounds": 0.007808888888888889,
+						"tokens": 1958.859514687101,
+						"modelPounds": 0.007835438058748404,
 						"humanSeconds": 0,
 						"humanPounds": 0,
-						"pounds": 0.007808888888888889
+						"pounds": 0.007835438058748404
 					},
 					"treatment": {
-						"tokens": 1952.2222222222222,
-						"modelPounds": 0.007808888888888889,
+						"tokens": 1958.859514687101,
+						"modelPounds": 0.007835438058748404,
 						"humanSeconds": 0,
 						"humanPounds": 0,
-						"pounds": 0.007808888888888889
+						"pounds": 0.007835438058748404
 					}
 				},
 				"touchesPerCase": {
@@ -7399,12 +7399,12 @@
 				"00000000-0000-4000-8000-000004a93cfc"
 			],
 			"reportIds": [
-				"ffd4b4d0-b799-4c04-b9ca-03560f8a9543",
-				"0e64d347-ee76-4a6a-b204-f86b060f62e8"
+				"ba7b1d3b-a27b-4040-b2e1-54b44e946b0e",
+				"83902d17-064a-4b08-b5c9-0d039f0a1af3"
 			]
 		}
 	],
 	"verdict": "inconclusive",
 	"note": "minimum detectable difference of rates at the achieved n (783 on the smaller side, 80% power): 2.9 points against the 5.0 the design meant to see; one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)",
-	"digest": "1991413c91ab321f4759db5ced8688f5d12d541d2c0d19e5cbfaff97acf51023"
+	"digest": "42d278399a459e6faab94c61de27ed156f95427f1a73638aae88587e41f4d294"
 }

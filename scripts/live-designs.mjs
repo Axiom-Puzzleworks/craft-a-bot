@@ -29,8 +29,12 @@ export const CARTRIDGE = 'dgx-spark/giant-qwen';
  * The reply limit a live design gives its agents. The stage agents inherit the starter's 256, and the first lending
  * recording (2026-10-06) found 35 of its 791 replies, 4.4%, cut off by it with no call made: a measurement of the cap, not of
  * the model. A scripted brain never reads it, so raising it moves nothing but the live tier.
+ *
+ * 1,024 until 2026-10-07 (plan 113 §12, preflight): with the desks' rules on the case file a bot sometimes re-derives the rule at
+ * length, and one lending cell spent eleven calls cut off at 1,024 with no call made, each reply feeding the next. 2,048 lets
+ * the first long reply finish; the ordinary reply is 100–300 tokens, so it costs only the tail.
  */
-export const MAX_TOKENS = 1024;
+export const MAX_TOKENS = 2048;
 
 /**
  * The designs and the book each is recorded at. The size is chosen so a

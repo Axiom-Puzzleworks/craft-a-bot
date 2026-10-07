@@ -156,7 +156,8 @@ export const collectionsStrings = {
 			circumstances:
 				'The account is on the desk. Ask about the customer’s circumstances and record them — with any disclosure of a job loss, a bereavement or a health condition, as they say it.',
 			plan: 'The circumstances and the reassessment are on the desk. Offer the plan the rule gives for them, with the reasons.',
-			agree: 'The plan is offered and a person has confirmed it. Agree it with the customer.',
+			agree:
+				'The plan is offered and a person has confirmed it. Agree it: use Agree the plan. The customer does not have to reply first.',
 			recommendation:
 				'The bot has recorded the circumstances and reassessed affordability. Choose the plan — a payment plan, reduced payments, or breathing space — with its recommendation and the rule’s verdict in front of you.',
 			confirmPlan: 'Confirm the offered plan is agreed, or return the case for another look.'

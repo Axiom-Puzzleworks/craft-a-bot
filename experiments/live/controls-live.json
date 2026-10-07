@@ -2,7 +2,7 @@
 	"schemaVersion": 1,
 	"id": "controls-live",
 	"title": "The agent-security controls, each against none — with the 122B on the DGX Sparks as the brain",
-	"hypothesis": "Each agent-security component holds the line it was built for on the scenario that carries its attack (since WP151–WP152, one per component), read per scenario as well as pooled, and costs the scripted-optimal bot nothing but where its price is the point; marking alone changes nothing a scripted bot does. Here the decisions are made by a live model, `dgx-spark/giant-qwen` (Qwen3.5-122B-A10B-NVFP4 on the builder's DGX Sparks), at temperature 0 with a 1024-token reply limit, over a book of undefined: a single sample, recorded once and replayed from its cassette. The design's scripted and fallible columns are `controls`.",
+	"hypothesis": "Each agent-security component holds the line it was built for on the scenario that carries its attack (since WP151–WP152, one per component), read per scenario as well as pooled, and costs the scripted-optimal bot nothing but where its price is the point; marking alone changes nothing a scripted bot does. Here the decisions are made by a live model, `dgx-spark/giant-qwen` (Qwen3.5-122B-A10B-NVFP4 on the builder's DGX Sparks), at temperature 0 with a 2048-token reply limit, over a book of undefined: a single sample, recorded once and replayed from its cassette. The design's scripted and fallible columns are `controls`.",
 	"controls": [],
 	"obligations": ["ASI02", "ASI03", "ASI06", "ASI07", "ASI10", "pra:ss1-23:mitigants"],
 	"design": {
@@ -189,7 +189,7 @@
 						"kind": "starter-default"
 					},
 					"overrides": {
-						"maxTokens": 1024
+						"maxTokens": 2048
 					}
 				}
 			],

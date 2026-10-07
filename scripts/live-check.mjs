@@ -43,6 +43,8 @@ export const PENDING_RE_RECORD = new Set([
 	'collections-stack-live',
 	'onboarding-stack-live',
 	'servicing-stack-live-seat',
+	// The reply limit raised to 2,048 (plan 113 §12, preflight): every live design's prompts carry it.
+	'servicing-stack-live',
 	// Never recorded yet (item 10).
 	'controls-live'
 ]);

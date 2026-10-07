@@ -282,8 +282,16 @@ export function assembleOnboardingCase(
 		}
 	};
 
+	const policyRecord: DeskRecord = {
+		id: 'policy',
+		kind: 'notice',
+		title: onboardingStrings.records.policyTitle,
+		classification: 'public',
+		fields: { text: onboardingStrings.records.policy }
+	};
+
 	return {
-		revealed: [brief, applicationRecord],
+		revealed: [brief, applicationRecord, policyRecord],
 		hidden,
 		queue,
 		activeCaseId: APPLICATION_ITEM,

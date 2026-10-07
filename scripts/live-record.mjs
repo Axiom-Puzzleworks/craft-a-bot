@@ -51,7 +51,15 @@ function run(args, { quiet = false } = {}) {
 		const child = spawn(
 			process.execPath,
 			['--env-file-if-exists=.env', 'packages/harness/dist/main.js', ...args],
-			{ cwd: ROOT, stdio: ['ignore', 'pipe', 'pipe'] }
+			{
+				cwd: ROOT,
+				env: {
+					...process.env,
+					// A live model under sixteen concurrent calls streams at about five tokens a second; the floor's 60 s timed out one call in 629 (113-… §12).
+					CRAFTABOT_REQUEST_TIMEOUT_MS: process.env.CRAFTABOT_REQUEST_TIMEOUT_MS ?? '180000'
+				},
+				stdio: ['ignore', 'pipe', 'pipe']
+			}
 		);
 		let stdout = '';
 		let stderr = '';
