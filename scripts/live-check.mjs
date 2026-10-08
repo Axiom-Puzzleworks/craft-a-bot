@@ -25,6 +25,7 @@ import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { suiteFrom } from './live-suite.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SPARK_CONFIG = 'packages/packs/dgx-spark/craftabot.config.mjs';
@@ -77,8 +78,10 @@ export function compareReplay(committed, replayed) {
 	return problems;
 }
 
-function main(argv) {
-	const live = join(ROOT, 'docs', 'evidence', 'live');
+function main(args) {
+	// `--suite quick` checks the 35B suite's designs, in its own folders (113 §12); the default is the 122B's.
+	const { suite, rest: argv } = suiteFrom(args);
+	const live = join(ROOT, suite.evidenceDir);
 	const committed = existsSync(live)
 		? readdirSync(live, { withFileTypes: true })
 				.filter((d) => d.isDirectory())
@@ -91,18 +94,18 @@ function main(argv) {
 	}
 	let failed = 0;
 	for (const id of ids) {
-		if (RETIRED.has(id)) {
+		if (suite.id === 'giant' && RETIRED.has(id)) {
 			console.log(
 				`live-check: ${id}: retired — its evidence is the first measurement of the live tier’s own variance`
 			);
 			continue;
 		}
-		if (PENDING_RE_RECORD.has(id)) {
+		if (suite.id === 'giant' && PENDING_RE_RECORD.has(id)) {
 			console.log(`live-check: ${id}: skipped — pending re-record`);
 			continue;
 		}
-		const design = join('experiments', 'live', `${id}.json`);
-		const cassette = join('docs', 'evidence', 'live', id, `${id}.provider-cassette.json`);
+		const design = join(suite.experimentsDir, `${id}.json`);
+		const cassette = join(suite.evidenceDir, id, `${id}.provider-cassette.json`);
 		const resultFile = join(live, id, `${id}.experiment-result.json`);
 		if (
 			!existsSync(join(ROOT, design)) ||
@@ -113,7 +116,7 @@ function main(argv) {
 			failed += 1;
 			continue;
 		}
-		const out = join('campaign-out', 'live', id);
+		const out = join('campaign-out', suite.id === 'giant' ? 'live' : `live-${suite.id}`, id);
 		mkdirSync(join(ROOT, out), { recursive: true });
 		const ran = spawnSync(
 			process.execPath,

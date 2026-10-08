@@ -238,6 +238,16 @@ jobs:
         run: node scripts/live-check.mjs
       - name: Check the live column is the one the results and cassettes give
         run: node scripts/live-column.mjs --check
+      # The 35B suite (113 §12): the same designs with the 35B in the brain's seat, in folders of their own. Until it is recorded there are
+      # no cassettes to replay and the check says so.
+      - name: Check the 35B designs against their base designs
+        run: node scripts/live-designs.mjs --suite quick --check
+      - name: Replay the 35B suite from its cassettes
+        run: node scripts/live-check.mjs --suite quick
+      - name: Check the 35B column is the one the results and cassettes give
+        run: node scripts/live-column.mjs --suite quick --check
+      - name: Check the 122B and 35B comparison is the one the two suites give
+        run: node scripts/live-compare.mjs --check
 
       # WP123 (106-BENCHMARK.md §6): every guard over the seven adversarial corpora, the stand-ins unmeasured.
       - name: Run the reference benchmark

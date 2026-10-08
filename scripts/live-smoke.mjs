@@ -17,10 +17,13 @@ import { spawnSync } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { suiteFrom } from './live-suite.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SPARK_CONFIG = 'packages/packs/dgx-spark/craftabot.config.mjs';
-const OUT = join(ROOT, 'recordings', 'smoke');
+// `--suite quick` smokes the 35B suite's designs, into its own folder (113 §12).
+const { suite: SUITE } = suiteFrom();
+const OUT = join(ROOT, 'recordings', SUITE.id === 'giant' ? 'smoke' : `smoke-${SUITE.id}`);
 
 export const itemKey = (item) => `|${item}|`;
 
@@ -53,7 +56,8 @@ export function readSmoke(recording, items) {
 	};
 }
 
-function main(argv) {
+function main(args) {
+	const { rest: argv } = suiteFrom(args);
 	const provider = argv.includes('--provider') ? argv[argv.indexOf('--provider') + 1] : 'dgx-spark';
 	const itemsFile = argv.includes('--items') ? argv[argv.indexOf('--items') + 1] : undefined;
 	const wanted = argv.filter(
@@ -67,9 +71,7 @@ function main(argv) {
 		if (wanted.length > 0 && !wanted.includes(id)) continue;
 		const work = join(OUT, id);
 		mkdirSync(work, { recursive: true });
-		const design = JSON.parse(
-			readFileSync(join(ROOT, 'experiments', 'live', `${id}.json`), 'utf8')
-		);
+		const design = JSON.parse(readFileSync(join(ROOT, SUITE.experimentsDir, `${id}.json`), 'utf8'));
 		const recordingFile = join(work, `${id}.smoke.provider-cassette.json`);
 		for (const brain of design.design.template.brains)
 			if (brain.cassette) brain.cassette = recordingFile;

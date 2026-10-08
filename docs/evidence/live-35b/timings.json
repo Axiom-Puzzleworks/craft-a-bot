@@ -1,0 +1,111 @@
+{
+	"onboarding-stack-live": {
+		"recordedOn": "2026-10-08",
+		"model": "Qwen3.6-35B-A3B-NVFP4",
+		"cartridge": "dgx-spark/quick-qwen",
+		"size": 400,
+		"trials": 2,
+		"cells": 132,
+		"entries": 780,
+		"wallSeconds": 176,
+		"stories": 2
+	},
+	"disputes-stack-live": {
+		"recordedOn": "2026-10-08",
+		"model": "Qwen3.6-35B-A3B-NVFP4",
+		"cartridge": "dgx-spark/quick-qwen",
+		"size": 400,
+		"trials": 2,
+		"cells": 160,
+		"entries": 948,
+		"wallSeconds": 288,
+		"stories": 6
+	},
+	"complaints-stack-live": {
+		"recordedOn": "2026-10-08",
+		"model": "Qwen3.6-35B-A3B-NVFP4",
+		"cartridge": "dgx-spark/quick-qwen",
+		"size": 200,
+		"trials": 2,
+		"cells": 220,
+		"entries": 582,
+		"wallSeconds": 155,
+		"stories": 11
+	},
+	"servicing-stack-live": {
+		"recordedOn": "2026-10-08",
+		"model": "Qwen3.6-35B-A3B-NVFP4",
+		"cartridge": "dgx-spark/quick-qwen",
+		"size": 200,
+		"trials": 2,
+		"cells": 132,
+		"entries": 690,
+		"wallSeconds": 209,
+		"stories": 3
+	},
+	"servicing-stack-live-seat": {
+		"recordedOn": "2026-10-08",
+		"model": "Qwen3.6-35B-A3B-NVFP4",
+		"cartridge": "dgx-spark/quick-qwen",
+		"size": 100,
+		"trials": 2,
+		"cells": 64,
+		"entries": 690,
+		"wallSeconds": 191,
+		"stories": 6
+	},
+	"controls-live": {
+		"recordedOn": "2026-10-08",
+		"model": "Qwen3.6-35B-A3B-NVFP4",
+		"cartridge": "dgx-spark/quick-qwen",
+		"trials": 2,
+		"cells": 162,
+		"entries": 1681,
+		"wallSeconds": 647,
+		"stories": 12
+	},
+	"collections-stack-live": {
+		"recordedOn": "2026-10-08",
+		"model": "Qwen3.6-35B-A3B-NVFP4",
+		"cartridge": "dgx-spark/quick-qwen",
+		"size": 300,
+		"trials": 2,
+		"cells": 148,
+		"entries": 1889,
+		"wallSeconds": 520,
+		"stories": 6
+	},
+	"lending-stack-live": {
+		"recordedOn": "2026-10-08",
+		"model": "Qwen3.6-35B-A3B-NVFP4",
+		"cartridge": "dgx-spark/quick-qwen",
+		"size": 800,
+		"trials": 2,
+		"cells": 408,
+		"entries": 2564,
+		"wallSeconds": 893,
+		"stories": 9
+	},
+	"advice-context-live": {
+		"recordedOn": "2026-10-08",
+		"model": "Qwen3.6-35B-A3B-NVFP4",
+		"cartridge": "dgx-spark/quick-qwen",
+		"size": 1200,
+		"trials": 2,
+		"cells": 248,
+		"entries": 3879,
+		"wallSeconds": 1898,
+		"stories": 8
+	},
+	"fraud-stack-live": {
+		"recordedOn": "2026-10-08",
+		"model": "Qwen3.6-35B-A3B-NVFP4",
+		"cartridge": "dgx-spark/quick-qwen",
+		"size": 6,
+		"trials": 2,
+		"cells": 216,
+		"entries": 2430,
+		"wallSeconds": 695,
+		"stories": 15
+	}
+}

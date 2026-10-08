@@ -23,7 +23,9 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-export const CARTRIDGE = 'dgx-spark/giant-qwen';
+import { SUITES, suiteFrom, trialsOf } from './live-suite.mjs';
+
+export const CARTRIDGE = SUITES.giant.cartridge;
 
 /**
  * The reply limit a live design gives its agents. The stage agents inherit the starter's 256, and the first lending
@@ -67,38 +69,38 @@ export const LIVE = [
 export const liveIdOf = ({ base, variant, seat }) =>
 	`${base}-live${seat ? '-seat' : ''}${variant ? `-${variant}` : ''}`;
 
-export function cassettePathOf(entry, cassetteRoot) {
+export function cassettePathOf(entry, cassetteRoot, suite = SUITES.giant) {
 	const id = liveIdOf(entry);
-	return `${cassetteRoot ?? 'docs/evidence/live'}/${id}/${id}.provider-cassette.json`.replaceAll(
+	return `${cassetteRoot ?? suite.evidenceDir}/${id}/${id}.provider-cassette.json`.replaceAll(
 		'\\',
 		'/'
 	);
 }
 
-export function liveDesign(entry, cassetteRoot) {
+export function liveDesign(entry, cassetteRoot, suite = SUITES.giant) {
 	const base = JSON.parse(readFileSync(join(ROOT, 'experiments', `${entry.base}.json`), 'utf8'));
 	const id = liveIdOf(entry);
 	const d = structuredClone(base);
 	d.id = id;
-	d.title = `${base.title} — with the 122B on the DGX Sparks as the brain${entry.seat ? ' and as the customer' : ''}${entry.variant ? ` (second recording)` : ''}`;
-	d.hypothesis = `${base.hypothesis} Here the decisions are made by a live model, \`${CARTRIDGE}\` (Qwen3.5-122B-A10B-NVFP4 on the builder's DGX Sparks), at temperature 0 with a ${MAX_TOKENS}-token reply limit, over a book of ${entry.size}: a single sample, recorded once and replayed from its cassette. The design's scripted and fallible columns are \`${entry.base}\`.`;
+	d.title = `${base.title} — with the ${suite.short} on the DGX Sparks as the brain${entry.seat ? ' and as the customer' : ''}${entry.variant ? ` (second recording)` : ''}`;
+	d.hypothesis = `${base.hypothesis} Here the decisions are made by a live model, \`${suite.cartridge}\` (${suite.model} on the builder's DGX Sparks), at temperature 0 with a ${MAX_TOKENS}-token reply limit, over a book of ${entry.size}: a single sample, recorded once and replayed from its cassette. The design's scripted and fallible columns are \`${entry.base}\`.`;
 	d.design.factors = d.design.factors.filter((factor) => factor.axis !== 'brain');
 	delete d.design.baseline.brain;
 	d.design.template.brains = [
 		{
 			id: 'live',
 			tier: 'live',
-			cartridgeId: CARTRIDGE,
-			cassette: cassettePathOf(entry, cassetteRoot)
+			cartridgeId: suite.cartridge,
+			cassette: cassettePathOf(entry, cassetteRoot, suite)
 		}
 	];
 	d.design.template.budget = { maxLiveCells: 1000 };
 	// Performed more than once (113 §12): the design itself says how often, so its replay — here, in CI and after a recording — runs
 	// as many performances as were recorded, and the result carries the reliability.
-	if ((entry.trials ?? 1) > 1) d.design.trials = entry.trials;
+	if (trialsOf(entry, suite) > 1) d.design.trials = trialsOf(entry, suite);
 	// A live customer (WP169): the seat takes the same cartridge as the brain, and answers from the same cassette on replay.
 	if (entry.seat)
-		d.design.template.counterpart = { tier: 'live', cartridgeId: CARTRIDGE, maxRounds: 12 };
+		d.design.template.counterpart = { tier: 'live', cartridgeId: suite.cartridge, maxRounds: 12 };
 	d.design.template.builds = d.design.template.builds.map((build) => ({
 		...build,
 		overrides: { ...build.overrides, maxTokens: MAX_TOKENS }
@@ -118,16 +120,17 @@ export function liveDesign(entry, cassetteRoot) {
 
 const text = (design) => `${JSON.stringify(design, null, '\t')}\n`;
 
-function main(argv) {
+function main(args) {
+	const { suite, rest: argv } = suiteFrom(args);
 	const rootIndex = argv.indexOf('--cassette-root');
 	const cassetteRoot = rootIndex === -1 ? undefined : argv[rootIndex + 1];
 	const check = argv.includes('--check');
-	const dir = join(ROOT, 'experiments', 'live');
+	const dir = join(ROOT, suite.experimentsDir);
 	if (!check) mkdirSync(dir, { recursive: true });
 	let bad = 0;
 	for (const entry of LIVE) {
 		const file = join(dir, `${liveIdOf(entry)}.json`);
-		const wanted = text(liveDesign(entry, cassetteRoot));
+		const wanted = text(liveDesign(entry, cassetteRoot, suite));
 		if (check) {
 			// Compared as data: prettier lays the file out its own way.
 			const same =
@@ -136,7 +139,7 @@ function main(argv) {
 					JSON.stringify(JSON.parse(wanted));
 			if (!same) {
 				console.error(
-					`live-designs: ${file} is out of date; run node scripts/live-designs.mjs and format`
+					`live-designs: ${file} is out of date; run node scripts/live-designs.mjs${suite.id === 'giant' ? '' : ` --suite ${suite.id}`} and format`
 				);
 				bad += 1;
 			}

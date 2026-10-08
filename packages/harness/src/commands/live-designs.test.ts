@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { compareReplay, effectKey, replayProblems } from '../../../../scripts/live-check.mjs';
+import { SUITES, suiteFrom, trialsOf } from '../../../../scripts/live-suite.mjs';
 import {
 	LIVE,
 	liveDesign,
@@ -209,5 +210,83 @@ describe('the live column', () => {
 		expect(rows.map((row) => row.campaignId)).toEqual(['x--executors=bot-everywhere--guard=none']);
 		expect(reliabilityRows({ reliability: [campaign('y--guard=none')] }, 'nothing')).toEqual([]);
 		expect(reliabilityRows({}, 'agreement')).toEqual([]);
+	});
+});
+
+describe('the 35B suite (113 §12)', () => {
+	const quick = SUITES.quick!;
+	const read = (path: string) =>
+		JSON.parse(readFileSync(resolve(import.meta.dirname, '../../../..', path), 'utf8'));
+
+	it('names a suite by flag or environment, defaulting to the 122B, and never writes over the other', () => {
+		expect(suiteFrom([], {}).suite.id).toBe('giant');
+		expect(suiteFrom(['--suite', 'quick', 'lending-stack-live'], {})).toMatchObject({
+			suite: { id: 'quick' },
+			rest: ['lending-stack-live']
+		});
+		expect(suiteFrom([], { LIVE_SUITE: 'quick' }).suite.id).toBe('quick');
+		expect(() => suiteFrom(['--suite', 'nope'], {})).toThrow(/no live suite/);
+		const giant = SUITES.giant!;
+		for (const key of ['experimentsDir', 'evidenceDir', 'recordingsDir', 'workDir'] as const)
+			expect(quick[key]).not.toBe(giant[key]);
+		expect(quick).toMatchObject({
+			cartridge: 'dgx-spark/quick-qwen',
+			model: 'Qwen3.6-35B-A3B-NVFP4',
+			pattern: 'fast-pair'
+		});
+	});
+
+	it('is every design of the 122B suite with the 35B in the brain’s seat, each performed twice, committed as generated', () => {
+		for (const entry of LIVE) {
+			const id = liveIdOf(entry);
+			const generated = liveDesign(entry, undefined, quick);
+			expect(read(`${quick.experimentsDir}/${id}.json`)).toEqual(generated);
+			expect(generated.design.template.brains).toEqual([
+				{
+					id: 'live',
+					tier: 'live',
+					cartridgeId: quick.cartridge,
+					cassette: `${quick.evidenceDir}/${id}/${id}.provider-cassette.json`
+				}
+			]);
+			expect(generated.design.trials).toBe(2);
+			expect(trialsOf(entry, quick)).toBe(2);
+			if (entry.seat)
+				expect(generated.design.template.counterpart.cartridgeId).toBe(quick.cartridge);
+			// Everything but the model, the cassette, the title and the trials is the 122B design's, so the two suites compare.
+			const giant = liveDesign(entry);
+			expect(generated.design.template.builds).toEqual(giant.design.template.builds);
+			expect(generated.design.factors).toEqual(giant.design.factors);
+			expect(generated.design.template.source).toEqual(giant.design.template.source);
+		}
+	});
+});
+
+describe('the comparison of the two suites (113 §12)', () => {
+	it('counts the bot cells a model’s habits lost, and lays two suites side by side', async () => {
+		const { lostShare, renderComparison } = await import('../../../../scripts/live-compare.mjs');
+		expect(
+			lostShare([
+				{ campaign: 'x--executors=rules-only--guard=none', outcome: 'SUCCESS' },
+				{ campaign: 'x--executors=bot-everywhere--guard=none', outcome: 'SUCCESS' },
+				{ campaign: 'x--executors=bot-everywhere--guard=none', outcome: 'ERROR' }
+			])
+		).toBe(0.5);
+		expect(lostShare([])).toBe(0);
+		const row = (agreement: number, lost: number) => ({
+			id: 'lending-stack-live',
+			what: 'lending decision matches the rule',
+			side: { value: agreement, interval: [agreement - 0.05, 1] as [number, number] },
+			passHatK: { value: agreement },
+			lost,
+			wallMinutes: 66,
+			tokens: 12391
+		});
+		const text = renderComparison([{ giant: row(1, 0.03), quick: row(0.9, 0.1) }]);
+		expect(text).toContain(
+			'| `lending-stack-live` | lending decision matches the rule | 100% (95%–100%) | 90% (85%–100%) |'
+		);
+		expect(text).toContain('100% / 90%');
+		expect(text).toContain('3% / 10%');
 	});
 });

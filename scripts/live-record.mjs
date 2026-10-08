@@ -39,13 +39,16 @@ import {
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { LIVE, liveIdOf } from './live-designs.mjs';
+import { suiteFrom, trialsOf } from './live-suite.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 const SPARK_CONFIG = 'packages/packs/dgx-spark/craftabot.config.mjs';
-const OUT = join(ROOT, 'docs', 'evidence', 'live');
-const WORK = join(ROOT, '.live-work');
+// The suite names the model, the Spark pattern and where everything lives (`--suite quick` is the 35B); the default is the 122B's.
+const { suite: SUITE, rest: ARGS } = suiteFrom();
+const OUT = join(ROOT, SUITE.evidenceDir);
+const WORK = join(ROOT, SUITE.workDir);
 /** The live runs' own stores (113-… D1): gitignored, kept, never deleted by this script. */
-const RECORDINGS = join(ROOT, 'recordings');
+const RECORDINGS = join(ROOT, SUITE.recordingsDir);
 
 function run(args, { quiet = false } = {}) {
 	return new Promise((resolve) => {
@@ -173,7 +176,7 @@ function readdirSyncSafe(path) {
 async function one(id, { replayOnly = false, trials, trial, resume = false } = {}) {
 	const entry = LIVE.find((e) => liveIdOf(e) === id);
 	if (!entry) throw new Error(`no live design "${id}"; known: ${LIVE.map(liveIdOf).join(', ')}`);
-	const file = `experiments/live/${id}.json`;
+	const file = `${SUITE.experimentsDir}/${id}.json`;
 	const dest = join(OUT, id);
 	const work = join(WORK, id);
 	rmSync(work, { recursive: true, force: true });
@@ -189,7 +192,9 @@ async function one(id, { replayOnly = false, trials, trial, resume = false } = {
 		});
 		if (verified.code !== 0) {
 			console.error(verified.stdout);
-			throw new Error(`the Sparks do not serve ${id}'s cartridge; stand a pattern up first`);
+			throw new Error(
+				`the Sparks do not serve ${id}'s cartridge (${SUITE.cartridge}); stand a pattern up first: craftabot spark up --pattern ${SUITE.pattern} --yes`
+			);
 		}
 		const liveStore = join(RECORDINGS, id, `trial-${trial ?? 0}`);
 		if (existsSync(liveStore) && resume) {
@@ -285,8 +290,8 @@ async function one(id, { replayOnly = false, trials, trial, resume = false } = {
 		wall += earlier;
 		all[id] = {
 			recordedOn: new Date().toISOString().slice(0, 10),
-			model: 'Qwen3.5-122B-A10B-NVFP4',
-			cartridge: 'dgx-spark/giant-qwen',
+			model: SUITE.model,
+			cartridge: SUITE.cartridge,
 			size: entry.size,
 			trials: trials ?? 1,
 			cells: Number(cells),
@@ -303,7 +308,7 @@ async function one(id, { replayOnly = false, trials, trial, resume = false } = {
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
-	const args = process.argv.slice(2);
+	const args = ARGS;
 	const replayOnly = args.includes('--replay-only');
 	const numberAfter = (flag) => {
 		const at = args.indexOf(flag);
@@ -319,10 +324,10 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
 	// `--all` (not replay-only) is the plan: pass 0 of every design, then pass 1 of every design performed twice, and so on, so a stopped
 	// run leaves every design recorded once before any is recorded twice (113 §12). `--resume` skips a pass already on disk.
 	if (args.includes('--all') && !replayOnly) {
-		const most = Math.max(...LIVE.map((e) => e.trials ?? 1));
+		const most = Math.max(...LIVE.map((e) => trialsOf(e, SUITE)));
 		for (let pass = 0; pass < most; pass += 1)
 			for (const entry of LIVE) {
-				const k = entry.trials ?? 1;
+				const k = trialsOf(entry, SUITE);
 				if (pass >= k) continue;
 				await one(liveIdOf(entry), {
 					resume,

@@ -17,7 +17,11 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import * as prettier from 'prettier';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
-const LIVE = join(ROOT, 'docs', 'evidence', 'live');
+import { suiteFrom } from './live-suite.mjs';
+
+// `--suite quick` writes and checks the 35B suite's column beside its own evidence (113 §12); the default is the 122B's.
+const { suite: SUITE } = suiteFrom();
+const LIVE = join(ROOT, SUITE.evidenceDir);
 
 /**
  * For each design: the metric that says whether the live decision matched the
@@ -176,14 +180,14 @@ export async function render() {
 		'',
 		'## How it was set up',
 		'',
-		'- **The model** is `Qwen3.5-122B-A10B-NVFP4` through `dgx-spark/giant-qwen`, on whichever of the two Sparks was less loaded (both in `puzzle` mode, 8 streams each, MTP speculative decoding on), 16 cells at a time (`record --concurrency auto`).',
+		`- **The model** is \`${SUITE.model}\` through \`${SUITE.cartridge}\`, on whichever of the two Sparks was less loaded (${SUITE.id === 'giant' ? 'both in `puzzle` mode, 8 streams each, MTP speculative decoding on' : 'both in `chat` mode'}), 16 cells at a time (\`record --concurrency auto\`).`,
 		"- **Temperature 0, and a 2,048-token reply limit (1,024 in the first recordings; raised at plan 113's preflight).** The stage agents inherit the starter's 256-token limit. The first lending recording, made at 256 (2026-10-06, since replaced), found 35 of its 791 replies, 4.4%, cut off by the limit with no call made, and agreement of 10 of 23: a measurement of the cap, not of the model. The live designs set `maxTokens: 2048` on every build (a scripted brain never reads it), and the recordings below say how many replies were cut off.",
 		"- **Temperature 0 is not repeatable here.** The same prompt is not always answered the same way: the serving stack batches requests and speculates tokens, so even at temperature 0 the numerics move with what else is in flight. That is the live tier's variance, and it is measured below, not assumed away.",
 		"- **Each design is a book of its own size** (the table below), one live brain, the design's other factors as in its reference design; the committed scripted and fallible columns are the full-size results one folder up.",
 		'',
 		"## The first finding: the live tier's own error rate against the bank's assumption",
 		'',
-		'`ERROR_RATES` (`fs-bank`) assumed one decision in ten wrong on every desk, so an agreement of 90%. The live column is what the 122B did.',
+		`\`ERROR_RATES\` (\`fs-bank\`) assumed one decision in ten wrong on every desk, so an agreement of 90%. The live column is what the ${SUITE.short} did.`,
 		'',
 		'| Design | What is measured | Live (95% interval, n) | Assumed | Assumption inside the interval? |',
 		'|---|---|---|---|---|'

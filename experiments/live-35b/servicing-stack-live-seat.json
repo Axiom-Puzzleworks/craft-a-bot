@@ -1,0 +1,113 @@
+{
+	"schemaVersion": 1,
+	"id": "servicing-stack-live-seat",
+	"title": "The policy-card stack on the servicing book — with the 35B on the DGX Sparks as the brain and as the customer",
+	"hypothesis": "The servicing desk’s policy-card stack (fs-servicing/stack/policy-cards) changes nothing a scripted bot at Level 5 does wrong on the servicing book. Under the fallible tier (WP154), which errs at the desk's decision one time in ten, the stack is expected to catch what its cards check and nothing else. Here the decisions are made by a live model, `dgx-spark/quick-qwen` (Qwen3.6-35B-A3B-NVFP4 on the builder's DGX Sparks), at temperature 0 with a 2048-token reply limit, over a book of 100: a single sample, recorded once and replayed from its cassette. The design's scripted and fallible columns are `servicing-stack`.",
+	"controls": [],
+	"obligations": [],
+	"design": {
+		"template": {
+			"scenarios": [],
+			"source": {
+				"kind": "book",
+				"workflowId": "fs-servicing/servicing",
+				"population": {
+					"seed": 1,
+					"size": 100
+				}
+			},
+			"builds": [
+				{
+					"id": "bot-everywhere",
+					"base": {
+						"kind": "starter-default"
+					},
+					"overrides": {
+						"senses": [
+							"fs-servicing/the-servicing-desk/request",
+							"fs-servicing/the-servicing-desk/classification",
+							"fs-servicing/the-servicing-desk/file",
+							"fs-servicing/the-servicing-desk/conversation"
+						],
+						"actions": [
+							"fs-servicing/the-servicing-desk/say",
+							"fs-servicing/the-servicing-desk/identify-caller",
+							"fs-servicing/the-servicing-desk/classify",
+							"fs-servicing/the-servicing-desk/update-address",
+							"fs-servicing/the-servicing-desk/reissue-card",
+							"fs-servicing/the-servicing-desk/grant-third-party-access",
+							"fs-servicing/the-servicing-desk/record-support-need",
+							"fs-servicing/the-servicing-desk/close-account"
+						],
+						"configuration": "bot-everywhere",
+						"maxTokens": 2048
+					}
+				}
+			],
+			"guards": [
+				{
+					"id": "none",
+					"fit": []
+				},
+				{
+					"id": "policy-cards",
+					"fit": [],
+					"stack": "fs-servicing/stack/policy-cards"
+				}
+			],
+			"brains": [
+				{
+					"id": "live",
+					"tier": "live",
+					"cartridgeId": "dgx-spark/quick-qwen",
+					"cassette": "docs/evidence/live-35b/servicing-stack-live-seat/servicing-stack-live-seat.provider-cassette.json"
+				}
+			],
+			"evaluators": [
+				{
+					"id": "fs-servicing/needs-met"
+				},
+				{
+					"id": "fs-servicing/disclosure-recorded"
+				}
+			],
+			"budget": {
+				"maxLiveCells": 1000
+			},
+			"counterpart": {
+				"tier": "live",
+				"cartridgeId": "dgx-spark/quick-qwen",
+				"maxRounds": 12
+			}
+		},
+		"factors": [
+			{
+				"axis": "guard",
+				"levels": ["none", "policy-cards"]
+			}
+		],
+		"baseline": {
+			"guard": "none"
+		},
+		"metrics": [
+			{
+				"kind": "evaluator-pass-rate",
+				"id": "needs-met",
+				"evaluatorId": "fs-servicing/needs-met",
+				"direction": "higher-is-better"
+			},
+			{
+				"kind": "evaluator-pass-rate",
+				"id": "disclosure-recorded",
+				"evaluatorId": "fs-servicing/disclosure-recorded",
+				"direction": "higher-is-better"
+			}
+		],
+		"seeds": [1],
+		"replicates": 1,
+		"confidence": 0.95,
+		"minimumDetectableEffect": 0.05,
+		"trials": 2
+	},
+	"campaigns": []
+}
