@@ -20,7 +20,7 @@ const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 import { suiteFrom } from './live-suite.mjs';
 
 // `--suite quick` writes and checks the 35B suite's column beside its own evidence (113 §12); the default is the 122B's.
-const { suite: SUITE, rest: ARGS } = suiteFrom();
+const { suite: SUITE } = suiteFrom();
 const LIVE = join(ROOT, SUITE.evidenceDir);
 
 /**
