@@ -405,3 +405,37 @@ describe('the lending rule on the desk (113 §12, item 1)', () => {
 		expect(changed).not.toContain('score band is fair');
 	});
 });
+
+describe('the explanation stage names the way out (113 §12, WP195)', () => {
+	const ready = () => {
+		const world = create('clear-approve');
+		world.perform(call('verify-identity'));
+		world.perform(call('assess-affordability'));
+		return world;
+	};
+
+	it('says what to do when the decision was recorded with no reasons, and what the decision rested on when the bot names another', () => {
+		const empty = ready();
+		empty.perform(call('decide', { outcome: 'approve', reasons: [] }));
+		const refusal = empty.perform(call('explain-decision', { reasons: [], text: 'Approved.' }));
+		expect(refusal.ok).toBe(false);
+		expect(refusal.narration).toContain('Decide again with the reasons');
+		const wrong = ready();
+		wrong.perform(call('decide', { outcome: 'approve', reasons: ['affordable'] }));
+		const named = wrong.perform(
+			call('explain-decision', { reasons: ['searches'], text: 'Approved.' })
+		);
+		expect(named.narration).toContain('only the reasons used: affordable');
+		expect(
+			wrong.perform(call('explain-decision', { reasons: [], text: 'Approved.' })).narration
+		).toContain('Name the reasons the decision rested on: affordable');
+	});
+
+	it('shows the decision’s reasons under “Done so far”, where the explanation stage reads them', () => {
+		const world = ready();
+		world.perform(call('decide', { outcome: 'approve', reasons: ['affordable'] }));
+		expect(world.describeProgress?.('decided', [qualifyLendingId('conversation')])).toContain(
+			'decided (approve — affordable)'
+		);
+	});
+});

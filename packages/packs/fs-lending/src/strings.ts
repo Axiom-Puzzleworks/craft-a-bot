@@ -122,8 +122,12 @@ export const lendingStrings = {
 			`Decision: ${outcome} — ${reasons.join(', ')}.`,
 		referred: 'Referred to an underwriter.',
 		nothingToExplain: 'No decision has been made to explain.',
-		reasonNotUsed: (reason: string): string =>
-			`The decision did not rest on "${reason}"; an explanation may name only the reasons used.`,
+		reasonNotUsed: (reason: string, used: readonly string[]): string =>
+			`The decision did not rest on "${reason}"; an explanation may name only the reasons used: ${used.join(', ')}.`,
+		nameTheReasons: (used: readonly string[]): string =>
+			`Name the reasons the decision rested on: ${used.join(', ')}.`,
+		nothingToName:
+			'The decision was recorded with no reasons, so there is nothing to name. Decide again with the reasons the assessment showed (for an approval, affordable), then explain it.',
 		explained: 'Decision explained to the applicant.',
 		notApproved: 'Only an approved loan can be disbursed.',
 		alreadyDisbursed: 'The loan has already been paid out.',
@@ -158,7 +162,7 @@ export const lendingStrings = {
 			decision:
 				'The affordability worksheet is on the desk. Decide — approve, decline, or refer to an underwriter — giving the reasons the assessment actually showed.',
 			explanation:
-				'A decision is on the file. Explain it to the applicant in the reasons it rested on — all of them, and no others.',
+				'A decision is on the file. Explain it to the applicant with Explain decision, in the reasons it rested on (they are listed under Done so far) — all of them, and no others.',
 			disbursement:
 				'The loan is approved and a person has agreed. Pay it out with Disburse; the decision is made, do not make it again.',
 			appeal:
