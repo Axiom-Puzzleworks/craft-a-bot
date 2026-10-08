@@ -1,6 +1,6 @@
 # Testbot on fs-lending/lending/stage/explanation
 
-*Run `00000000-0000-4000-8000-000000030e66`*
+*Run `00000000-0000-4000-8000-0000000000ae`*
 
 - **Bot:** Testbot
 - **Goal card:** fs-lending/lending/stage/explanation
@@ -10,7 +10,7 @@
 - **Started by:** BambleweenyOne (service)
 - **Context:** window-v1 memory, sections-v1 prompt
 - **Egress:** none
-- **Answers:** replayed from docs/evidence/live/lending-stack-live/lending-stack-live.provider-cassette.json (Qwen3.5-122B-A10B-NVFP4, recorded 2026-10-07T21:45:24.072Z) — not a live call
+- **Answers:** replayed from docs/evidence/live/lending-stack-live/lending-stack-live.provider-cassette.json (Qwen3.5-122B-A10B-NVFP4, recorded 2026-10-08T07:13:03.363Z) — not a live call
 
 ## Before the first turn
 
@@ -18,36 +18,34 @@
 
 ## Turn 1
 
-- **saw** — It saw: applicant Dilan Thornbury, age_band 25-34, amount 1000, term_months 24, purpose a car, declared_monthly_income 1000, declared_monthly_outgoings 369, requested_repayment 48
-rule: The bank's lending rule. The ratio is the monthly repayment as a percentage of disposable income on the worksheet. Decline if the bureau score band is poor, if the bureau shows 2 or more defaults, or if the ratio is over 100%. Otherwise refer to an underwriter if the bureau shows any default or any months in arrears, if there have been 3 or more credit searches in twelve months, if the ratio is over 60%, or if the sco…
-- **told** — Its prompt: 2 messages, about 451 tokens.
-  - system: 745 characters
-  - user: 1058 characters
+- **saw** — It saw: applicant Bram Larkspur, age_band 35-44, amount 15000, term_months 36, purpose home improvements, declared_monthly_income 6500, declared_monthly_outgoings 1971, requested_repayment 515
+rule: The bank's lending rule. The ratio is the monthly repayment as a percentage of disposable income on the worksheet. Decline if the bureau score band is poor, if the bureau shows 2 or more defaults, or if the ratio is over 100%. Otherwise refer to an underwriter if the bureau shows any default or any months in arrears, if there have been 3 or more credit searches in twelve months, if the ratio is over 60%,…
+- **told** — Its prompt: 2 messages, about 470 tokens.
+  - system: 804 characters
+  - user: 1076 characters
   - The last message it read: “Right now:
-applicant Dilan Thornbury, age_band 25-34, amount 1000, term_months 24, purpose a car, declared_monthly_income 1000, declared_monthly_outgoings 369, requested_repayment 48
-rule: The bank's lending rule. The ratio is the monthly repayment as a percentage of disposable income on the worksheet. Decline if the bureau score band is poor, if the bureau shows 2 or more defaults, or if the ratio is over 100%. Otherwise refer to an underwriter if the bureau shows any default or any months in…”
-- **thought** — It thought (1664 in, 175 out; tool_call; 25 s at the provider).
-- **thought** — It decided: “I need to check the lending rule against the applicant's data. The score band is very-good (not poor), defaults are 0 (not 2+), and the ratio is 9% (not over 100%). So it's not a decline. 
-
-For referral: score band is very-good (not fair), no defaults, no arrears, but there are 3 credit searches in 12 months. The rule says "refer to an underwriter if... there have been 3 or more credit searches i…” — decide {"outcome":"refer","reasons":["searches"]}
-- **did** — It did decide {"outcome":"refer","reasons":["searches"]}.
+applicant Bram Larkspur, age_band 35-44, amount 15000, term_months 36, purpose home improvements, declared_monthly_income 6500, declared_monthly_outgoings 1971, requested_repayment 515
+rule: The bank's lending rule. The ratio is the monthly repayment as a percentage of disposable income on the worksheet. Decline if the bureau score band is poor, if the bureau shows 2 or more defaults, or if the ratio is over 100%. Otherwise refer to an underwriter if the bureau shows any default or a…”
+- **thought** — It thought (1678 in, 195 out; tool_call; 25 s at the provider).
+- **thought** — It decided: “I need to explain the decision to the applicant. Let me check the rules: the score band is very-good (not poor), defaults are 0 (not 2+), and the ratio is 14% (not over 100%). So it shouldn't be declined. The ratio is 14% which is not over 60%, there are no defaults, no arrears, but there are 3 searches in 12 months. The rule says refer if there have been 3 or more credit searches in twelve month…” — decide {"outcome":"refer","reasons":["rules-cannot-decide"]}
+- **did** — It did decide {"outcome":"refer","reasons":["rules-cannot-decide"]}.
   - On behalf of BambleweenyOne (service).
-- **result** — The world answered: Decision: refer — searches.
+- **result** — The world answered: Decision: refer — rules-cannot-decide.
 
 ## Turn 2
 
-- **saw** — It saw: applicant Dilan Thornbury, age_band 25-34, amount 1000, term_months 24, purpose a car, declared_monthly_income 1000, declared_monthly_outgoings 369, requested_repayment 48
-rule: The bank's lending rule. The ratio is the monthly repayment as a percentage of disposable income on the worksheet. Decline if the bureau score band is poor, if the bureau shows 2 or more defaults, or if the ratio is over 100%. Otherwise refer to an underwriter if the bureau shows any default or any months in arrears, if there have been 3 or more credit searches in twelve months, if the ratio is over 60%, or if the sco…
-- **told** — Its prompt: 3 messages, about 618 tokens.
-  - system: 745 characters
-  - user: 669 characters
-  - user: 1058 characters
+- **saw** — It saw: applicant Bram Larkspur, age_band 35-44, amount 15000, term_months 36, purpose home improvements, declared_monthly_income 6500, declared_monthly_outgoings 1971, requested_repayment 515
+rule: The bank's lending rule. The ratio is the monthly repayment as a percentage of disposable income on the worksheet. Decline if the bureau score band is poor, if the bureau shows 2 or more defaults, or if the ratio is over 100%. Otherwise refer to an underwriter if the bureau shows any default or any months in arrears, if there have been 3 or more credit searches in twelve months, if the ratio is over 60%,…
+- **told** — Its prompt: 3 messages, about 654 tokens.
+  - system: 804 characters
+  - user: 736 characters
+  - user: 1076 characters
   - The last message it read: “Right now:
-applicant Dilan Thornbury, age_band 25-34, amount 1000, term_months 24, purpose a car, declared_monthly_income 1000, declared_monthly_outgoings 369, requested_repayment 48
-rule: The bank's lending rule. The ratio is the monthly repayment as a percentage of disposable income on the worksheet. Decline if the bureau score band is poor, if the bureau shows 2 or more defaults, or if the ratio is over 100%. Otherwise refer to an underwriter if the bureau shows any default or any months in…”
-- **thought** — It thought (1846 in, 141 out; tool_call; 23 s at the provider).
-- **thought** — It decided: “I need to explain the decision that was made to refer the application. The decision was based on the "searches" reason code, as there were 3 credit searches in the last 12 months, which triggers a referral according to the lending rules.” — explain-decision {"reasons":["searches"],"text":"Your application has been referred to an underwriter because there have been 3 or more credit searches in the last 12 months. This is a standard part of our lending process to ensure we make the right decisi…
-- **did** — It did explain-decision {"reasons":["searches"],"text":"Your application has been referred to an underwriter because there have been 3 or more credit searches in the last 12 months. This is a standard part of our lending process to ensure we make the right decisi….
+applicant Bram Larkspur, age_band 35-44, amount 15000, term_months 36, purpose home improvements, declared_monthly_income 6500, declared_monthly_outgoings 1971, requested_repayment 515
+rule: The bank's lending rule. The ratio is the monthly repayment as a percentage of disposable income on the worksheet. Decline if the bureau score band is poor, if the bureau shows 2 or more defaults, or if the ratio is over 100%. Otherwise refer to an underwriter if the bureau shows any default or a…”
+- **thought** — It thought (1880 in, 171 out; tool_call; 30 s at the provider).
+- **thought** — It decided: “I need to explain the decision that was already made. The decision was "refer" with reason "rules-cannot-decide". According to the rules, this is because there are 3 searches in 12 months, which triggers the refer condition. I should use explain-decision to tell the applicant why the decision was made, using the reason "rules-cannot-decide".” — explain-decision {"reasons":["rules-cannot-decide"],"text":"Your application has been referred to an underwriter because there have been 3 or more credit searches in the last 12 months. This means our automated system cannot make a final decision and a hum…
+- **did** — It did explain-decision {"reasons":["rules-cannot-decide"],"text":"Your application has been referred to an underwriter because there have been 3 or more credit searches in the last 12 months. This means our automated system cannot make a final decision and a hum….
   - On behalf of BambleweenyOne (service).
 - **result** — The world answered: Decision explained to the applicant.
 - **stage** — Stage explanation ended ok; 0 of 0 checks stopped it.
@@ -67,13 +65,13 @@ rule: The bank's lending rule. The ratio is the monthly repayment as a percentag
       "fields": {
         "label": "should-refer",
         "reasons": "why-searches,why-rules-cannot-decide",
-        "ratio": "ratio-9pc"
+        "ratio": "ratio-14pc"
       }
     }
   ],
   "cohort": {
-    "ageBand": "25-34",
-    "incomeBand": "under-15k",
+    "ageBand": "35-44",
+    "incomeBand": "60-100k",
     "proxy": "none"
   },
   "facts": {

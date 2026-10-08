@@ -15,7 +15,7 @@ Written by `node scripts/live-column.mjs` from the committed results and cassett
 
 | Design              | What is measured                      | Live (95% interval, n) | Assumed | Assumption inside the interval? |
 | ------------------- | ------------------------------------- | ---------------------- | ------- | ------------------------------- |
-| `lending-stack`     | lending decision matches the rule     | 99% (97%–100%, n 51)   | 90%     | **no**                          |
+| `lending-stack`     | lending decision matches the rule     | 100% (93%–100%, n 51)  | 90%     | **no**                          |
 | `servicing-stack`   | the caller’s need is met              | 100% (90%–100%, n 33)  | 90%     | yes                             |
 | `disputes-stack`    | dispute decision matches the rule     | 81% (69%–93%, n 40)    | 90%     | yes                             |
 | `collections-stack` | repayment plan matches the rule       | 100% (91%–100%, n 37)  | 90%     | **no**                          |
@@ -30,7 +30,7 @@ The live side is the reference configuration with no guard (`bot-everywhere` whe
 
 | Design                      | Recorded   | Book size | Performed | Cells | Cassette entries | Wall time | Stories |
 | --------------------------- | ---------- | --------- | --------- | ----- | ---------------- | --------- | ------- |
-| `lending-stack-live`        | 2026-10-07 | 800       | 2×        | 408   | 2967             | 171 min   | 14      |
+| `lending-stack-live`        | 2026-10-08 | 800       | 2×        | 408   | 2701             | 66 min    | 11      |
 | `lending-stack-live-b`      | 2026-10-06 | 800       | 1×        | 306   | 1099             | 27 min    | 18      |
 | `servicing-stack-live`      | 2026-10-07 | 200       | 1×        | 66    | 318              | 6 min     | 2       |
 | `disputes-stack-live`       | 2026-10-07 | 400       | 2×        | 160   | 966              | 16 min    | 6       |
@@ -48,7 +48,7 @@ Each item is a case performed more than once with fresh model draws; every figur
 
 | Design              | What is measured                      | Performed    | pass@1          | pass^k          | Consistency     |
 | ------------------- | ------------------------------------- | ------------ | --------------- | --------------- | --------------- |
-| `lending-stack`     | lending decision matches the rule     | 51 items × 2 | 99% (97%–100%)  | 98% (90%–100%)  | 98% (90%–100%)  |
+| `lending-stack`     | lending decision matches the rule     | 51 items × 2 | 100% (93%–100%) | 100% (93%–100%) | 100% (93%–100%) |
 | `disputes-stack`    | dispute decision matches the rule     | 40 items × 2 | 81% (69%–93%)   | 80% (65%–90%)   | 98% (87%–100%)  |
 | `collections-stack` | repayment plan matches the rule       | 37 items × 2 | 100% (90%–100%) | 100% (90%–100%) | 100% (90%–100%) |
 | `onboarding-stack`  | onboarding decision matches the rule  | 33 items × 2 | 100% (90%–100%) | 100% (90%–100%) | 100% (90%–100%) |

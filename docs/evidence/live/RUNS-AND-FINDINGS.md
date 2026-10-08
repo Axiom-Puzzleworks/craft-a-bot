@@ -19,7 +19,7 @@ Ten live designs, recorded in two passes on 2026-10-07 (about 7 hours of wall ti
 | `servicing-stack` with a live customer (`-seat`) | 100 | 1× | 32 | 330 | 5 min |
 | `controls-live` (nine attack scenarios) | scenarios | 2× | 162 | 1,692 | 37 min |
 | `collections-stack` | 300 | 2× | 148 | 1,156 | 26 min |
-| `lending-stack` | 800 | 2× | 408 | 2,967 | 171 min |
+| `lending-stack` | 800 | 2× | 408 | 2,701 | 66 min |
 | `advice-context` | 1,200 | 2× | 248 | 2,466 | 67 min |
 | `fraud-stack` | 6 | 2× | 216 | 3,113 | 65 min |
 
@@ -39,7 +39,7 @@ Effects are guard `none` vs `policy-cards` unless the factor is named. Intervals
 
 | Design | Primary measure | No stack | Policy cards | Verdict |
 |---|---|---|---|---|
-| `lending-stack` | agreement with the rule | 99% (pass^2 98%) | 100% | inconclusive |
+| `lending-stack` | agreement with the rule | 100% (pass^2 100%) | 100% | inconclusive |
 | `disputes-stack` | decision matches the rule | 81% (pass^2 80%) | 80% | inconclusive |
 | `disputes-stack` | reimbursed within the limit | 94% (pass^2 93%) | **100%** | |
 | `collections-stack` | plan matches the rule | 100% | 100% | untestable |
@@ -52,11 +52,11 @@ Effects are guard `none` vs `policy-cards` unless the factor is named. Intervals
 
 ### 2.1 The headline: seeing the rule was the whole difference
 
-The first recording measured agreement of 53% (lending), 68% (disputes), 72% (collections) and 25% (complaints), far below the 90% the bank assumed. **That was the bot scored against thresholds it was never shown.** The desk brief is a record on the desk, not a line of the prompt, so the lending, disputes and collections rules, and the complaints register's convention, were absent from what the model read. With each rule put on the case file the model reasons from it ("the ratio is 18%, under the 60% threshold") and agreement is 99%, 81%, 100% and 99%. The remaining gap is on **disputes**, where the model misclassifies about one case in five in both arms: that is the model's, not a control's.
+The first recording measured agreement of 53% (lending), 68% (disputes), 72% (collections) and 25% (complaints), far below the 90% the bank assumed. **That was the bot scored against thresholds it was never shown.** The desk brief is a record on the desk, not a line of the prompt, so the lending, disputes and collections rules, and the complaints register's convention, were absent from what the model read. With each rule put on the case file the model reasons from it ("the ratio is 18%, under the 60% threshold") and agreement is 100%, 81%, 100% and 99%. The remaining gap is on **disputes**, where the model misclassifies about one case in five in both arms: that is the model's, not a control's.
 
 ### 2.2 Lending
 
-Agreement 99% (97–100%, n 51), pass^2 98%; with the stack 100%. Over-approval is 0% in both arms. **38 of the 408 bot cells (9%) ended `ERROR` and 5 more were stopped by the stack**, and they are not random: eleven are request timeouts and all of those are in the *explanation* stage. Having decided correctly, the bot re-derives the rule at length when asked to explain it, a reply of up to 2,048 tokens at five to seven tokens a second outlasts the 180-second timeout, and the cell is lost after its decision was made. The decision metrics are unaffected; the cells' later scores are missing. The likely fix is a tighter explanation-stage prompt (an owner's call, and a re-record of lending, about 170 minutes).
+Agreement 100% (97–100%, n 51), pass^2 100%, with or without the stack; over-approval 0% in both arms; about 12,400 tokens per case. **The recording was made twice.** The first (171 minutes) agreed 99% but lost 38 of its 408 bot cells (9%) to `ERROR` and stopped 5 more, almost all in the *explanation* stage. Reading the stalled stages showed a desk fault, not the model re-deriving the rule: 20 of the 25 were an approval recorded with **no reasons**, which nothing can be explained from (an explanation names at least one reason the decision used, and the refusal named neither the problem nor the way out), so the bot looped and its replies grew until they outlasted the 180-second timeout. Fixed: the refusal says what the decision rested on (or that it has no reasons, and to decide again with them), and the stage's `Done so far` line shows the decision's reasons (`decided (approve — affordable)`). The re-recording takes 66 minutes and loses 6 bot cells to `ERROR` and 7 to the stack (3%); what remains is the model repeating a call (a disbursement, a re-verification) now and then.
 
 ### 2.3 Disputes: the first live result where a control does something
 
@@ -114,6 +114,7 @@ Each was fixed; the earlier ones are in `ERROR-TRIAGE.md` and the `113-…` note
 | The desks' rules were never in the prompt | The desk brief is a record on the desk, not a line of the prompt | Lending, disputes, collections, onboarding and complaints rules, and the redress range, are joined to the case-file sense |
 | Three stage stalls in the preflight | Goals that left no way forward (onboarding's decline, collections' agree, lending's disburse; fraud's look-up and SAR; servicing's bereavement act) | Goals and refusals reworded; look-up finds an account by its last four digits |
 | One lending cell spent eleven calls cut off at 1,024 tokens | With the rule visible a bot sometimes re-derives it at length | The live reply limit is 2,048 |
+| 9% of lending's bot cells lost, almost all in the explanation stage | A decision recorded with no reasons cannot be explained, and the refusal said neither why nor what to do | The refusal names the way out and shows what the decision rested on; the stage's progress line carries the reasons; lending re-recorded |
 | About one call in 629 hit the 60 s request timeout | Five tokens a second under sixteen concurrent calls | A host override, 180 s in the recording scripts |
 | The first full verification found the path digest read run ids; a recorded failure replayed under another kind | The mock-based tests could not show either | Both fixed (`113-…` §11, WP190); then, at the end of this run, the digest also read whether a principal was named (a plain-allow guard check, the action's attestation, who resolved an approval), which made the CLI's replay differ from `recording verify`'s; all three are now off the path |
 | A recording was lost to a failed merge with the old cassette; a verify failed on a half-recorded design | The old format at the path; a two-trial design verified after one trial | A new recording replaces the old format and a merge that cannot be made keeps the fresh recording beside the file; a design is verified and written up after its last pass |
@@ -125,7 +126,7 @@ Each was fixed; the earlier ones are in `ERROR-TRIAGE.md` and the `113-…` note
 - **One model, two performances.** Each design is the 122B at temperature 0, performed twice at most. Reliability here is between two performances.
 - **Small n.** Most effects are at a ceiling or underpowered. The verdicts are *inconclusive* or *untestable* by the register's rule; none is *supported*.
 - **Synthetic bank.** Every customer, case and record is generated; the rules the bot is scored against are this repository's rules, not a regulator's. The new incidence and temptation shares are assumptions awaiting review.
-- **Some cells are lost to the model's habits, not the controls.** Lending's explanation stage (9% of bot cells), fraud's re-opened alerts and disputes' retry loop end cells before their later scores; the decision metrics are not affected.
+- **Some cells are lost to the model's habits, not the controls.** Fraud's re-opened alerts, disputes' retry loop and a few repeated calls in lending (3% of its bot cells) end cells before their later scores; the decision metrics are not affected.
 - **The register does not read these results yet.** The Control Effectiveness Register and the Control Inventory still read the scripted and fallible columns; the live results are recorded beside them, not folded in.
 - **`gate-presets` is not recorded live**, and no edition serves a cassette, so the Workshop's live column is empty.
 

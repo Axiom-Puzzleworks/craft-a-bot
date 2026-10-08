@@ -4,17 +4,17 @@
 
 **Verdict: inconclusive.** minimum detectable difference of rates at the achieved n (51 on the smaller side, 80% power): 26.3 points against the 5.0 the design meant to see
 
-Ran 2026-10-07T21:46:53.580Z; controls fs-lending/control-map/affordability-first; obligations fca:conc:affordability, fca:conc:creditworthiness; campaigns lending-stack-live--executors=rules-only--guard=none, lending-stack-live--executors=bot-with-a-person-at-the-decision--guard=none, lending-stack-live--executors=bot-everywhere--guard=none, lending-stack-live--executors=rules-only--guard=policy-cards, lending-stack-live--executors=bot-with-a-person-at-the-decision--guard=policy-cards, lending-stack-live--executors=bot-everywhere--guard=policy-cards. Evidence about this synthetic bank under these configurations, and nothing else.
+Ran 2026-10-08T07:14:24.335Z; controls fs-lending/control-map/affordability-first; obligations fca:conc:affordability, fca:conc:creditworthiness; campaigns lending-stack-live--executors=rules-only--guard=none, lending-stack-live--executors=bot-with-a-person-at-the-decision--guard=none, lending-stack-live--executors=bot-everywhere--guard=none, lending-stack-live--executors=rules-only--guard=policy-cards, lending-stack-live--executors=bot-with-a-person-at-the-decision--guard=policy-cards, lending-stack-live--executors=bot-everywhere--guard=policy-cards. Evidence about this synthetic bank under these configurations, and nothing else.
 
 ## agreement
 
 | Factor | Treatment vs baseline | Baseline | Treatment | Δ | Interval | p | n | Power |
 |---|---|---|---|---|---|---|---|---|
-| guard | policy-cards vs none | +99.0 | +100.0 | +1.0 | -1.0 – +2.9 | 1.000 | 51 / 51 | ok |
-| executors | rules-only vs bot-everywhere | +99.0 | +100.0 | +1.0 | -1.0 – +2.9 | 1.000 | 51 / 51 | ok |
-| executors | bot-with-a-person-at-the-decision vs bot-everywhere | +99.0 | +97.1 | -2.0 | -5.8 – +1.9 | 0.625 | 51 / 51 | ok |
+| guard | policy-cards vs none | +100.0 | +100.0 | +0.0 | +0.0 – +0.0 | 1.000 | 51 / 51 | ok |
+| executors | rules-only vs bot-everywhere | +100.0 | +100.0 | +0.0 | +0.0 – +0.0 | 1.000 | 51 / 51 | ok |
+| executors | bot-with-a-person-at-the-decision vs bot-everywhere | +100.0 | +99.0 | -1.0 | -2.9 – +1.0 | 1.000 | 51 / 51 | ok |
 
-Method: difference of rates over items (2 trials each, the item the unit), Welch interval at 95%; sign test over 1 differing of 51 paired items.
+Method: difference of rates over items (2 trials each, the item the unit), Welch interval at 95%; sign test over 0 differing of 51 paired items.
 
 ## over-approval
 
@@ -47,10 +47,10 @@ At the first tick the prompt was identical across trials, so a difference is the
 
 | Metric | pass@1 | pass@k | pass^k | Consistency |
 |---|---|---|---|---|
-| agreement | 97% (93%–100%) | 100% (93%–100%) | 94% (84%–98%) | 94% (84%–98%) |
+| agreement | 99% (97%–100%) | 100% (93%–100%) | 98% (90%–100%) | 98% (90%–100%) |
 | over-approval | 0% (0%–7%) | 0% (0%–7%) | 0% (0%–7%) | 100% (93%–100%) |
 
-At the first tick the prompt was identical across trials, so a difference is the model's own: the same call in 98% (90%–100%) of 51 pairs, the same words in 6% (2%–16%). Over the whole journey 0% (0%–7%) of items took one path in every trial; where trials forked, the median first difference was at call 2, and two trials' action sequences were 5.2 edits apart on average.
+At the first tick the prompt was identical across trials, so a difference is the model's own: the same call in 100% (93%–100%) of 51 pairs, the same words in 10% (4%–21%). Over the whole journey 0% (0%–7%) of items took one path in every trial; where trials forked, the median first difference was at call 1, and two trials' action sequences were 4.4 edits apart on average.
 
 ### lending-stack-live--executors=bot-everywhere--guard=none
 
@@ -58,10 +58,10 @@ At the first tick the prompt was identical across trials, so a difference is the
 
 | Metric | pass@1 | pass@k | pass^k | Consistency |
 |---|---|---|---|---|
-| agreement | 99% (97%–100%) | 100% (93%–100%) | 98% (90%–100%) | 98% (90%–100%) |
+| agreement | 100% (93%–100%) | 100% (93%–100%) | 100% (93%–100%) | 100% (93%–100%) |
 | over-approval | 0% (0%–7%) | 0% (0%–7%) | 0% (0%–7%) | 100% (93%–100%) |
 
-At the first tick the prompt was identical across trials, so a difference is the model's own: the same call in 100% (93%–100%) of 51 pairs, the same words in 8% (3%–18%). Over the whole journey 0% (0%–7%) of items took one path in every trial; where trials forked, the median first difference was at call 3, and two trials' action sequences were 6.0 edits apart on average.
+At the first tick the prompt was identical across trials, so a difference is the model's own: the same call in 98% (90%–100%) of 51 pairs, the same words in 6% (2%–16%). Over the whole journey 0% (0%–7%) of items took one path in every trial; where trials forked, the median first difference was at call 2, and two trials' action sequences were 3.9 edits apart on average.
 
 ### lending-stack-live--executors=rules-only--guard=policy-cards
 
@@ -83,7 +83,7 @@ At the first tick the prompt was identical across trials, so a difference is the
 | agreement | 98% (95%–100%) | 100% (93%–100%) | 96% (87%–99%) | 96% (87%–99%) |
 | over-approval | 0% (0%–7%) | 0% (0%–7%) | 0% (0%–7%) | 100% (93%–100%) |
 
-At the first tick the prompt was identical across trials, so a difference is the model's own: the same call in 100% (93%–100%) of 51 pairs, the same words in 4% (1%–13%). Over the whole journey 0% (0%–7%) of items took one path in every trial; where trials forked, the median first difference was at call 3, and two trials' action sequences were 4.4 edits apart on average.
+At the first tick the prompt was identical across trials, so a difference is the model's own: the same call in 96% (87%–99%) of 51 pairs, the same words in 2% (0%–10%). Over the whole journey 0% (0%–7%) of items took one path in every trial; where trials forked, the median first difference was at call 2, and two trials' action sequences were 3.4 edits apart on average.
 
 ### lending-stack-live--executors=bot-everywhere--guard=policy-cards
 
@@ -94,16 +94,16 @@ At the first tick the prompt was identical across trials, so a difference is the
 | agreement | 100% (93%–100%) | 100% (93%–100%) | 100% (93%–100%) | 100% (93%–100%) |
 | over-approval | 0% (0%–7%) | 0% (0%–7%) | 0% (0%–7%) | 100% (93%–100%) |
 
-At the first tick the prompt was identical across trials, so a difference is the model's own: the same call in 98% (90%–100%) of 51 pairs, the same words in 0% (0%–7%). Over the whole journey 0% (0%–7%) of items took one path in every trial; where trials forked, the median first difference was at call 1, and two trials' action sequences were 5.0 edits apart on average.
+At the first tick the prompt was identical across trials, so a difference is the model's own: the same call in 98% (90%–100%) of 51 pairs, the same words in 6% (2%–16%). Over the whole journey 0% (0%–7%) of items took one path in every trial; where trials forked, the median first difference was at call 2, and two trials' action sequences were 3.8 edits apart on average.
 
 ## Bill per case
 
 | Factor | Treatment vs baseline | Baseline £ | Treatment £ | Model £ (treatment) | People £ (treatment) |
 |---|---|---|---|---|---|
-| guard | policy-cards vs none (live tier) | 0.0731 | 0.0745 | 0.0745 | 0.0000 |
-| executors | rules-only vs bot-everywhere (live tier) | 0.0731 | 0.4575 | 0.0000 | 0.4575 |
-| executors | bot-with-a-person-at-the-decision vs bot-everywhere (live tier) | 0.0731 | 1.3097 | 0.0698 | 1.2399 |
+| guard | policy-cards vs none (live tier) | 0.0496 | 0.0525 | 0.0525 | 0.0000 |
+| executors | rules-only vs bot-everywhere (live tier) | 0.0496 | 0.4575 | 0.0000 | 0.4575 |
+| executors | bot-with-a-person-at-the-decision vs bot-everywhere (live tier) | 0.0496 | 1.3884 | 0.0524 | 1.3359 |
 
 Pounds at the stated rates (`fs-bank/bill`, assumptions): tokens at the hosted price, reviewer seconds at the case handler’s hourly cost.
 
-Digest `008c77180f39cfdb9a0dc65c5bccc485b9e25b88823e859a9508379b1a946cf9`.
+Digest `87ed3f7dab2836d6b84b4f03919986ea8424368ef2201463c81ebcc2c648e395`.
