@@ -312,7 +312,6 @@ export const lendingDeskSpec: DeskWorldSpec<LendingExtra> = {
 			schema: z.object({
 				reasons: z
 					.array(z.string().min(1))
-					.min(1)
 					.describe(lendingStrings.actions.explainDecision.reasons),
 				text: z.string().min(1).describe(lendingStrings.actions.explainDecision.text)
 			}),
@@ -321,9 +320,21 @@ export const lendingDeskSpec: DeskWorldSpec<LendingExtra> = {
 				const { reasons, text } = args as { reasons: string[]; text: string };
 				const decision = state.extra.lending.decision;
 				if (!decision) return { ok: false, narration: lendingStrings.narration.nothingToExplain };
+				// Say what is wrong and the way out (`113-…` §12, WP195): the live recording found 25 explanation stages that looped on a
+				// refusal that named neither — most a decision recorded with no reasons, which nothing can be explained from.
+				if (decision.reasons.length === 0)
+					return { ok: false, narration: lendingStrings.narration.nothingToName };
+				if (reasons.length === 0)
+					return {
+						ok: false,
+						narration: lendingStrings.narration.nameTheReasons(decision.reasons)
+					};
 				for (const reason of reasons) {
 					if (!isReasonCode(reason) || !decision.reasons.includes(reason))
-						return { ok: false, narration: lendingStrings.narration.reasonNotUsed(reason) };
+						return {
+							ok: false,
+							narration: lendingStrings.narration.reasonNotUsed(reason, decision.reasons)
+						};
 					if (!state.extra.lending.explained.includes(reason))
 						state.extra.lending.explained.push(reason);
 				}
@@ -468,7 +479,10 @@ export const lendingDeskSpec: DeskWorldSpec<LendingExtra> = {
 			const { lending } = state.extra;
 			if (lending.verified) steps.push('identity verified');
 			if (lending.assessed) steps.push('affordability assessed');
-			if (lending.decision) steps.push(`decided (${lending.decision.outcome})`);
+			if (lending.decision)
+				steps.push(
+					`decided (${lending.decision.outcome} — ${lending.decision.reasons.join(', ') || 'no reasons'})`
+				);
 			if (lending.explained.length > 0) steps.push('explained');
 			if (lending.disbursed) steps.push('disbursed');
 			if (lending.appeal !== undefined) steps.push('appeal logged');

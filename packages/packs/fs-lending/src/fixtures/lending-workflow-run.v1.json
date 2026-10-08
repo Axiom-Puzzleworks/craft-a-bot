@@ -394,7 +394,7 @@
 				"executor": {
 					"kind": "agent",
 					"until": "explained",
-					"goalText": "A decision is on the file. Explain it to the applicant in the reasons it rested on — all of them, and no others."
+					"goalText": "A decision is on the file. Explain it to the applicant with Explain decision, in the reasons it rested on (they are listed under Done so far) — all of them, and no others."
 				},
 				"input": {
 					"digest": "9763b975f4499a18cc9bdf8fbf23d6e7c799fdd36ba7d0729828cff1195c67f0",
@@ -875,7 +875,7 @@
 				}
 			}
 		],
-		"digest": "f0a119cf95b265ac83545bacff650379409dda495d8e5d6f1b3da82c621719e4"
+		"digest": "9ae4d9eaaf32ae4e7a2507c2babf3bcc819bad6fd4efb2e7129eccf4915f691c"
 	},
 	"item": {
 		"id": "loan-8ce5346a",

@@ -1,6 +1,6 @@
 # Testbot on fs-lending/lending/stage/explanation
 
-*Run `00000000-0000-4000-8000-0000000000c1`*
+*Run `00000000-0000-4000-8000-0000000000ca`*
 
 - **Bot:** Testbot
 - **Goal card:** fs-lending/lending/stage/explanation
@@ -10,7 +10,7 @@
 - **Started by:** BambleweenyOne (service)
 - **Context:** window-v1 memory, sections-v1 prompt
 - **Egress:** none
-- **Answers:** replayed from docs/evidence/live/lending-stack-live/lending-stack-live.provider-cassette.json (Qwen3.5-122B-A10B-NVFP4, recorded 2026-10-07T21:45:24.072Z) — not a live call
+- **Answers:** replayed from docs/evidence/live/lending-stack-live/lending-stack-live.provider-cassette.json (Qwen3.5-122B-A10B-NVFP4, recorded 2026-10-08T07:13:03.363Z) — not a live call
 
 ## Before the first turn
 
@@ -20,34 +20,17 @@
 
 - **saw** — It saw: applicant Bram Larkspur, age_band 35-44, amount 15000, term_months 36, purpose home improvements, declared_monthly_income 6500, declared_monthly_outgoings 1971, requested_repayment 515
 rule: The bank's lending rule. The ratio is the monthly repayment as a percentage of disposable income on the worksheet. Decline if the bureau score band is poor, if the bureau shows 2 or more defaults, or if the ratio is over 100%. Otherwise refer to an underwriter if the bureau shows any default or any months in arrears, if there have been 3 or more credit searches in twelve months, if the ratio is over 60%,…
-- **told** — Its prompt: 2 messages, about 456 tokens.
-  - system: 745 characters
+- **told** — Its prompt: 2 messages, about 470 tokens.
+  - system: 804 characters
   - user: 1076 characters
   - The last message it read: “Right now:
 applicant Bram Larkspur, age_band 35-44, amount 15000, term_months 36, purpose home improvements, declared_monthly_income 6500, declared_monthly_outgoings 1971, requested_repayment 515
 rule: The bank's lending rule. The ratio is the monthly repayment as a percentage of disposable income on the worksheet. Decline if the bureau score band is poor, if the bureau shows 2 or more defaults, or if the ratio is over 100%. Otherwise refer to an underwriter if the bureau shows any default or a…”
-- **thought** — It thought (1672 in, 190 out; tool_call; 21 s at the provider).
-- **thought** — It decided: “I need to check the lending rule against the applicant's data. The score band is very-good (not poor), defaults are 0 (not 2+), and the ratio is 14% (not over 100%). So it's not a decline. For referral: score band is very-good (not fair), no defaults, no arrears, but there are 3 searches in 12 months which meets the "3 or more credit searches" condition for referral. The ratio is 14% which is not…” — decide {"outcome":"refer","reasons":["rules-cannot-decide"]}
-- **did** — It did decide {"outcome":"refer","reasons":["rules-cannot-decide"]}.
-  - On behalf of BambleweenyOne (service).
-- **result** — The world answered: Decision: refer — rules-cannot-decide.
+- **thought** — It thought (1678 in, 242 out; tool_call; 25 s at the provider).
+- **thought** — It decided: “I need to explain the decision to the applicant. Let me check the lending rule against the data: score_band is "very-good" (not poor or fair), defaults is 0 (no defaults), arrears_months is 0 (no arrears), searches_12m is 3 (which is 3 or more, so this triggers a refer), and the ratio is 14% (which is under 60% and under 100%).
 
-## Turn 2
-
-- **saw** — It saw: applicant Bram Larkspur, age_band 35-44, amount 15000, term_months 36, purpose home improvements, declared_monthly_income 6500, declared_monthly_outgoings 1971, requested_repayment 515
-rule: The bank's lending rule. The ratio is the monthly repayment as a percentage of disposable income on the worksheet. Decline if the bureau score band is poor, if the bureau shows 2 or more defaults, or if the ratio is over 100%. Otherwise refer to an underwriter if the bureau shows any default or any months in arrears, if there have been 3 or more credit searches in twelve months, if the ratio is over 60%,…
-- **told** — Its prompt: 3 messages, about 635 tokens.
-  - system: 745 characters
-  - user: 716 characters
-  - user: 1076 characters
-  - The last message it read: “Right now:
-applicant Bram Larkspur, age_band 35-44, amount 15000, term_months 36, purpose home improvements, declared_monthly_income 6500, declared_monthly_outgoings 1971, requested_repayment 515
-rule: The bank's lending rule. The ratio is the monthly repayment as a percentage of disposable income on the worksheet. Decline if the bureau score band is poor, if the bureau shows 2 or more defaults, or if the ratio is over 100%. Otherwise refer to an underwriter if the bureau shows any default or a…”
-- **thought** — It thought (1869 in, 198 out; tool_call; 23 s at the provider).
-- **thought** — It decided: “I see the decision has already been made to refer the application due to the 3 credit searches in the last 12 months, which triggers the "rules cannot decide" condition. Now I need to explain this decision to the applicant, mentioning all the reasons the decision rested on.
-
-The decision was "refer" with reason "rules-cannot-decide". I need to explain this to the applicant in plain words, coverin…” — explain-decision {"reasons":["rules-cannot-decide"],"text":"Your application has been referred to an underwriter for further review. This is because there have been 3 or more credit searches in the last 12 months, which means our automated lending rules ca…
-- **did** — It did explain-decision {"reasons":["rules-cannot-decide"],"text":"Your application has been referred to an underwriter for further review. This is because there have been 3 or more credit searches in the last 12 months, which means our automated lending rules ca….
+Since there are 3 credit searches in 12 months, the rule says to "re…” — explain-decision {"reasons":["searches"],"text":"Your application has been referred to an underwriter because there have been 3 or more credit searches in the last 12 months."}
+- **did** — It did explain-decision {"reasons":["searches"],"text":"Your application has been referred to an underwriter because there have been 3 or more credit searches in the last 12 months."}.
   - On behalf of BambleweenyOne (service).
 - **result** — The world answered: Decision explained to the applicant.
 - **stage** — Stage explanation ended ok; 0 of 0 checks stopped it.
