@@ -21,11 +21,17 @@ const files = (dir: string) =>
 		.map((name) => join(ROOT, dir, name));
 
 describe('trials are opt-in (WP191)', () => {
-	for (const file of [...files('experiments'), ...files('experiments/live')]) {
+	for (const file of [
+		...files('experiments'),
+		...files('experiments/live'),
+		...files('experiments/live-35b')
+	]) {
 		const name = file.slice(ROOT.length + 1).replaceAll(sep, '/');
-		const planned = name.startsWith('experiments/live/')
-			? (LIVE.find((entry) => `experiments/live/${liveIdOf(entry)}.json` === name)?.trials ?? 1)
-			: 1;
+		const planned = name.startsWith('experiments/live-35b/')
+			? 2
+			: name.startsWith('experiments/live/')
+				? (LIVE.find((entry) => `experiments/live/${liveIdOf(entry)}.json` === name)?.trials ?? 1)
+				: 1;
 		it(`${name} expands to campaigns that ask for ${planned > 1 ? `${planned} trials` : 'no trials'}`, () => {
 			const experiment = parseExperiment(JSON.parse(readFileSync(file, 'utf8')));
 			expect(experiment.design.trials).toBe(planned > 1 ? planned : undefined);
