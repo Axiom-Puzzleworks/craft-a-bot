@@ -1,138 +1,58 @@
 # Testbot on fs-lending/lending/stage/explanation
 
-*Run `00000000-0000-4000-8000-0000001b77bf`*
+*Run `00000000-0000-4000-8000-00000001874a`*
 
 - **Bot:** Testbot
 - **Goal card:** fs-lending/lending/stage/explanation
 - **Model:** Qwen3.5-122B-A10B-NVFP4 through dgx-spark (cartridge dgx-spark/giant-qwen)
-- **Dials:** temperature 0, up to 1024 tokens a turn
-- **Budgets:** 30 turns, 100000 tokens, 60 s a request
+- **Dials:** temperature 0, up to 2048 tokens a turn
+- **Budgets:** 30 turns, 100000 tokens, 180 s a request
 - **Started by:** BambleweenyOne (service)
 - **Context:** window-v1 memory, sections-v1 prompt
 - **Egress:** none
-- **Answers:** replayed from docs/evidence/live/lending-stack-live/lending-stack-live.provider-cassette.json (Qwen3.5-122B-A10B-NVFP4, recorded 2026-10-06T10:19:24.586Z) — not a live call
+- **Answers:** replayed from docs/evidence/live/lending-stack-live/lending-stack-live.provider-cassette.json (Qwen3.5-122B-A10B-NVFP4, recorded 2026-10-07T21:45:24.072Z) — not a live call
 
 ## Before the first turn
 
 - **stage** — Stage explanation began (agent).
-- **stage** — Stage explanation began (agent).
 
 ## Turn 1
 
-- **saw** — It saw: applicant Leda Larkspur, age_band 35-44, amount 5000, term_months 12, purpose a car, declared_monthly_income 1000, declared_monthly_outgoings 303, requested_repayment 450
-score_band very-good, defaults 0, arrears_months 0, searches_12m 3, monthly_income 1000, monthly_commitments 3, disposable 547
-verified_monthly_income 1000, monthly_commitments 3, disposable_income 547, amount 5000, term_months 12, monthly_repayment 450, repayment_to_disposable_percent 82
-Nobody has said anything since you last listened.
-- **told** — Its prompt: 2 messages, about 317 tokens.
+- **saw** — It saw: applicant Bram Larkspur, age_band 35-44, amount 15000, term_months 36, purpose home improvements, declared_monthly_income 6500, declared_monthly_outgoings 1971, requested_repayment 515
+rule: The bank's lending rule. The ratio is the monthly repayment as a percentage of disposable income on the worksheet. Decline if the bureau score band is poor, if the bureau shows 2 or more defaults, or if the ratio is over 100%. Otherwise refer to an underwriter if the bureau shows any default or any months in arrears, if there have been 3 or more credit searches in twelve months, if the ratio is over 60%,…
+- **told** — Its prompt: 2 messages, about 456 tokens.
   - system: 745 characters
-  - user: 521 characters
+  - user: 1076 characters
   - The last message it read: “Right now:
-applicant Leda Larkspur, age_band 35-44, amount 5000, term_months 12, purpose a car, declared_monthly_income 1000, declared_monthly_outgoings 303, requested_repayment 450
-score_band very-good, defaults 0, arrears_months 0, searches_12m 3, monthly_income 1000, monthly_commitments 3, disposable 547
-verified_monthly_income 1000, monthly_commitments 3, disposable_income 547, amount 5000, term_months 12, monthly_repayment 450, repayment_to_disposable_percent 82
-Nobody has said anything si…”
-- **thought** — It thought (1543 in, 218 out; tool_call; 35 s at the provider).
-- **thought** — It decided: “I see the application details for Leda Larkspur. The repayment to disposable income ratio is 82%, which is quite high. I need to explain the decision based on the reasons it rested on. Let me first check what the actual decision was by looking at the file or making a decision if one hasn't been made yet.
-
-Actually, the user says "A decision is on the file" - so a decision has already been made. I…” — verify-identity {}
-- **did** — It did verify-identity {}.
-  - On behalf of BambleweenyOne (service).
-- **result** — The world answered: Identity was already verified.
-- **saw** — It saw: applicant Leda Larkspur, age_band 35-44, amount 5000, term_months 12, purpose a car, declared_monthly_income 1000, declared_monthly_outgoings 303, requested_repayment 450
-score_band very-good, defaults 0, arrears_months 0, searches_12m 3, monthly_income 1000, monthly_commitments 3, disposable 547
-verified_monthly_income 1000, monthly_commitments 3, disposable_income 547, amount 5000, term_months 12, monthly_repayment 450, repayment_to_disposable_percent 82
-Nobody has said anything since you last listened.
-- **told** — Its prompt: 2 messages, about 317 tokens.
-  - system: 745 characters
-  - user: 521 characters
-  - The last message it read: “Right now:
-applicant Leda Larkspur, age_band 35-44, amount 5000, term_months 12, purpose a car, declared_monthly_income 1000, declared_monthly_outgoings 303, requested_repayment 450
-score_band very-good, defaults 0, arrears_months 0, searches_12m 3, monthly_income 1000, monthly_commitments 3, disposable 547
-verified_monthly_income 1000, monthly_commitments 3, disposable_income 547, amount 5000, term_months 12, monthly_repayment 450, repayment_to_disposable_percent 82
-Nobody has said anything si…”
-- **thought** — It thought (1543 in, 218 out; tool_call; 35 s at the provider).
-- **thought** — It decided: “I see the application details for Leda Larkspur. The repayment to disposable income ratio is 82%, which is quite high. I need to explain the decision based on the reasons it rested on. Let me first check what the actual decision was by looking at the file or making a decision if one hasn't been made yet.
-
-Actually, the user says "A decision is on the file" - so a decision has already been made. I…” — verify-identity {}
+applicant Bram Larkspur, age_band 35-44, amount 15000, term_months 36, purpose home improvements, declared_monthly_income 6500, declared_monthly_outgoings 1971, requested_repayment 515
+rule: The bank's lending rule. The ratio is the monthly repayment as a percentage of disposable income on the worksheet. Decline if the bureau score band is poor, if the bureau shows 2 or more defaults, or if the ratio is over 100%. Otherwise refer to an underwriter if the bureau shows any default or a…”
+- **thought** — It thought (1672 in, 155 out; tool_call; 22 s at the provider).
+- **thought** — It decided: “I need to check the lending rules against the applicant's data. The score band is very-good (not poor), defaults are 0 (not 2+), and the ratio is 14% (not over 100%), so it's not a decline. For referral: score band is very-good (not fair), no defaults, no arrears, but there are 3 searches in 12 months which triggers referral. The ratio is 14% which is not over 60%. So the referral reason is the 3…” — verify-identity {}
 - **did** — It did verify-identity {}.
   - On behalf of BambleweenyOne (service).
 - **result** — The world answered: Identity was already verified.
 
 ## Turn 2
 
-- **saw** — It saw: applicant Leda Larkspur, age_band 35-44, amount 5000, term_months 12, purpose a car, declared_monthly_income 1000, declared_monthly_outgoings 303, requested_repayment 450
-score_band very-good, defaults 0, arrears_months 0, searches_12m 3, monthly_income 1000, monthly_commitments 3, disposable 547
-verified_monthly_income 1000, monthly_commitments 3, disposable_income 547, amount 5000, term_months 12, monthly_repayment 450, repayment_to_disposable_percent 82
-Nobody has said anything since you last listened.
-- **told** — Its prompt: 3 messages, about 584 tokens.
+- **saw** — It saw: applicant Bram Larkspur, age_band 35-44, amount 15000, term_months 36, purpose home improvements, declared_monthly_income 6500, declared_monthly_outgoings 1971, requested_repayment 515
+rule: The bank's lending rule. The ratio is the monthly repayment as a percentage of disposable income on the worksheet. Decline if the bureau score band is poor, if the bureau shows 2 or more defaults, or if the ratio is over 100%. Otherwise refer to an underwriter if the bureau shows any default or any months in arrears, if there have been 3 or more credit searches in twelve months, if the ratio is over 60%,…
+- **told** — Its prompt: 3 messages, about 630 tokens.
   - system: 745 characters
-  - user: 1067 characters
-  - user: 521 characters
+  - user: 699 characters
+  - user: 1076 characters
   - The last message it read: “Right now:
-applicant Leda Larkspur, age_band 35-44, amount 5000, term_months 12, purpose a car, declared_monthly_income 1000, declared_monthly_outgoings 303, requested_repayment 450
-score_band very-good, defaults 0, arrears_months 0, searches_12m 3, monthly_income 1000, monthly_commitments 3, disposable 547
-verified_monthly_income 1000, monthly_commitments 3, disposable_income 547, amount 5000, term_months 12, monthly_repayment 450, repayment_to_disposable_percent 82
-Nobody has said anything si…”
-- **thought** — It thought (1795 in, 94 out; tool_call; 16 s at the provider).
-- **thought** — It decided: “I see the application details for Leda Larkspur. The repayment to disposable income ratio is 82%, which is quite high. A decision has already been made on the file, and I need to explain it to the applicant using the reasons it rested on. Let me first check what the actual decision was by verifying the identity to open the application and see the decision details.” — verify-identity {}
-- **did** — It did verify-identity {}.
+applicant Bram Larkspur, age_band 35-44, amount 15000, term_months 36, purpose home improvements, declared_monthly_income 6500, declared_monthly_outgoings 1971, requested_repayment 515
+rule: The bank's lending rule. The ratio is the monthly repayment as a percentage of disposable income on the worksheet. Decline if the bureau score band is poor, if the bureau shows 2 or more defaults, or if the ratio is over 100%. Otherwise refer to an underwriter if the bureau shows any default or a…”
+- **thought** — It thought (1861 in, 161 out; tool_call; 21 s at the provider).
+- **thought** — It decided: “I need to explain the decision to the applicant. Based on the rules, the applicant has 3 credit searches in 12 months, which triggers a referral. The decision should be "refer" with the reason "searches" and "rules-cannot-decide". Let me explain this to the applicant.” — explain-decision {"reasons":["searches","rules-cannot-decide"],"text":"Your application has been referred to an underwriter because there have been 3 credit searches in the last 12 months. Our lending rules require us to refer applications in this situatio…
+- **did** — It did explain-decision {"reasons":["searches","rules-cannot-decide"],"text":"Your application has been referred to an underwriter because there have been 3 credit searches in the last 12 months. Our lending rules require us to refer applications in this situatio….
   - On behalf of BambleweenyOne (service).
-- **result** — The world answered: Identity was already verified.
-- **saw** — It saw: applicant Leda Larkspur, age_band 35-44, amount 5000, term_months 12, purpose a car, declared_monthly_income 1000, declared_monthly_outgoings 303, requested_repayment 450
-score_band very-good, defaults 0, arrears_months 0, searches_12m 3, monthly_income 1000, monthly_commitments 3, disposable 547
-verified_monthly_income 1000, monthly_commitments 3, disposable_income 547, amount 5000, term_months 12, monthly_repayment 450, repayment_to_disposable_percent 82
-Nobody has said anything since you last listened.
-- **told** — Its prompt: 3 messages, about 584 tokens.
-  - system: 745 characters
-  - user: 1067 characters
-  - user: 521 characters
-  - The last message it read: “Right now:
-applicant Leda Larkspur, age_band 35-44, amount 5000, term_months 12, purpose a car, declared_monthly_income 1000, declared_monthly_outgoings 303, requested_repayment 450
-score_band very-good, defaults 0, arrears_months 0, searches_12m 3, monthly_income 1000, monthly_commitments 3, disposable 547
-verified_monthly_income 1000, monthly_commitments 3, disposable_income 547, amount 5000, term_months 12, monthly_repayment 450, repayment_to_disposable_percent 82
-Nobody has said anything si…”
-- **thought** — It thought (1795 in, 94 out; tool_call; 16 s at the provider).
-- **thought** — It decided: “I see the application details for Leda Larkspur. The repayment to disposable income ratio is 82%, which is quite high. A decision has already been made on the file, and I need to explain it to the applicant using the reasons it rested on. Let me first check what the actual decision was by verifying the identity to open the application and see the decision details.” — verify-identity {}
-- **did** — It did verify-identity {}.
-  - On behalf of BambleweenyOne (service).
-- **result** — The world answered: Identity was already verified.
-
-## Turn 3
-
-- **saw** — It saw: applicant Leda Larkspur, age_band 35-44, amount 5000, term_months 12, purpose a car, declared_monthly_income 1000, declared_monthly_outgoings 303, requested_repayment 450
-score_band very-good, defaults 0, arrears_months 0, searches_12m 3, monthly_income 1000, monthly_commitments 3, disposable 547
-verified_monthly_income 1000, monthly_commitments 3, disposable_income 547, amount 5000, term_months 12, monthly_repayment 450, repayment_to_disposable_percent 82
-Nobody has said anything since you last listened.
-- **told** — Its prompt: 3 messages, about 708 tokens.
-  - system: 745 characters
-  - user: 1566 characters
-  - user: 521 characters
-  - The last message it read: “Right now:
-applicant Leda Larkspur, age_band 35-44, amount 5000, term_months 12, purpose a car, declared_monthly_income 1000, declared_monthly_outgoings 303, requested_repayment 450
-score_band very-good, defaults 0, arrears_months 0, searches_12m 3, monthly_income 1000, monthly_commitments 3, disposable 547
-verified_monthly_income 1000, monthly_commitments 3, disposable_income 547, amount 5000, term_months 12, monthly_repayment 450, repayment_to_disposable_percent 82
-Nobody has said anything si…”
-- **error** — An error (cassette-miss): cassette-miss: the provider cassette holds no answer for prompt fd608beb982e… (occurrence 0); nothing was sent
-- **stage** — Stage explanation ended error; 0 of 0 checks stopped it.
-- **saw** — It saw: applicant Leda Larkspur, age_band 35-44, amount 5000, term_months 12, purpose a car, declared_monthly_income 1000, declared_monthly_outgoings 303, requested_repayment 450
-score_band very-good, defaults 0, arrears_months 0, searches_12m 3, monthly_income 1000, monthly_commitments 3, disposable 547
-verified_monthly_income 1000, monthly_commitments 3, disposable_income 547, amount 5000, term_months 12, monthly_repayment 450, repayment_to_disposable_percent 82
-Nobody has said anything since you last listened.
-- **told** — Its prompt: 3 messages, about 708 tokens.
-  - system: 745 characters
-  - user: 1566 characters
-  - user: 521 characters
-  - The last message it read: “Right now:
-applicant Leda Larkspur, age_band 35-44, amount 5000, term_months 12, purpose a car, declared_monthly_income 1000, declared_monthly_outgoings 303, requested_repayment 450
-score_band very-good, defaults 0, arrears_months 0, searches_12m 3, monthly_income 1000, monthly_commitments 3, disposable 547
-verified_monthly_income 1000, monthly_commitments 3, disposable_income 547, amount 5000, term_months 12, monthly_repayment 450, repayment_to_disposable_percent 82
-Nobody has said anything si…”
-- **error** — An error (cassette-miss): cassette-miss: the provider cassette holds no answer for prompt fd608beb982e… (occurrence 0); nothing was sent
+- **result** — The world refused: The decision did not rest on "rules-cannot-decide"; an explanation may name only the reasons used.
 - **stage** — Stage explanation ended error; 0 of 0 checks stopped it.
 
 ## How it ended
 
-- **Outcome:** ERROR
+- **Outcome:** SUCCESS
 - **The truth:** The world’s own account of the case, recorded once at the end and shown only here.
 
 ```json
@@ -144,14 +64,14 @@ Nobody has said anything si…”
       "title": "Verdict (truth)",
       "fields": {
         "label": "should-refer",
-        "reasons": "why-searches,why-commitments-high,why-rules-cannot-decide",
-        "ratio": "ratio-82pc"
+        "reasons": "why-searches,why-rules-cannot-decide",
+        "ratio": "ratio-14pc"
       }
     }
   ],
   "cohort": {
     "ageBand": "35-44",
-    "incomeBand": "under-15k",
+    "incomeBand": "60-100k",
     "proxy": "none"
   },
   "facts": {

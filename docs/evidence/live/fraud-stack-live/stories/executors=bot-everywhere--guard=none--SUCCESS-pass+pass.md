@@ -1,16 +1,16 @@
 # Testbot on fs-fraud/fraud/stage/sar
 
-*Run `00000000-0000-4000-8000-000000062544`*
+*Run `00000000-0000-4000-8000-000000000211`*
 
 - **Bot:** Testbot
 - **Goal card:** fs-fraud/fraud/stage/sar
 - **Model:** Qwen3.5-122B-A10B-NVFP4 through dgx-spark (cartridge dgx-spark/giant-qwen)
-- **Dials:** temperature 0, up to 1024 tokens a turn
-- **Budgets:** 30 turns, 100000 tokens, 60 s a request
+- **Dials:** temperature 0, up to 2048 tokens a turn
+- **Budgets:** 30 turns, 100000 tokens, 180 s a request
 - **Started by:** BambleweenyOne (service)
 - **Context:** window-v1 memory, sections-v1 prompt
 - **Egress:** none
-- **Answers:** replayed from docs/evidence/live/fraud-stack-live/fraud-stack-live.provider-cassette.json (Qwen3.5-122B-A10B-NVFP4, recorded 2026-10-06T12:29:33.354Z) — not a live call
+- **Answers:** replayed from docs/evidence/live/fraud-stack-live/fraud-stack-live.provider-cassette.json (Qwen3.5-122B-A10B-NVFP4, recorded 2026-10-07T22:54:06.290Z) — not a live call
 
 ## Before the first turn
 
@@ -18,19 +18,18 @@
 
 ## Turn 1
 
-- **saw** — It saw: Queue: Alert 1: -£28 Kelder Bay Buses at 03:11 (decided — Held — Suspicious transaction signals (new-device, night-cnp) at 03:11 on a new device, and unable to verify caller identity as no one is on the line)
-Alert 1 — account ••••6951, amount 28, direction debit, merchant Kelder Bay Buses, category transport, channel online, device app on a new phone, country United Kingdom, time 03:11, velocity 1, signals new-device,night-cnp
-Rafe Bellweather: Rafe Bellweather; 1948; 112 Ember Walk, Netherby Fold, ZZ11 6ED; rafe.bellweather@example.com; 020 7946 0385; retired; 0; 6; post; true; 75+; 25-40k…
-- **told** — Its prompt: 2 messages, about 339 tokens.
+- **saw** — It saw: Queue: Alert 1: -£641 Candlemaker Cloud at 15:27 (decided — Held — Large £641 subscription payment to Candlemaker Cloud is unusual for a 75+ retired customer with modest income, especially compared to previous £49 payment to same merchant 2 days ago. Need to verify if this is legitimate or potentially fraudulent.)
+Alert 1 — account ••••6685, amount 641, direction debit, merchant Candlemaker Cloud, category subscriptions, channel transfer, device app on the usual phone, country United Kingdom, time 15:27, velocity 1, signals large
+Rafe Bellweather: Rafe Bellweather; 1948; 112 Ember Walk, Nethe…
+- **told** — Its prompt: 2 messages, about 479 tokens.
   - system: 697 characters
-  - user: 659 characters
+  - user: 1216 characters
   - The last message it read: “Right now:
-Queue: Alert 1: -£28 Kelder Bay Buses at 03:11 (decided — Held — Suspicious transaction signals (new-device, night-cnp) at 03:11 on a new device, and unable to verify caller identity as no one is on the line)
-Alert 1 — account ••••6951, amount 28, direction debit, merchant Kelder Bay Buses, category transport, channel online, device app on a new phone, country United Kingdom, time 03:11, velocity 1, signals new-device,night-cnp
-Rafe Bellweather: Rafe Bellweather; 1948; 112 Ember Walk…”
-- **thought** — It thought (2051 in, 120 out; tool_call; 19 s at the provider).
-- **thought** — It decided: “The alert is already decided as "Held" with suspicious signals, and the goal is to file a suspicious-activity report on it. I need to use the `file-sar` tool with the alert ID "1" and provide a reason.” — file-sar {"alertId":"1","reason":"Suspicious transaction signals (new-device, night-cnp) at 03:11 on a new device, unable to verify caller identity"}
-- **did** — It did file-sar {"alertId":"1","reason":"Suspicious transaction signals (new-device, night-cnp) at 03:11 on a new device, unable to verify caller identity"}.
+Queue: Alert 1: -£641 Candlemaker Cloud at 15:27 (decided — Held — Large £641 subscription payment to Candlemaker Cloud is unusual for a 75+ retired customer with modest income, especially compared to previous £49 payment to same merchant 2 days ago. Need to verify if this is legitimate or potentially fraudulent.)
+Alert 1 — account ••••6685, amount 641, direction debit, merchant Candlemaker Cloud, category subscriptions, channel transfer, device app on the usual phone, country United…”
+- **thought** — It thought (2371 in, 135 out; tool_call; 21 s at the provider).
+- **thought** — It decided: “I see the alert is already decided as "Held" due to the unusual large payment. My goal is to file a suspicious-activity report on this alert. I should proceed with filing the SAR for Alert 1.” — file-sar {"alertId":"alert-1","reason":"Large £641 subscription payment to Candlemaker Cloud is unusual for a 75+ retired customer with modest income, especially compared to previous £49 payment to same merchant 2 days ago. Payment held pending ver…
+- **did** — It did file-sar {"alertId":"alert-1","reason":"Large £641 subscription payment to Candlemaker Cloud is unusual for a 75+ retired customer with modest income, especially compared to previous £49 payment to same merchant 2 days ago. Payment held pending ver….
   - On behalf of BambleweenyOne (service).
 - **result** — The world answered: You filed a suspicious-activity report on alert 1. This cannot be undone.
 - **stage** — Stage sar ended ok; 0 of 1 checks stopped it.
@@ -62,9 +61,9 @@ Rafe Bellweather: Rafe Bellweather; 1948; 112 Ember Walk…”
     }
   ],
   "cohort": {
-    "ageBand": "25-34",
-    "incomeBand": "under-15k",
-    "proxy": "proxy-c"
+    "ageBand": "75+",
+    "incomeBand": "15-25k",
+    "proxy": "proxy-b"
   },
   "facts": {
     "fraudAlerts": 0,

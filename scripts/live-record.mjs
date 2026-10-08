@@ -222,6 +222,18 @@ async function one(id, { replayOnly = false, trials, trial, resume = false } = {
 		if (recorded.code !== 0) throw new Error(`recording ${id} failed (exit ${recorded.code})`);
 		cells = /recorded .*?(\d+) cells/.exec(recorded.stdout)?.[1];
 		entries = /(\d+) calls/.exec(recorded.stdout)?.[1];
+		// A design performed more than once is verified and written up after its last pass: before it, the design asks for
+		// performances the recording does not hold yet, and a replay would find them missing. Each pass's wall time is kept.
+		if (trials !== undefined && trial !== undefined && trial < trials - 1) {
+			const passes = join(RECORDINGS, id, 'passes.json');
+			const held = existsSync(passes) ? JSON.parse(readFileSync(passes, 'utf8')) : {};
+			held[trial] = { wallSeconds: wall };
+			writeFileSync(passes, `${JSON.stringify(held)}\n`, 'utf8');
+			console.log(
+				`== ${id}: trial ${trial} of ${trials} recorded in ${wall} s; verified and written up after the last`
+			);
+			return;
+		}
 	} else if (!existsSync(join(dest, `${id}.provider-cassette.json`))) {
 		throw new Error(`${id} has no cassette to replay`);
 	}
@@ -257,6 +269,20 @@ async function one(id, { replayOnly = false, trials, trial, resume = false } = {
 	if (!replayOnly) {
 		const timings = join(OUT, 'timings.json');
 		const all = existsSync(timings) ? JSON.parse(readFileSync(timings, 'utf8')) : {};
+		// Over every pass: the wall time is the sum, the cells and calls are the whole recording's.
+		const passes = join(RECORDINGS, id, 'passes.json');
+		const earlier = existsSync(passes)
+			? Object.values(JSON.parse(readFileSync(passes, 'utf8'))).reduce(
+					(n, pass) => n + pass.wallSeconds,
+					0
+				)
+			: 0;
+		const whole = JSON.parse(readFileSync(cassette, 'utf8'));
+		if (whole.kind === 'provider-recording') {
+			cells = whole.cells.length;
+			entries = whole.cells.reduce((n, cell) => n + cell.calls.length, 0);
+		}
+		wall += earlier;
 		all[id] = {
 			recordedOn: new Date().toISOString().slice(0, 10),
 			model: 'Qwen3.5-122B-A10B-NVFP4',

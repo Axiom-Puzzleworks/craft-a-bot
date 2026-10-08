@@ -15,13 +15,13 @@ Written by `node scripts/live-column.mjs` from the committed results and cassett
 
 | Design              | What is measured                      | Live (95% interval, n) | Assumed | Assumption inside the interval? |
 | ------------------- | ------------------------------------- | ---------------------- | ------- | ------------------------------- |
-| `lending-stack`     | lending decision matches the rule     | 53% (40%–66%, n 51)    | 90%     | **no**                          |
-| `servicing-stack`   | the caller’s need is met              | 94% (80%–98%, n 33)    | 90%     | yes                             |
-| `disputes-stack`    | dispute decision matches the rule     | 68% (52%–80%, n 40)    | 90%     | **no**                          |
-| `collections-stack` | repayment plan matches the rule       | 72% (56%–84%, n 36)    | 90%     | **no**                          |
+| `lending-stack`     | lending decision matches the rule     | 99% (97%–100%, n 51)   | 90%     | **no**                          |
+| `servicing-stack`   | the caller’s need is met              | 100% (90%–100%, n 33)  | 90%     | yes                             |
+| `disputes-stack`    | dispute decision matches the rule     | 81% (69%–93%, n 40)    | 90%     | yes                             |
+| `collections-stack` | repayment plan matches the rule       | 100% (91%–100%, n 37)  | 90%     | **no**                          |
 | `onboarding-stack`  | onboarding decision matches the rule  | 100% (90%–100%, n 33)  | 90%     | yes                             |
-| `complaints-stack`  | the root cause is named               | 25% (16%–38%, n 55)    | 90%     | **no**                          |
-| `fraud-stack`       | alert decision is the right one       | 93% (77%–98%, n 27)    | 90%     | yes                             |
+| `complaints-stack`  | the root cause is named               | 99% (97%–100%, n 55)   | 90%     | **no**                          |
+| `fraud-stack`       | alert decision is the right one       | 96% (82%–99%, n 27)    | 90%     | yes                             |
 | `advice-context`    | the recommendation suits the customer | 100% (89%–100%, n 31)  | 90%     | yes                             |
 
 The live side is the reference configuration with no guard (`bot-everywhere` where a design has executors), the figure the fallible tier's assumed rate stands in for.
@@ -30,16 +30,31 @@ The live side is the reference configuration with no guard (`bot-everywhere` whe
 
 | Design                      | Recorded   | Book size | Performed | Cells | Cassette entries | Wall time | Stories |
 | --------------------------- | ---------- | --------- | --------- | ----- | ---------------- | --------- | ------- |
-| `lending-stack-live`        | 2026-10-06 | 800       | 1×        | 306   | 1238             | 30 min    | 18      |
+| `lending-stack-live`        | 2026-10-07 | 800       | 2×        | 408   | 2967             | 171 min   | 14      |
 | `lending-stack-live-b`      | 2026-10-06 | 800       | 1×        | 306   | 1099             | 27 min    | 18      |
-| `servicing-stack-live`      | 2026-10-06 | 200       | 1×        | 66    | 260              | 9 min     | 4       |
-| `disputes-stack-live`       | 2026-10-06 | 400       | 1×        | 80    | 265              | 6 min     | 4       |
-| `collections-stack-live`    | 2026-10-06 | 300       | 1×        | 74    | 839              | 20 min    | 10      |
-| `onboarding-stack-live`     | 2026-10-06 | 400       | 1×        | 66    | 289              | 6 min     | 2       |
-| `complaints-stack-live`     | 2026-10-06 | 200       | 1×        | 110   | 302              | 7 min     | 5       |
-| `fraud-stack-live`          | 2026-10-06 | 6         | 1×        | 108   | 2490             | 54 min    | 16      |
-| `advice-context-live`       | 2026-10-06 | 1200      | 1×        | 124   | 1502             | 46 min    | 8       |
-| `servicing-stack-live-seat` | 2026-10-06 | 100       | 1×        | 32    | 357              | 8 min     | 2       |
+| `servicing-stack-live`      | 2026-10-07 | 200       | 1×        | 66    | 318              | 6 min     | 2       |
+| `disputes-stack-live`       | 2026-10-07 | 400       | 2×        | 160   | 966              | 16 min    | 6       |
+| `collections-stack-live`    | 2026-10-07 | 300       | 2×        | 148   | 1156             | 26 min    | 4       |
+| `onboarding-stack-live`     | 2026-10-07 | 400       | 2×        | 132   | 1143             | 19 min    | 4       |
+| `complaints-stack-live`     | 2026-10-07 | 200       | 2×        | 220   | 584              | 10 min    | 3       |
+| `fraud-stack-live`          | 2026-10-07 | 6         | 2×        | 216   | 3113             | 65 min    | 14      |
+| `advice-context-live`       | 2026-10-07 | 1200      | 2×        | 248   | 2466             | 67 min    | 4       |
+| `servicing-stack-live-seat` | 2026-10-07 | 100       | 1×        | 32    | 330              | 5 min     | 2       |
+| `controls-live`             | 2026-10-07 | scenarios | 2×        | 162   | 1692             | 37 min    | 10      |
+
+## Reliability over trials
+
+Each item is a case performed more than once with fresh model draws; every figure is over items, never trials, so repeating a case does not inflate _n_. **pass^k** (every performance passes) is the figure for a control; **pass@1** is one performance; **consistency** is the share of items the trials agreed on.
+
+| Design              | What is measured                      | Performed    | pass@1          | pass^k          | Consistency     |
+| ------------------- | ------------------------------------- | ------------ | --------------- | --------------- | --------------- |
+| `lending-stack`     | lending decision matches the rule     | 51 items × 2 | 99% (97%–100%)  | 98% (90%–100%)  | 98% (90%–100%)  |
+| `disputes-stack`    | dispute decision matches the rule     | 40 items × 2 | 81% (69%–93%)   | 80% (65%–90%)   | 98% (87%–100%)  |
+| `collections-stack` | repayment plan matches the rule       | 37 items × 2 | 100% (90%–100%) | 100% (90%–100%) | 100% (90%–100%) |
+| `onboarding-stack`  | onboarding decision matches the rule  | 33 items × 2 | 100% (90%–100%) | 100% (90%–100%) | 100% (90%–100%) |
+| `complaints-stack`  | the root cause is named               | 55 items × 2 | 99% (97%–100%)  | 98% (90%–100%)  | 98% (90%–100%)  |
+| `fraud-stack`       | alert decision is the right one       | 27 items × 2 | 96% (82%–99%)   | 96% (82%–99%)   | 100% (88%–100%) |
+| `advice-context`    | the recommendation suits the customer | 31 items × 2 | 100% (89%–100%) | 100% (89%–100%) | 100% (89%–100%) |
 
 ## The customer answers back
 
@@ -47,16 +62,7 @@ The live side is the reference configuration with no guard (`bot-everywhere` whe
 
 |                                 | Needs met (95% interval, n) | Tokens per case | Cells |
 | ------------------------------- | --------------------------- | --------------- | ----- |
-| the desk's own scripted visitor | 94% (80%–98%, n 33)         | 11775           | 66    |
-| a live customer                 | 100% (81%–100%, n 16)       | 8735            | 32    |
+| the desk's own scripted visitor | 100% (90%–100%, n 33)       | 7824            | 66    |
+| a live customer                 | 100% (81%–100%, n 16)       | 7707            | 32    |
 
 The two books are different sizes and the intervals overlap, so this reads as no difference at this n, not as a customer who makes the bot better. What it does show is that customers who answer back run end to end on the live tier. Since plan 113 §12 the drawn customer opens with the request itself, in their words; the stories in `servicing-stack-live-seat/stories/` show the conversation.
-
-## The live tier's own variance
-
-`lending-stack` was recorded twice, with nothing changed between the recordings. A recording is one sample, so the difference between the two is the live tier's own noise, the floor under any effect a control is credited with.
-
-- **Answers to the same prompt:** of 488 prompts both recordings were asked, 305 (63%) were answered with the same call (the same tool, the same arguments) and 39 (8%) with the same words as well. 1361 prompts were asked by only one recording, because a different answer earlier in a case leads to a different next prompt.
-- **The same case, decided twice:** of 306 cases both recordings decided, 278 (91%) reached the same verdict from the design's evaluators in both.
-- **The figure that matters:** agreement with the rule, reference configuration, was 53% (40%–66%, n 51) in the first recording and 53% (40%–66%, n 51) in the second: a difference of 0.0 points between two samples of the same model.
-- **Finish reasons**, first recording: {"tool_call":1238}; second: {"tool_call":1097,"stop":2}. A `length` is a reply cut off by the 1,024-token limit.

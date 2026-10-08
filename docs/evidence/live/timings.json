@@ -1,13 +1,14 @@
 {
 	"lending-stack-live": {
-		"recordedOn": "2026-10-06",
+		"recordedOn": "2026-10-07",
 		"model": "Qwen3.5-122B-A10B-NVFP4",
 		"cartridge": "dgx-spark/giant-qwen",
 		"size": 800,
-		"cells": 306,
-		"entries": 1238,
-		"wallSeconds": 1796,
-		"stories": 18
+		"trials": 2,
+		"cells": 408,
+		"entries": 2967,
+		"wallSeconds": 10276,
+		"stories": 14
 	},
 	"lending-stack-live-b": {
 		"recordedOn": "2026-10-06",
@@ -20,83 +21,101 @@
 		"stories": 18
 	},
 	"servicing-stack-live": {
-		"recordedOn": "2026-10-06",
+		"recordedOn": "2026-10-07",
 		"model": "Qwen3.5-122B-A10B-NVFP4",
 		"cartridge": "dgx-spark/giant-qwen",
 		"size": 200,
+		"trials": 1,
 		"cells": 66,
-		"entries": 260,
-		"wallSeconds": 513,
-		"stories": 4
+		"entries": 318,
+		"wallSeconds": 353,
+		"stories": 2
 	},
 	"disputes-stack-live": {
-		"recordedOn": "2026-10-06",
+		"recordedOn": "2026-10-07",
 		"model": "Qwen3.5-122B-A10B-NVFP4",
 		"cartridge": "dgx-spark/giant-qwen",
 		"size": 400,
-		"cells": 80,
-		"entries": 265,
-		"wallSeconds": 361,
-		"stories": 4
+		"trials": 2,
+		"cells": 160,
+		"entries": 966,
+		"wallSeconds": 957,
+		"stories": 6
 	},
 	"collections-stack-live": {
-		"recordedOn": "2026-10-06",
+		"recordedOn": "2026-10-07",
 		"model": "Qwen3.5-122B-A10B-NVFP4",
 		"cartridge": "dgx-spark/giant-qwen",
 		"size": 300,
-		"cells": 74,
-		"entries": 839,
-		"wallSeconds": 1205,
-		"stories": 10
+		"trials": 2,
+		"cells": 148,
+		"entries": 1156,
+		"wallSeconds": 1566,
+		"stories": 4
 	},
 	"onboarding-stack-live": {
-		"recordedOn": "2026-10-06",
+		"recordedOn": "2026-10-07",
 		"model": "Qwen3.5-122B-A10B-NVFP4",
 		"cartridge": "dgx-spark/giant-qwen",
 		"size": 400,
-		"cells": 66,
-		"entries": 289,
-		"wallSeconds": 365,
-		"stories": 2
+		"trials": 2,
+		"cells": 132,
+		"entries": 1143,
+		"wallSeconds": 1137,
+		"stories": 4
 	},
 	"complaints-stack-live": {
-		"recordedOn": "2026-10-06",
+		"recordedOn": "2026-10-07",
 		"model": "Qwen3.5-122B-A10B-NVFP4",
 		"cartridge": "dgx-spark/giant-qwen",
 		"size": 200,
-		"cells": 110,
-		"entries": 302,
-		"wallSeconds": 397,
-		"stories": 5
+		"trials": 2,
+		"cells": 220,
+		"entries": 584,
+		"wallSeconds": 620,
+		"stories": 3
 	},
 	"fraud-stack-live": {
-		"recordedOn": "2026-10-06",
+		"recordedOn": "2026-10-07",
 		"model": "Qwen3.5-122B-A10B-NVFP4",
 		"cartridge": "dgx-spark/giant-qwen",
 		"size": 6,
-		"cells": 108,
-		"entries": 2490,
-		"wallSeconds": 3237,
-		"stories": 16
+		"trials": 2,
+		"cells": 216,
+		"entries": 3113,
+		"wallSeconds": 3923,
+		"stories": 14
 	},
 	"advice-context-live": {
-		"recordedOn": "2026-10-06",
+		"recordedOn": "2026-10-07",
 		"model": "Qwen3.5-122B-A10B-NVFP4",
 		"cartridge": "dgx-spark/giant-qwen",
 		"size": 1200,
-		"cells": 124,
-		"entries": 1502,
-		"wallSeconds": 2738,
-		"stories": 8
+		"trials": 2,
+		"cells": 248,
+		"entries": 2466,
+		"wallSeconds": 4024,
+		"stories": 4
 	},
 	"servicing-stack-live-seat": {
-		"recordedOn": "2026-10-06",
+		"recordedOn": "2026-10-07",
 		"model": "Qwen3.5-122B-A10B-NVFP4",
 		"cartridge": "dgx-spark/giant-qwen",
 		"size": 100,
+		"trials": 1,
 		"cells": 32,
-		"entries": 357,
-		"wallSeconds": 499,
+		"entries": 330,
+		"wallSeconds": 280,
 		"stories": 2
+	},
+	"controls-live": {
+		"recordedOn": "2026-10-07",
+		"model": "Qwen3.5-122B-A10B-NVFP4",
+		"cartridge": "dgx-spark/giant-qwen",
+		"trials": 2,
+		"cells": 162,
+		"entries": 1692,
+		"wallSeconds": 2201,
+		"stories": 10
 	}
 }

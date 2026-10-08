@@ -143,7 +143,12 @@ export function reliabilityRows(result, metric) {
 	const all = result.reliability ?? [];
 	const none = all.filter((r) => r.campaignId.includes('guard=none'));
 	const everywhere = none.filter((r) => r.campaignId.includes('bot-everywhere'));
-	const picked = everywhere.length > 0 ? everywhere : none.length > 0 ? none : all;
+	// A design with no guard axis (advice's context ladder) reads at the plain case-file context with the bot everywhere, once.
+	const plain = all.filter(
+		(r) => r.campaignId.includes('case-file') && r.campaignId.includes('bot-everywhere')
+	);
+	const picked =
+		everywhere.length > 0 ? everywhere : none.length > 0 ? none : plain.length > 0 ? plain : all;
 	return picked
 		.map((r) => ({
 			campaignId: r.campaignId,
@@ -265,6 +270,12 @@ export async function render() {
 	if (existsSync(a) && existsSync(b)) {
 		const ca = read(a);
 		const cb = read(b);
+		// The variance of two recordings of one design is read from their merged (version 1) cassettes; the first was re-recorded as trials
+		// (113 §12), so that comparison is no longer buildable and trials carry the live tier's own variance instead.
+		if (!Array.isArray(ca.entries) || !Array.isArray(cb.entries)) {
+			lines.push('');
+			return `${lines.join('\n')}`;
+		}
 		const agree = cassetteAgreement(ca, cb);
 		const cellsA = join(LIVE, 'lending-stack-live', 'cells.json');
 		const cellsB = join(LIVE, 'lending-stack-live-b', 'cells.json');

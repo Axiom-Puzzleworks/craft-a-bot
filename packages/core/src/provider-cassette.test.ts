@@ -549,3 +549,53 @@ describe('exact replay of a recording (WP190)', () => {
 		);
 	});
 });
+
+describe('what the path digest does not depend on (WP195)', () => {
+	it('is the same whether or not a principal was named: a plain allow and the attestation are off the path', async () => {
+		const events = await runWith(createMockProvider({ script: PLAN }));
+		const base = pathDigestOf([events]);
+		const envelope = (({ id, runId, agentId, tick, timestamp }) => ({
+			id,
+			runId,
+			agentId,
+			tick,
+			timestamp
+		}))(events[0]!);
+		const checked = (verdict: object) =>
+			({
+				...envelope,
+				type: 'guardrail.checked',
+				payload: { guardrailId: 'safety/step-budget', hook: 'pre-think', verdict }
+			}) as unknown as EngineEvent;
+		expect(pathDigestOf([[...events, checked({ allow: true })]])).toBe(base);
+		// A guard that rewrote something is a decision on the path.
+		expect(
+			pathDigestOf([
+				[...events, checked({ allow: true, verdictKind: 'redact', redactedText: 'x' })]
+			])
+		).not.toBe(base);
+		// The attestation a named principal puts on an action is identity, not behaviour.
+		const attested = events.map((event) =>
+			event.type === 'action.performed'
+				? {
+						...event,
+						payload: {
+							...event.payload,
+							attestation: { principal: { kind: 'service', id: 'someone' }, guardrailsPassed: [] }
+						}
+					}
+				: event
+		) as EngineEvent[];
+		expect(pathDigestOf([attested])).toBe(base);
+		// And who resolved an approval is the principal's, not the decision's.
+		const resolved = (by: string) =>
+			({
+				...envelope,
+				type: 'approval.resolved',
+				payload: { approved: true, by: { kind: 'service', id: by } }
+			}) as unknown as EngineEvent;
+		expect(pathDigestOf([[...events, resolved('one')]])).toBe(
+			pathDigestOf([[...events, resolved('two')]])
+		);
+	});
+});
