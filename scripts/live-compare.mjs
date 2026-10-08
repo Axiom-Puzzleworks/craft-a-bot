@@ -46,7 +46,8 @@ export function suiteRow(suite, id, timings) {
 		side,
 		passHatK: rel?.m?.passHatK,
 		verdict: result.verdict,
-		lost: lostShare(read(cellsFile)),
+		// A scenario design ends its cells by the step limit by design, so "lost" says nothing there.
+		lost: id.startsWith('controls') ? undefined : lostShare(read(cellsFile)),
 		wallMinutes: Math.round(timings[id].wallSeconds / 60),
 		tokens: result.effects[0]?.cost?.tokensPerCase?.baseline,
 		cells: timings[id].cells
@@ -66,7 +67,7 @@ export function renderComparison(rows) {
 	const hat = (s) => (s ? pct(s.value) : '—');
 	for (const { giant, quick } of rows)
 		lines.push(
-			`| \`${(giant ?? quick).id}\` | ${(giant ?? quick).what ?? 'the design’s own measures'} | ${side(giant?.side)} | ${side(quick?.side)} | ${hat(giant?.passHatK)} / ${hat(quick?.passHatK)} | ${giant ? pct(giant.lost) : '—'} / ${quick ? pct(quick.lost) : '—'} | ${giant ? `${giant.wallMinutes} min` : '—'} / ${quick ? `${quick.wallMinutes} min` : '—'} | ${giant?.tokens ? Math.round(giant.tokens) : '—'} / ${quick?.tokens ? Math.round(quick.tokens) : '—'} |`
+			`| \`${(giant ?? quick).id}\` | ${(giant ?? quick).what ?? 'the design’s own measures'} | ${side(giant?.side)} | ${side(quick?.side)} | ${hat(giant?.passHatK)} / ${hat(quick?.passHatK)} | ${giant?.lost !== undefined ? pct(giant.lost) : '—'} / ${quick?.lost !== undefined ? pct(quick.lost) : '—'} | ${giant ? `${giant.wallMinutes} min` : '—'} / ${quick ? `${quick.wallMinutes} min` : '—'} | ${giant?.tokens ? Math.round(giant.tokens) : '—'} / ${quick?.tokens ? Math.round(quick.tokens) : '—'} |`
 		);
 	lines.push('');
 	return lines.join('\n');

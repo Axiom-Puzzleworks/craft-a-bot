@@ -1,0 +1,861 @@
+{
+	"schemaVersion": 1,
+	"id": "servicing-stack-live-seat@2026-10-08T11:42:49.961Z",
+	"experimentId": "servicing-stack-live-seat",
+	"title": "The policy-card stack on the servicing book — with the 35B on the DGX Sparks as the brain and as the customer",
+	"hypothesis": "The servicing desk’s policy-card stack (fs-servicing/stack/policy-cards) changes nothing a scripted bot at Level 5 does wrong on the servicing book. Under the fallible tier (WP154), which errs at the desk's decision one time in ten, the stack is expected to catch what its cards check and nothing else. Here the decisions are made by a live model, `dgx-spark/quick-qwen` (Qwen3.6-35B-A3B-NVFP4 on the builder's DGX Sparks), at temperature 0 with a 2048-token reply limit, over a book of 100: a single sample, recorded once and replayed from its cassette. The design's scripted and fallible columns are `servicing-stack`.",
+	"controls": [],
+	"obligations": [],
+	"ranAt": "2026-10-08T11:42:49.961Z",
+	"workflowIds": [
+		"fs-servicing/servicing"
+	],
+	"campaignIds": [
+		"servicing-stack-live-seat--guard=none",
+		"servicing-stack-live-seat--guard=policy-cards"
+	],
+	"effects": [
+		{
+			"experimentId": "servicing-stack-live-seat",
+			"metricId": "needs-met",
+			"controlIds": [
+				"fs-servicing/control-map/disclosure-recorded",
+				"fs-servicing/control-map/verify-and-purpose",
+				"fs-servicing/control-map/served-and-four-eyes"
+			],
+			"factor": {
+				"axis": "guard",
+				"baseline": "none",
+				"treatment": "policy-cards"
+			},
+			"baseline": {
+				"value": 0.9375,
+				"n": 16,
+				"interval": [
+					0.84375,
+					1
+				]
+			},
+			"treatment": {
+				"value": 0.90625,
+				"n": 16,
+				"interval": [
+					0.8125,
+					1
+				]
+			},
+			"delta": -0.03125,
+			"interval": [
+				-0.16628508271272674,
+				0.10378508271272674
+			],
+			"p": 1,
+			"method": "difference of rates over items (2 trials each, the item the unit), Welch interval at 95%; sign test over 5 differing of 16 paired items",
+			"underpowered": true,
+			"tier": "live",
+			"slices": [
+				{
+					"where": {
+						"ageBand": "18-24"
+					},
+					"delta": -0.5,
+					"interval": [
+						-0.5,
+						-0.5
+					],
+					"n": {
+						"baseline": 1,
+						"treatment": 1
+					}
+				},
+				{
+					"where": {
+						"ageBand": "25-34"
+					},
+					"delta": -0.125,
+					"interval": [
+						-0.5228057881575126,
+						0.27280578815751255
+					],
+					"n": {
+						"baseline": 4,
+						"treatment": 4
+					}
+				},
+				{
+					"where": {
+						"ageBand": "35-44"
+					},
+					"delta": 0,
+					"interval": [
+						-0.4325569907262912,
+						0.4325569907262912
+					],
+					"n": {
+						"baseline": 4,
+						"treatment": 4
+					}
+				},
+				{
+					"where": {
+						"ageBand": "45-54"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 1,
+						"treatment": 1
+					}
+				},
+				{
+					"where": {
+						"ageBand": "55-64"
+					},
+					"delta": 0.25,
+					"interval": [
+						-1,
+						1
+					],
+					"n": {
+						"baseline": 2,
+						"treatment": 2
+					}
+				},
+				{
+					"where": {
+						"ageBand": "65-74"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 2,
+						"treatment": 2
+					}
+				},
+				{
+					"where": {
+						"ageBand": "75+"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 2,
+						"treatment": 2
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "15-25k"
+					},
+					"delta": -0.125,
+					"interval": [
+						-0.5228057881575126,
+						0.27280578815751255
+					],
+					"n": {
+						"baseline": 4,
+						"treatment": 4
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "25-40k"
+					},
+					"delta": -0.25,
+					"interval": [
+						-1,
+						1
+					],
+					"n": {
+						"baseline": 2,
+						"treatment": 2
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "under-15k"
+					},
+					"delta": 0.04999999999999993,
+					"interval": [
+						-0.12606591561284788,
+						0.22606591561284775
+					],
+					"n": {
+						"baseline": 10,
+						"treatment": 10
+					}
+				}
+			],
+			"cost": {
+				"tokensPerCase": {
+					"baseline": 9137.5,
+					"treatment": 8155.15625
+				},
+				"approvalsPerCase": {
+					"baseline": 0,
+					"treatment": 0.1875
+				},
+				"escalationRate": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"bill": {
+					"baseline": {
+						"tokens": 9137.5,
+						"modelPounds": 0.03655,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0.03655
+					},
+					"treatment": {
+						"tokens": 8155.15625,
+						"modelPounds": 0.032620625,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0.032620625
+					}
+				},
+				"touchesPerCase": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"breachRate": {
+					"baseline": 0.34375,
+					"treatment": 0.4375
+				}
+			},
+			"reliability": {
+				"k": 2,
+				"baseline": {
+					"value": 0.875,
+					"interval": [
+						0.6397717271212133,
+						0.9650225122891567
+					],
+					"method": "Wilson interval over 16 items"
+				},
+				"treatment": {
+					"value": 0.8125,
+					"interval": [
+						0.569911190170143,
+						0.9340840093384986
+					],
+					"method": "Wilson interval over 16 items"
+				}
+			},
+			"runIds": [
+				"00000000-0000-4000-8000-000000000118",
+				"00000000-0000-4000-8000-000000018783",
+				"00000000-0000-4000-8000-000000030ebe",
+				"00000000-0000-4000-8000-00000004949e",
+				"00000000-0000-4000-8000-000000061b1d",
+				"00000000-0000-4000-8000-00000007a248",
+				"00000000-0000-4000-8000-00000009293e",
+				"00000000-0000-4000-8000-0000000aaf90",
+				"00000000-0000-4000-8000-0000000c35a4",
+				"00000000-0000-4000-8000-0000000dbc46",
+				"00000000-0000-4000-8000-0000000f435c",
+				"00000000-0000-4000-8000-00000010ca6d",
+				"00000000-0000-4000-8000-0000001250b9",
+				"00000000-0000-4000-8000-00000013d622",
+				"00000000-0000-4000-8000-000000155d5a",
+				"00000000-0000-4000-8000-00000016e4ab",
+				"00000000-0000-4000-8000-000000186b00",
+				"00000000-0000-4000-8000-00000019f0a2",
+				"00000000-0000-4000-8000-0000001b77f6",
+				"00000000-0000-4000-8000-0000001cfe82",
+				"00000000-0000-4000-8000-0000001e871c",
+				"00000000-0000-4000-8000-000000200c56",
+				"00000000-0000-4000-8000-0000002191c2",
+				"00000000-0000-4000-8000-000000231918",
+				"00000000-0000-4000-8000-000000249fe4",
+				"00000000-0000-4000-8000-0000002625a2",
+				"00000000-0000-4000-8000-00000027ac42",
+				"00000000-0000-4000-8000-00000029357b",
+				"00000000-0000-4000-8000-0000002aba14",
+				"00000000-0000-4000-8000-0000002c40cb",
+				"00000000-0000-4000-8000-0000002dc7fe",
+				"00000000-0000-4000-8000-0000002f4e9f",
+				"00000000-0000-4000-8000-0000000001ad",
+				"00000000-0000-4000-8000-0000000187f4",
+				"00000000-0000-4000-8000-000000030ec4",
+				"00000000-0000-4000-8000-0000000496a7",
+				"00000000-0000-4000-8000-000000061b5a",
+				"00000000-0000-4000-8000-00000007a20d",
+				"00000000-0000-4000-8000-0000000928cb",
+				"00000000-0000-4000-8000-0000000aaf85",
+				"00000000-0000-4000-8000-0000000c35b2",
+				"00000000-0000-4000-8000-0000000dbc58",
+				"00000000-0000-4000-8000-0000000f437e",
+				"00000000-0000-4000-8000-00000010c9b2",
+				"00000000-0000-4000-8000-000000125029",
+				"00000000-0000-4000-8000-00000013d736",
+				"00000000-0000-4000-8000-000000155e73",
+				"00000000-0000-4000-8000-00000016e407",
+				"00000000-0000-4000-8000-000000186d93",
+				"00000000-0000-4000-8000-00000019f337",
+				"00000000-0000-4000-8000-0000001b781e",
+				"00000000-0000-4000-8000-0000001cfe9e",
+				"00000000-0000-4000-8000-0000001e853a",
+				"00000000-0000-4000-8000-000000200c48",
+				"00000000-0000-4000-8000-000000219455",
+				"00000000-0000-4000-8000-000000231929",
+				"00000000-0000-4000-8000-000000249fc1",
+				"00000000-0000-4000-8000-00000026270a",
+				"00000000-0000-4000-8000-00000027afe9",
+				"00000000-0000-4000-8000-0000002934c5",
+				"00000000-0000-4000-8000-0000002aba46",
+				"00000000-0000-4000-8000-0000002c40dc",
+				"00000000-0000-4000-8000-0000002dc7fc",
+				"00000000-0000-4000-8000-0000002f4d62"
+			],
+			"reportIds": [
+				"b40efc76-d07b-46ca-978f-32f115ec9bee",
+				"4d287a89-2bec-4e1a-9032-b49ce806a044"
+			]
+		},
+		{
+			"experimentId": "servicing-stack-live-seat",
+			"metricId": "disclosure-recorded",
+			"controlIds": [
+				"fs-servicing/control-map/disclosure-recorded",
+				"fs-servicing/control-map/verify-and-purpose",
+				"fs-servicing/control-map/served-and-four-eyes"
+			],
+			"factor": {
+				"axis": "guard",
+				"baseline": "none",
+				"treatment": "policy-cards"
+			},
+			"baseline": {
+				"value": 1,
+				"n": 16,
+				"interval": [
+					0.8063923192138267,
+					1
+				]
+			},
+			"treatment": {
+				"value": 1,
+				"n": 16,
+				"interval": [
+					0.8063923192138267,
+					1
+				]
+			},
+			"delta": 0,
+			"interval": [
+				0,
+				0
+			],
+			"p": 1,
+			"method": "difference of rates over items (2 trials each, the item the unit), Welch interval at 95%; sign test over 0 differing of 16 paired items",
+			"underpowered": true,
+			"tier": "live",
+			"untestable": true,
+			"slices": [
+				{
+					"where": {
+						"ageBand": "18-24"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 1,
+						"treatment": 1
+					}
+				},
+				{
+					"where": {
+						"ageBand": "25-34"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 4,
+						"treatment": 4
+					}
+				},
+				{
+					"where": {
+						"ageBand": "35-44"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 4,
+						"treatment": 4
+					}
+				},
+				{
+					"where": {
+						"ageBand": "45-54"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 1,
+						"treatment": 1
+					}
+				},
+				{
+					"where": {
+						"ageBand": "55-64"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 2,
+						"treatment": 2
+					}
+				},
+				{
+					"where": {
+						"ageBand": "65-74"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 2,
+						"treatment": 2
+					}
+				},
+				{
+					"where": {
+						"ageBand": "75+"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 2,
+						"treatment": 2
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "15-25k"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 4,
+						"treatment": 4
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "25-40k"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 2,
+						"treatment": 2
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "under-15k"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 10,
+						"treatment": 10
+					}
+				}
+			],
+			"cost": {
+				"tokensPerCase": {
+					"baseline": 9137.5,
+					"treatment": 8155.15625
+				},
+				"approvalsPerCase": {
+					"baseline": 0,
+					"treatment": 0.1875
+				},
+				"escalationRate": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"bill": {
+					"baseline": {
+						"tokens": 9137.5,
+						"modelPounds": 0.03655,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0.03655
+					},
+					"treatment": {
+						"tokens": 8155.15625,
+						"modelPounds": 0.032620625,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0.032620625
+					}
+				},
+				"touchesPerCase": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"breachRate": {
+					"baseline": 0.34375,
+					"treatment": 0.4375
+				}
+			},
+			"reliability": {
+				"k": 2,
+				"baseline": {
+					"value": 1,
+					"interval": [
+						0.8063923192138267,
+						1
+					],
+					"method": "Wilson interval over 16 items"
+				},
+				"treatment": {
+					"value": 1,
+					"interval": [
+						0.8063923192138267,
+						1
+					],
+					"method": "Wilson interval over 16 items"
+				}
+			},
+			"runIds": [
+				"00000000-0000-4000-8000-000000000118",
+				"00000000-0000-4000-8000-000000018783",
+				"00000000-0000-4000-8000-000000030ebe",
+				"00000000-0000-4000-8000-00000004949e",
+				"00000000-0000-4000-8000-000000061b1d",
+				"00000000-0000-4000-8000-00000007a248",
+				"00000000-0000-4000-8000-00000009293e",
+				"00000000-0000-4000-8000-0000000aaf90",
+				"00000000-0000-4000-8000-0000000c35a4",
+				"00000000-0000-4000-8000-0000000dbc46",
+				"00000000-0000-4000-8000-0000000f435c",
+				"00000000-0000-4000-8000-00000010ca6d",
+				"00000000-0000-4000-8000-0000001250b9",
+				"00000000-0000-4000-8000-00000013d622",
+				"00000000-0000-4000-8000-000000155d5a",
+				"00000000-0000-4000-8000-00000016e4ab",
+				"00000000-0000-4000-8000-000000186b00",
+				"00000000-0000-4000-8000-00000019f0a2",
+				"00000000-0000-4000-8000-0000001b77f6",
+				"00000000-0000-4000-8000-0000001cfe82",
+				"00000000-0000-4000-8000-0000001e871c",
+				"00000000-0000-4000-8000-000000200c56",
+				"00000000-0000-4000-8000-0000002191c2",
+				"00000000-0000-4000-8000-000000231918",
+				"00000000-0000-4000-8000-000000249fe4",
+				"00000000-0000-4000-8000-0000002625a2",
+				"00000000-0000-4000-8000-00000027ac42",
+				"00000000-0000-4000-8000-00000029357b",
+				"00000000-0000-4000-8000-0000002aba14",
+				"00000000-0000-4000-8000-0000002c40cb",
+				"00000000-0000-4000-8000-0000002dc7fe",
+				"00000000-0000-4000-8000-0000002f4e9f",
+				"00000000-0000-4000-8000-0000000001ad",
+				"00000000-0000-4000-8000-0000000187f4",
+				"00000000-0000-4000-8000-000000030ec4",
+				"00000000-0000-4000-8000-0000000496a7",
+				"00000000-0000-4000-8000-000000061b5a",
+				"00000000-0000-4000-8000-00000007a20d",
+				"00000000-0000-4000-8000-0000000928cb",
+				"00000000-0000-4000-8000-0000000aaf85",
+				"00000000-0000-4000-8000-0000000c35b2",
+				"00000000-0000-4000-8000-0000000dbc58",
+				"00000000-0000-4000-8000-0000000f437e",
+				"00000000-0000-4000-8000-00000010c9b2",
+				"00000000-0000-4000-8000-000000125029",
+				"00000000-0000-4000-8000-00000013d736",
+				"00000000-0000-4000-8000-000000155e73",
+				"00000000-0000-4000-8000-00000016e407",
+				"00000000-0000-4000-8000-000000186d93",
+				"00000000-0000-4000-8000-00000019f337",
+				"00000000-0000-4000-8000-0000001b781e",
+				"00000000-0000-4000-8000-0000001cfe9e",
+				"00000000-0000-4000-8000-0000001e853a",
+				"00000000-0000-4000-8000-000000200c48",
+				"00000000-0000-4000-8000-000000219455",
+				"00000000-0000-4000-8000-000000231929",
+				"00000000-0000-4000-8000-000000249fc1",
+				"00000000-0000-4000-8000-00000026270a",
+				"00000000-0000-4000-8000-00000027afe9",
+				"00000000-0000-4000-8000-0000002934c5",
+				"00000000-0000-4000-8000-0000002aba46",
+				"00000000-0000-4000-8000-0000002c40dc",
+				"00000000-0000-4000-8000-0000002dc7fc",
+				"00000000-0000-4000-8000-0000002f4d62"
+			],
+			"reportIds": [
+				"b40efc76-d07b-46ca-978f-32f115ec9bee",
+				"4d287a89-2bec-4e1a-9032-b49ce806a044"
+			]
+		}
+	],
+	"reliability": [
+		{
+			"campaignId": "servicing-stack-live-seat--guard=none",
+			"trials": 2,
+			"k": 2,
+			"items": 16,
+			"skipped": 0,
+			"metrics": [
+				{
+					"metricId": "needs-met",
+					"pass1": {
+						"value": 0.9375,
+						"interval": [
+							0.84375,
+							1
+						],
+						"method": "percentile bootstrap over 16 items, 2000 resamples"
+					},
+					"passAtK": {
+						"value": 1,
+						"interval": [
+							0.8063923192138267,
+							1
+						],
+						"method": "Wilson interval over 16 items"
+					},
+					"passHatK": {
+						"value": 0.875,
+						"interval": [
+							0.6397717271212133,
+							0.9650225122891567
+						],
+						"method": "Wilson interval over 16 items"
+					},
+					"consistency": {
+						"value": 0.875,
+						"interval": [
+							0.6397717271212133,
+							0.9650225122891567
+						],
+						"method": "Wilson interval over 16 items"
+					}
+				},
+				{
+					"metricId": "disclosure-recorded",
+					"pass1": {
+						"value": 1,
+						"interval": [
+							0.8063923192138267,
+							1
+						],
+						"method": "Wilson interval over 16 items"
+					},
+					"passAtK": {
+						"value": 1,
+						"interval": [
+							0.8063923192138267,
+							1
+						],
+						"method": "Wilson interval over 16 items"
+					},
+					"passHatK": {
+						"value": 1,
+						"interval": [
+							0.8063923192138267,
+							1
+						],
+						"method": "Wilson interval over 16 items"
+					},
+					"consistency": {
+						"value": 1,
+						"interval": [
+							0.8063923192138267,
+							1
+						],
+						"method": "Wilson interval over 16 items"
+					}
+				}
+			],
+			"firstTick": {
+				"pairs": 16,
+				"sameCall": {
+					"value": 0.6875,
+					"interval": [
+						0.4440435581613945,
+						0.8583535615437904
+					],
+					"method": "Wilson interval over 16 items"
+				},
+				"sameWords": {
+					"value": 0.3125,
+					"interval": [
+						0.14164643845620956,
+						0.5559564418386054
+					],
+					"method": "Wilson interval over 16 items"
+				}
+			},
+			"divergence": {
+				"identicalPaths": {
+					"value": 0.1875,
+					"interval": [
+						0.06591599066150139,
+						0.4300888098298569
+					],
+					"method": "Wilson interval over 16 items"
+				},
+				"medianFirstDivergence": 2,
+				"meanPathDistance": 4.125
+			}
+		},
+		{
+			"campaignId": "servicing-stack-live-seat--guard=policy-cards",
+			"trials": 2,
+			"k": 2,
+			"items": 16,
+			"skipped": 0,
+			"metrics": [
+				{
+					"metricId": "needs-met",
+					"pass1": {
+						"value": 0.90625,
+						"interval": [
+							0.8125,
+							1
+						],
+						"method": "percentile bootstrap over 16 items, 2000 resamples"
+					},
+					"passAtK": {
+						"value": 1,
+						"interval": [
+							0.8063923192138267,
+							1
+						],
+						"method": "Wilson interval over 16 items"
+					},
+					"passHatK": {
+						"value": 0.8125,
+						"interval": [
+							0.569911190170143,
+							0.9340840093384986
+						],
+						"method": "Wilson interval over 16 items"
+					},
+					"consistency": {
+						"value": 0.8125,
+						"interval": [
+							0.569911190170143,
+							0.9340840093384986
+						],
+						"method": "Wilson interval over 16 items"
+					}
+				},
+				{
+					"metricId": "disclosure-recorded",
+					"pass1": {
+						"value": 1,
+						"interval": [
+							0.8063923192138267,
+							1
+						],
+						"method": "Wilson interval over 16 items"
+					},
+					"passAtK": {
+						"value": 1,
+						"interval": [
+							0.8063923192138267,
+							1
+						],
+						"method": "Wilson interval over 16 items"
+					},
+					"passHatK": {
+						"value": 1,
+						"interval": [
+							0.8063923192138267,
+							1
+						],
+						"method": "Wilson interval over 16 items"
+					},
+					"consistency": {
+						"value": 1,
+						"interval": [
+							0.8063923192138267,
+							1
+						],
+						"method": "Wilson interval over 16 items"
+					}
+				}
+			],
+			"firstTick": {
+				"pairs": 16,
+				"sameCall": {
+					"value": 0.6875,
+					"interval": [
+						0.4440435581613945,
+						0.8583535615437904
+					],
+					"method": "Wilson interval over 16 items"
+				},
+				"sameWords": {
+					"value": 0.375,
+					"interval": [
+						0.18481232547894888,
+						0.6135895947175944
+					],
+					"method": "Wilson interval over 16 items"
+				}
+			},
+			"divergence": {
+				"identicalPaths": {
+					"value": 0.25,
+					"interval": [
+						0.10182067483951532,
+						0.49498316555357136
+					],
+					"method": "Wilson interval over 16 items"
+				},
+				"medianFirstDivergence": 1,
+				"meanPathDistance": 3.5
+			}
+		}
+	],
+	"verdict": "inconclusive",
+	"note": "minimum detectable difference of rates at the achieved n (16 on the smaller side, 80% power): 19.2 points against the 5.0 the design meant to see; one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)",
+	"digest": "9a6189ce1fb0349ee545488ea2d44277090062bacb019156394dc611f1587e6d"
+}

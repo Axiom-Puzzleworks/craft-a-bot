@@ -7,7 +7,7 @@ export function renderComparison(
 			what?: string;
 			side?: unknown;
 			passHatK?: unknown;
-			lost: number;
+			lost?: number;
 			wallMinutes: number;
 			tokens?: number;
 		};
@@ -16,7 +16,7 @@ export function renderComparison(
 			what?: string;
 			side?: unknown;
 			passHatK?: unknown;
-			lost: number;
+			lost?: number;
 			wallMinutes: number;
 			tokens?: number;
 		};

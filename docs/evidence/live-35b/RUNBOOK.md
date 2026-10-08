@@ -1,8 +1,8 @@
-# The 35B suite: staged, not yet run
+# The 35B suite: runbook (run 2026-10-08; results in FINDINGS.md)
 
 The live-tier test suite (`../live/TEST-REPORT.md`) re-performed with the smaller model in the brain's seat: **Qwen3.6-35B-A3B** (`Qwen3.6-35B-A3B-NVFP4`, cartridge `dgx-spark/quick-qwen`, the "Spark Sprinter"), every design **performed twice** (k = 2), on the same books, prompts and rules as the 122B suite, so the two compare design by design. This file is the runbook; the results will land beside it in this folder when the run is made.
 
-**Status: staged.** The designs are generated and committed (`experiments/live-35b/`), the scripts take `--suite quick`, CI checks the suite's designs and, once recorded, its cassettes. Nothing has been recorded and the Sparks have not been touched.
+**Status: run.** The suite was recorded on 2026-10-08 (95 minutes); the results are in `FINDINGS.md`, `README.md` and `COMPARISON.md` beside this file. What follows is the runbook as it was staged.
 
 ## What is the same, what differs
 

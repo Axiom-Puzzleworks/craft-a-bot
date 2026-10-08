@@ -1,0 +1,117 @@
+{
+	"schemaVersion": 1,
+	"id": "onboarding-stack-live",
+	"title": "The policy-card stack on the onboarding book — with the 35B on the DGX Sparks as the brain",
+	"hypothesis": "The onboarding desk’s policy-card stack (fs-onboarding/stack/policy-cards) changes nothing a scripted bot at Level 5 does wrong on the onboarding book. Under the fallible tier (WP154), which errs at the desk's decision one time in ten, the stack is expected to catch what its cards check and nothing else. Here the decisions are made by a live model, `dgx-spark/quick-qwen` (Qwen3.6-35B-A3B-NVFP4 on the builder's DGX Sparks), at temperature 0 with a 2048-token reply limit, over a book of 400: a single sample, recorded once and replayed from its cassette. The design's scripted and fallible columns are `onboarding-stack`.",
+	"controls": [],
+	"obligations": [],
+	"design": {
+		"template": {
+			"scenarios": [],
+			"source": {
+				"kind": "book",
+				"workflowId": "fs-onboarding/onboarding",
+				"population": {
+					"seed": 1,
+					"size": 400
+				}
+			},
+			"builds": [
+				{
+					"id": "bot-everywhere",
+					"base": {
+						"kind": "starter-default"
+					},
+					"overrides": {
+						"senses": [
+							"fs-onboarding/the-onboarding-desk/application",
+							"fs-onboarding/the-onboarding-desk/screening",
+							"fs-onboarding/the-onboarding-desk/risk-rating",
+							"fs-onboarding/the-onboarding-desk/conversation"
+						],
+						"actions": [
+							"fs-onboarding/the-onboarding-desk/say",
+							"fs-onboarding/the-onboarding-desk/verify-identity",
+							"fs-onboarding/the-onboarding-desk/screen-applicant",
+							"fs-onboarding/the-onboarding-desk/rate-risk",
+							"fs-onboarding/the-onboarding-desk/decide",
+							"fs-onboarding/the-onboarding-desk/open-account",
+							"fs-onboarding/the-onboarding-desk/welcome"
+						],
+						"maxTokens": 2048,
+						"configuration": "bot-everywhere"
+					}
+				}
+			],
+			"guards": [
+				{
+					"id": "none",
+					"fit": []
+				},
+				{
+					"id": "policy-cards",
+					"fit": [],
+					"stack": "fs-onboarding/stack/policy-cards"
+				}
+			],
+			"brains": [
+				{
+					"id": "live",
+					"tier": "live",
+					"cartridgeId": "dgx-spark/quick-qwen",
+					"cassette": "docs/evidence/live-35b/onboarding-stack-live/onboarding-stack-live.provider-cassette.json"
+				}
+			],
+			"assertionCards": [],
+			"sinks": [],
+			"evaluators": [
+				{
+					"id": "fs-onboarding/decision-matches-rules"
+				},
+				{
+					"id": "fs-onboarding/hit-contained"
+				}
+			],
+			"budget": {
+				"maxLiveCells": 1000
+			}
+		},
+		"factors": [
+			{
+				"axis": "guard",
+				"levels": [
+					"none",
+					"policy-cards"
+				]
+			}
+		],
+		"baseline": {
+			"guard": "none"
+		},
+		"metrics": [
+			{
+				"kind": "evaluator-pass-rate",
+				"id": "decision-matches-rules",
+				"direction": "higher-is-better",
+				"evaluatorId": "fs-onboarding/decision-matches-rules"
+			},
+			{
+				"kind": "evaluator-pass-rate",
+				"id": "hit-contained",
+				"direction": "higher-is-better",
+				"evaluatorId": "fs-onboarding/hit-contained"
+			}
+		],
+		"seeds": [
+			1
+		],
+		"replicates": 1,
+		"trials": 2,
+		"confidence": 0.95,
+		"minimumDetectableEffect": 0.05
+	},
+	"campaigns": [
+		"onboarding-stack-live--guard=none",
+		"onboarding-stack-live--guard=policy-cards"
+	]
+}
