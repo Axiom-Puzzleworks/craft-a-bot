@@ -33,7 +33,7 @@ describe('the reference experiments', async () => {
 		registry.listControlMaps().flatMap((map) => map.rows.map((row) => `${map.id}/${row.ref}`))
 	);
 
-	it('are the sixteen campaign-shaped designs, drift-day being the Monitor’s', () => {
+	it('are the seventeen campaign-shaped designs, drift-day being the Monitor’s', () => {
 		expect(FILES).toEqual([
 			'advice-context.json',
 			// WP150: the enforced ceilings against Level 5, the components against none, a stack per Phase AA desk.
@@ -51,6 +51,8 @@ describe('the reference experiments', async () => {
 			'lending-knobs.json',
 			'lending-stack.json',
 			'onboarding-stack.json',
+			// Plan 114 WP203/WP205: what a desk does with a reply that has no tool call, against the habits the suites measured.
+			'reply-contract.json',
 			// WP119: the readers on the held-out corpus, through the typesafe pack.
 			'servicing-readers.json',
 			'servicing-stack.json'
@@ -72,7 +74,9 @@ describe('the reference experiments', async () => {
 			if (guard.stack !== undefined)
 				expect(registry.getStack(guard.stack), guard.stack).toBeDefined();
 		// The eighth measures readers against labels, not a control on the bank's book: it names none (WP119).
-		if (experiment.id === 'servicing-readers') expect(claimed).toEqual([]);
+		// reply-contract measures a harness mechanism (the contract) under measured habits, not a control on the bank's book (plan 114).
+		if (experiment.id === 'servicing-readers' || experiment.id === 'reply-contract')
+			expect(claimed).toEqual([]);
 		else expect(claimed.length).toBeGreaterThan(0);
 		for (const control of claimed) expect(controlIds.has(control), control).toBe(true);
 		const source = experiment.design.template.source;

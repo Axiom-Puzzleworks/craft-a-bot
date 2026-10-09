@@ -1,3 +1,4 @@
+import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { dossierFiles, dossiersFor, deskOf } from './dossier.js';
 
@@ -5,7 +6,7 @@ import { dossierFiles, dossiersFor, deskOf } from './dossier.js';
  * **`craftabot dossier`** (plan 114 WP214): a dossier for every live design in the committed evidence, folded from the results alone, the
  * same bytes every time (the folding time is the newest result's own), and the committed files are exactly what it folds to.
  */
-const EVIDENCE = 'docs/evidence';
+const EVIDENCE = resolve(import.meta.dirname, '..', '..', '..', '..', 'docs', 'evidence');
 
 describe('craftabot dossier', () => {
 	it('names the desk of a live design', () => {
