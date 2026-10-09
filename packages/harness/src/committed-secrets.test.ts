@@ -69,7 +69,7 @@ describe('no committed artefact holds a credential', () => {
 			}
 		}
 		expect(found).toEqual([]);
-	});
+	}, 60_000); // reads every committed file against every shape; 5 s is not enough once the repo and the machine are busy
 
 	it('the shapes themselves match what they say (so the sweep can fail)', () => {
 		const samples: Record<string, string> = {
