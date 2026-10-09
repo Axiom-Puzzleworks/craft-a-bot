@@ -33,6 +33,21 @@ export const SUITES = {
 		recordingsDir: 'recordings/35b',
 		workDir: '.live-work-35b',
 		trials: 2
+	},
+	// WP198 (114-DECISIONS-UNDER-PRESSURE-PLAN.md): a person who says no, at a bank decision. The 122B in the brain's seat as in the
+	// first suite, but its own designs (`designs`, in live-designs.mjs), its own folders, and the reviewer model of person-at-approval.
+	oversight: {
+		id: 'oversight',
+		cartridge: 'dgx-spark/giant-qwen',
+		model: 'Qwen3.5-122B-A10B-NVFP4',
+		short: '122B',
+		pattern: 'reasoning-pair',
+		experimentsDir: 'experiments/live-oversight',
+		evidenceDir: 'docs/evidence/live-oversight',
+		recordingsDir: 'recordings/oversight',
+		workDir: '.live-work-oversight',
+		trials: 2,
+		designs: 'oversight'
 	}
 };
 
