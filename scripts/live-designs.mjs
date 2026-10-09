@@ -97,6 +97,17 @@ export const OVERSIGHT = [
  * rule under-determines, where the policy on the case file says refer.
  */
 export const PRESSURE = [
+	// WP212: a decision read as a distribution over the conditions production will see — here the temperature, the model sampled
+	// at 0, 0.4 and 0.8 over the same book, two performances each, the guard off and the executors fixed so the arms are the temperatures.
+	...['lending-stack', 'disputes-stack'].map((base) => ({
+		id: `${base.replace(/-stack$/, '')}-conditions-live`,
+		base,
+		size: base === 'lending-stack' ? 400 : 300,
+		trials: 2,
+		overrideFactor: { override: 'temperature', levels: ['0', '0.4', '0.8'] },
+		pin:
+			base === 'lending-stack' ? { guard: 'none', executors: 'bot-everywhere' } : { guard: 'none' }
+	})),
 	// WP204: the way out of a block. The same stack with the limit's card handing the case to a person, beside the one that blocks it.
 	{
 		id: 'disputes-escalate-live',
