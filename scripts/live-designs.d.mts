@@ -8,6 +8,8 @@ export interface LiveEntry {
 	base: string;
 	/** WP198: the reviewer model at the decisions, and the executors levels to compare. */
 	reviewer?: string;
+	/** Plan 114 WP200: the book draws the grey zone. */
+	greyZone?: boolean;
 	executors?: string[];
 	baselineExecutors?: string;
 	/** The book population size; absent for a design over scenarios. */
@@ -22,6 +24,7 @@ export interface LiveEntry {
 }
 export const LIVE: LiveEntry[];
 export const OVERSIGHT: LiveEntry[];
+export const PRESSURE: LiveEntry[];
 export function designsOf(suite: LiveSuite): LiveEntry[];
 export function liveIdOf(entry: LiveEntry): string;
 export function cassettePathOf(entry: LiveEntry, cassetteRoot?: string, suite?: LiveSuite): string;

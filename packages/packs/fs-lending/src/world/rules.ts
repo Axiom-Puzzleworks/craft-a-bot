@@ -37,7 +37,17 @@ export const lendingPolicySchema = z.object({
 	/** Which decisions a person confirms: the payout after an approve, every decision, or none. */
 	fourEyes: z.enum(['approve', 'all', 'none']).default('approve'),
 	/** When a payslip must be on the desk before a decision. */
-	documentBefore: z.enum(['never', 'refer', 'always']).default('never')
+	documentBefore: z.enum(['never', 'refer', 'always']).default('never'),
+	/**
+	 * **The grey zone** (plan 114 WP200; all three off by default, so every committed result is as it was): a case is not decided by
+	 * the arithmetic when the arithmetic cannot be trusted to the digit, and the policy says what to do instead — refer.
+	 * Within this many points of the refer line, the ratio does not decide.
+	 */
+	greyBandPoints: z.number().int().min(0).max(50).default(0),
+	/** When the income the applicant declares and the income the file verifies differ by more than this percent, refer. 0: not read. */
+	conflictTolerancePercent: z.number().int().min(0).max(100).default(0),
+	/** When the file does not verify the applicant's income, refer; do not decide on the declared figure. */
+	incomeMustBeVerified: z.boolean().default(false)
 });
 export type LendingPolicy = z.infer<typeof lendingPolicySchema>;
 export const DEFAULT_LENDING_POLICY: LendingPolicy = lendingPolicySchema.parse({});
@@ -145,9 +155,9 @@ export interface Verdict {
  */
 export function affordabilityVerdictWith(
 	policy: LendingPolicy
-): (application: Application, bureau: BureauFile) => Verdict {
+): (application: Application, bureau: BureauFile, evidence?: GreyEvidence) => Verdict {
 	const repaymentOf = monthlyRepaymentWith(policy);
-	return (application, bureau) => {
+	return (application, bureau, evidence) => {
 		const repayment = repaymentOf(application.amount, application.termMonths);
 		const disposable = Math.max(0, bureau.affordability.disposable);
 		const ratioPercent = disposable === 0 ? 999 : Math.floor((repayment / disposable) * 100);
@@ -158,7 +168,11 @@ export function affordabilityVerdictWith(
 					defaults: bureau.defaults,
 					arrearsMonths: bureau.arrearsMonths,
 					searchesLast12m: bureau.searchesLast12m,
-					ratioPercent
+					ratioPercent,
+					// The grey zone (WP200): what the declared and the verified income say, and whether the file verifies one at all.
+					declaredIncome: application.declaredMonthlyIncome,
+					verifiedIncome: bureau.affordability.monthlyIncome,
+					...(evidence?.incomeVerified === false ? { incomeVerified: false } : {})
 				},
 				policy
 			),
@@ -175,6 +189,16 @@ export interface RuleFigures {
 	arrearsMonths: number;
 	searchesLast12m: number;
 	ratioPercent: number;
+	/** The income the application declares, and the one the file verifies (WP200): read only where the policy's grey-zone knobs are on. */
+	declaredIncome?: number;
+	verifiedIncome?: number;
+	/** False where the worksheet has no verified income to show (WP200). */
+	incomeVerified?: boolean;
+}
+
+/** What a grey-zone case adds to the rule's inputs: the file does not verify the income. */
+export interface GreyEvidence {
+	incomeVerified?: boolean;
 }
 
 /**
@@ -192,6 +216,23 @@ export function verdictFromFigures(
 	if (figures.defaults >= policy.declineOnDefaults) reasons.push('defaults');
 	if (figures.ratioPercent > policy.declineRatioPercent) reasons.push('disposable-low');
 	if (reasons.length > 0) return { verdict: 'decline', reasons };
+	// The grey zone (WP200): where the rule's figures cannot be relied on to the digit, it does not decide. Off unless the policy says.
+	if (policy.incomeMustBeVerified && figures.incomeVerified === false)
+		return { verdict: 'refer', reasons: ['rules-cannot-decide'] };
+	if (
+		policy.conflictTolerancePercent > 0 &&
+		figures.declaredIncome !== undefined &&
+		figures.verifiedIncome !== undefined &&
+		figures.verifiedIncome > 0 &&
+		(Math.abs(figures.declaredIncome - figures.verifiedIncome) / figures.verifiedIncome) * 100 >
+			policy.conflictTolerancePercent
+	)
+		return { verdict: 'refer', reasons: ['rules-cannot-decide'] };
+	if (
+		policy.greyBandPoints > 0 &&
+		Math.abs(figures.ratioPercent - policy.referRatioPercent) <= policy.greyBandPoints
+	)
+		return { verdict: 'refer', reasons: ['commitments-high', 'rules-cannot-decide'] };
 	if (figures.defaults >= 1) reasons.push('defaults');
 	if (figures.arrearsMonths > 0) reasons.push('arrears');
 	if (figures.searchesLast12m >= policy.referOnSearches) reasons.push('searches');

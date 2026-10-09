@@ -262,4 +262,6 @@ export interface BookRequest {
 	corpus?: Corpus;
 	/** The knobs the book's verdicts are judged under; the defaults without. */
 	knobs?: Record<string, number | string | boolean>;
+	/** Draw the grey zone (plan 114 WP200): some items the rule under-determines. Off by default, so no existing book moves. */
+	greyZone?: boolean;
 }

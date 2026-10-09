@@ -25,6 +25,19 @@ export interface LendingState {
 	documents: string[];
 	/** The grounds an appeal arrived with (WP80): a work item that carries one routes the journey through its appeal stage. */
 	appealGrounds?: string;
+	/**
+	 * The grey zone (plan 114 WP200): what makes this case one the arithmetic does not settle, and the knobs the case-level policy
+	 * turns on for it. Absent on every plain case, so a plain case's policy is the campaign's alone.
+	 */
+	grey?: { shape: GreyShape; knobs: Partial<GreyKnobs> };
+}
+
+/** The three shapes a decision the rule under-determines can take. */
+export type GreyShape = 'at-threshold' | 'conflicting' | 'missing';
+export interface GreyKnobs {
+	greyBandPoints: number;
+	conflictTolerancePercent: number;
+	incomeMustBeVerified: boolean;
 }
 
 export type LendingExtra = BankExtra & { lending: LendingState };

@@ -571,7 +571,12 @@ export const campaignSourceSchema = z.object({
 	 */
 	corpus: z.string().min(1).optional(),
 	/** Scoring readers the corpus has already seen, on purpose (§5): every cell says so. */
-	regression: z.literal(true).optional()
+	regression: z.literal(true).optional(),
+	/**
+	 * The book draws the grey zone (plan 114 WP200): of the applications its rule would approve, some are at the rule's threshold, carry
+	 * incomes that conflict, or have none verified — cases the rule under-determines, where the policy says refer. Absent: the book is as it was.
+	 */
+	greyZone: z.literal(true).optional()
 });
 export type CampaignSource = z.infer<typeof campaignSourceSchema>;
 
@@ -1367,7 +1372,8 @@ function drawBook(source: CampaignSource, workflow: WorkflowSpec, corpus?: Corpu
 		size: population.size,
 		...(population.periodDays !== undefined ? { periodDays: population.periodDays } : {}),
 		...(source.filter !== undefined ? { filter: source.filter } : {}),
-		...(corpus ? { corpus } : {})
+		...(corpus ? { corpus } : {}),
+		...(source.greyZone ? { greyZone: true } : {})
 	});
 	// A book said to be from a corpus is from that corpus, frozen at its digest (§7).
 	if (

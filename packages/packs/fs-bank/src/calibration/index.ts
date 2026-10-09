@@ -1,6 +1,6 @@
 export { CALIBRATION } from './table.js';
 export { DECK_WEIGHTS } from './deck-weights.js';
-export { BOOK_INCIDENCES, everyNth } from './book-incidences.js';
+export { BOOK_INCIDENCES, everyNth, greyShapeOf } from './book-incidences.js';
 export { BILL_RATES } from './bill.js';
 export { COMPLICATIONS, drawComplications } from './complications.js';
 export { ERROR_RATES } from './error-rates.js';

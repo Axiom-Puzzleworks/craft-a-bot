@@ -86,6 +86,7 @@ export {
 	REVIEWER_RATES,
 	bankReviewerModels,
 	everyNth,
+	greyShapeOf,
 	impliedMarginal,
 	perDrawRate
 } from './calibration/index.js';

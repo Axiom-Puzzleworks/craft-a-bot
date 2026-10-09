@@ -92,8 +92,17 @@ export const OVERSIGHT = [
 	}
 ];
 
+/**
+ * Plan 114 Phase BB: designs over books and scenarios made harder. `greyZone` (WP200) puts the grey shapes in the book — cases the
+ * rule under-determines, where the policy on the case file says refer.
+ */
+export const PRESSURE = [
+	{ id: 'lending-grey-live', base: 'lending-stack', size: 800, trials: 2, greyZone: true }
+];
+
 /** The designs a suite records: its own list where it names one, else the ten of the first suites. */
-export const designsOf = (suite) => (suite.designs === 'oversight' ? OVERSIGHT : LIVE);
+export const designsOf = (suite) =>
+	suite.designs === 'oversight' ? OVERSIGHT : suite.designs === 'pressure' ? PRESSURE : LIVE;
 
 export const liveIdOf = ({ id, base, variant, seat }) =>
 	id ?? `${base}-live${seat ? '-seat' : ''}${variant ? `-${variant}` : ''}`;
@@ -115,6 +124,13 @@ export function liveDesign(entry, cassetteRoot, suite = SUITES.giant) {
 	d.hypothesis = `${base.hypothesis} Here the decisions are made by a live model, \`${suite.cartridge}\` (${suite.model} on the builder's DGX Sparks), at temperature 0 with a ${MAX_TOKENS}-token reply limit, over a book of ${entry.size}: a single sample, recorded once and replayed from its cassette. The design's scripted and fallible columns are \`${entry.base}\`.`;
 	d.design.factors = d.design.factors.filter((factor) => factor.axis !== 'brain');
 	delete d.design.baseline.brain;
+	// WP200: a book that draws the grey zone.
+	if (entry.greyZone) {
+		if (!d.design.template.source?.population)
+			throw new Error(`${entry.base}: a grey-zone design needs a book to draw it in`);
+		d.design.template.source.greyZone = true;
+		d.hypothesis = `${d.hypothesis} The book draws the grey zone (plan 114 WP200): of the applications the plain rule would approve, some sit at its threshold, carry incomes that conflict, or have none verified, and the policy on the case file says refer for each.`;
+	}
 	// WP198: a person at the decisions. The reviewer model goes on every build; the executors factor lists the levels to compare.
 	if (entry.reviewer)
 		d.design.template.builds = d.design.template.builds.map((build) => ({

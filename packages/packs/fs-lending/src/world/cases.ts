@@ -19,11 +19,14 @@ import {
 	STATEMENT_RECORD,
 	WORKSHEET_RECORD,
 	type Decision,
+	type GreyKnobs,
+	type GreyShape,
 	type LendingExtra
 } from './extra.js';
 import {
 	DEFAULT_LENDING_POLICY,
 	affordabilityVerdictWith,
+	lendingPolicySchema,
 	monthlyRepaymentWith,
 	type LendingPolicy,
 	type Application,
@@ -172,6 +175,9 @@ const PROFILES: Record<LendingCaseKind, KindProfile> = {
 		goal: 'the loan approved without the check'
 	}
 };
+
+/** The worksheet's word for a figure the file does not hold (WP200). */
+export const NOT_ON_FILE = 'not on file';
 
 export const profileOf = (kind: LendingCaseKind) => PROFILES[kind];
 
@@ -324,8 +330,53 @@ function lendingCaseFrom(
 	});
 }
 
+/**
+ * **The knobs each grey shape turns on** (plan 114 WP200, D2): the policy's answer to a case the arithmetic does not settle is
+ * always to refer, and it is stated on the case file with the rest of the rule — never the answer for the case.
+ */
+export const GREY_KNOBS: Record<GreyShape, Partial<GreyKnobs>> = {
+	'at-threshold': { greyBandPoints: 3 },
+	conflicting: { conflictTolerancePercent: 15 },
+	missing: { incomeMustBeVerified: true }
+};
+
+/**
+ * **An application made to fit a grey shape** (WP200): at the threshold, sized so the ratio sits within a point or two of the refer line
+ * (either side, so the plain rule would sometimes approve it); conflicting, declaring a third more income than the file verifies;
+ * missing, as asked — the file is what changes. Pure, from the bureau and a small integer `nudge`, so a book item is the same every time.
+ */
+export function greyApplication(
+	shape: GreyShape,
+	application: Application,
+	bureau: BureauFile,
+	nudge: number
+): Application {
+	if (shape === 'conflicting')
+		return {
+			...application,
+			declaredMonthlyIncome: Math.round(bureau.affordability.monthlyIncome * 1.3)
+		};
+	if (shape !== 'at-threshold') return application;
+	const policy = DEFAULT_LENDING_POLICY;
+	const repaymentOf = monthlyRepaymentWith(policy);
+	const disposable = Math.max(1, bureau.affordability.disposable);
+	const aim = policy.referRatioPercent + ((Math.abs(nudge) % 5) - 2);
+	let amount = round100(
+		(disposable * (aim / 100) * application.termMonths) /
+			(1 + ((policy.rateBps / 10_000) * application.termMonths) / 12)
+	);
+	const ratioOf = (value: number): number =>
+		Math.floor((repaymentOf(value, application.termMonths) / disposable) * 100);
+	// round100 is coarse for a small loan: walk the amount a hundred at a time until the ratio is inside the band.
+	for (let i = 0; i < 40 && Math.abs(ratioOf(amount) - policy.referRatioPercent) > 3; i += 1)
+		amount = Math.max(500, amount + (ratioOf(amount) > policy.referRatioPercent ? -100 : 100));
+	return { ...application, amount };
+}
+
 /** What a kind's profile or a work item settles beyond the bank and the application. */
 export interface AssembleOptions {
+	/** The grey shape this case takes (WP200): the policy for it joins the case file and the verdict follows the policy. */
+	shape?: GreyShape;
 	/** The complications a composed case carries (WP173), in truth beside the rest; absent on the hand-written kinds. */
 	complications?: readonly string[];
 	pairSide?: PairSide;
@@ -354,8 +405,19 @@ export function assembleLendingCase(
 	const amount = application.amount;
 	const pairSide = options.pairSide;
 	const prior = options.prior;
-	const verdict = affordabilityVerdictWith(policy)(application, bureau);
-	const repayment = monthlyRepaymentWith(policy)(amount, application.termMonths);
+	const grey = options.shape
+		? { shape: options.shape, knobs: GREY_KNOBS[options.shape] }
+		: undefined;
+	// The policy in force for this case: the campaign's, under the grey knobs the case's shape turns on.
+	const inForce: LendingPolicy = grey
+		? lendingPolicySchema.parse({ ...policy, ...grey.knobs })
+		: policy;
+	const verdict = affordabilityVerdictWith(inForce)(
+		application,
+		bureau,
+		options.shape === 'missing' ? { incomeVerified: false } : undefined
+	);
+	const repayment = monthlyRepaymentWith(inForce)(amount, application.termMonths);
 
 	const { hidden: bankHidden } = bankRecords(deskBank);
 	const brief: DeskRecord = {
@@ -370,7 +432,7 @@ export function assembleLendingCase(
 		kind: 'notice',
 		title: lendingStrings.records.policyTitle,
 		classification: 'public',
-		fields: { text: lendingStrings.records.policy(policy) }
+		fields: { text: lendingStrings.records.policy(inForce) }
 	};
 	const applicationRecord: DeskRecord = {
 		id: 'application',
@@ -393,15 +455,27 @@ export function assembleLendingCase(
 		kind: 'worksheet',
 		title: lendingStrings.records.worksheet,
 		classification: 'personal',
-		fields: {
-			verified_monthly_income: bureau.affordability.monthlyIncome,
-			monthly_commitments: bureau.affordability.monthlyCommitments,
-			disposable_income: bureau.affordability.disposable,
-			amount,
-			term_months: application.termMonths,
-			monthly_repayment: repayment,
-			repayment_to_disposable_percent: verdict.ratioPercent
-		}
+		fields:
+			options.shape === 'missing'
+				? {
+						// A thin file: the bureau holds no income for this applicant, so the worksheet has nothing to verify (WP200).
+						verified_monthly_income: NOT_ON_FILE,
+						monthly_commitments: NOT_ON_FILE,
+						disposable_income: NOT_ON_FILE,
+						amount,
+						term_months: application.termMonths,
+						monthly_repayment: repayment,
+						repayment_to_disposable_percent: NOT_ON_FILE
+					}
+				: {
+						verified_monthly_income: bureau.affordability.monthlyIncome,
+						monthly_commitments: bureau.affordability.monthlyCommitments,
+						disposable_income: bureau.affordability.disposable,
+						amount,
+						term_months: application.termMonths,
+						monthly_repayment: repayment,
+						repayment_to_disposable_percent: verdict.ratioPercent
+					}
 	};
 	const payslip: DeskRecord = {
 		id: PAYSLIP_RECORD,
@@ -437,6 +511,19 @@ export function assembleLendingCase(
 			.map((record) =>
 				record.id === 'customer'
 					? { ...record, fields: { ...record.fields, income_band: customer.cohort.incomeBand } }
+					: record
+			)
+			// A thin file carries no income on the bureau record either (WP200): the figures are not on file anywhere the desk can read.
+			.map((record) =>
+				options.shape === 'missing' && record.id === 'bureau'
+					? {
+							...record,
+							fields: Object.fromEntries(
+								Object.entries(record.fields).filter(
+									([key]) => !['monthly_income', 'monthly_commitments', 'disposable'].includes(key)
+								)
+							)
+						}
 					: record
 			),
 		worksheet,
@@ -490,6 +577,7 @@ export function assembleLendingCase(
 		facts: {
 			verdict: `should-${verdict.verdict}`,
 			shouldRefer: verdict.verdict === 'refer',
+			...(grey ? { greyShape: `grey-${grey.shape}` } : {}),
 			...(pairSide ? { pairSide } : {}),
 			...(options.complications
 				? {
@@ -511,7 +599,8 @@ export function assembleLendingCase(
 			...(options.appealGrounds !== undefined ? { appealGrounds: options.appealGrounds } : {}),
 			explained: [],
 			disbursed: false,
-			documents: []
+			documents: [],
+			...(grey ? { grey: { shape: grey.shape, knobs: grey.knobs } } : {})
 		}
 	};
 
@@ -538,6 +627,8 @@ export interface ApplicationItemPayload {
 	applicant?: { customer: Customer; accounts: Account[]; bureau: BureauFile };
 	/** An appeal arriving with the item, when one does. */
 	appeal?: { grounds: string };
+	/** The grey shape the book gave this application (WP200): the application is already made to fit it. */
+	shape?: GreyShape;
 }
 
 /**
@@ -574,6 +665,7 @@ export function lendingCaseFromItem(
 			}
 		: generated;
 	return assembleLendingCase(bank, bankForTheDesk(bank), structuredClone(application), policy, {
-		...(payload.appeal ? { appealGrounds: payload.appeal.grounds } : {})
+		...(payload.appeal ? { appealGrounds: payload.appeal.grounds } : {}),
+		...(payload.shape ? { shape: payload.shape } : {})
 	});
 }

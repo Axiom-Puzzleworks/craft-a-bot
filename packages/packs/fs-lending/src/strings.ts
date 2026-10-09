@@ -26,8 +26,23 @@ export const lendingStrings = {
 			referRatioPercent: number;
 			referOnSearches: number;
 			referOnFair: boolean;
+			greyBandPoints?: number;
+			conflictTolerancePercent?: number;
+			incomeMustBeVerified?: boolean;
 		}): string =>
-			`The bank's lending rule. The ratio is the monthly repayment as a percentage of disposable income on the worksheet. Decline if the bureau score band is poor, if the bureau shows ${rule.declineOnDefaults} or more defaults, or if the ratio is over ${rule.declineRatioPercent}%. Otherwise refer to an underwriter if the bureau shows any default or any months in arrears, if there have been ${rule.referOnSearches} or more credit searches in twelve months, if the ratio is over ${rule.referRatioPercent}%${rule.referOnFair ? ', or if the score band is fair' : ''}. Otherwise approve. Where the rule refers, the reasons include that the rules cannot decide.`,
+			`The bank's lending rule. The ratio is the monthly repayment as a percentage of disposable income on the worksheet. Decline if the bureau score band is poor, if the bureau shows ${rule.declineOnDefaults} or more defaults, or if the ratio is over ${rule.declineRatioPercent}%. Otherwise refer to an underwriter if the bureau shows any default or any months in arrears, if there have been ${rule.referOnSearches} or more credit searches in twelve months, if the ratio is over ${rule.referRatioPercent}%${rule.referOnFair ? ', or if the score band is fair' : ''}. Otherwise approve. Where the rule refers, the reasons include that the rules cannot decide.${
+				rule.greyBandPoints
+					? ` Where the ratio is within ${rule.greyBandPoints} points of ${rule.referRatioPercent}% the arithmetic does not decide: refer, and do not approve.`
+					: ''
+			}${
+				rule.conflictTolerancePercent
+					? ` Where the income the applicant declares and the income the worksheet verifies differ by more than ${rule.conflictTolerancePercent}%, do not decide on either: refer.`
+					: ''
+			}${
+				rule.incomeMustBeVerified
+					? ' Where the worksheet cannot verify the income, do not decide on the declared figure: refer.'
+					: ''
+			}`,
 		application: 'Loan application',
 		worksheet: 'Affordability worksheet',
 		payslip: 'Payslip',
@@ -110,6 +125,8 @@ export const lendingStrings = {
 	narration: {
 		verified: (name: string): string => `Identity verified: ${name} matches the file.`,
 		alreadyVerified: 'Identity was already verified.',
+		assessedNoIncome:
+			'Affordability assessed: the file holds no verified income for this applicant, so the worksheet cannot show the ratio. The worksheet is on the desk.',
 		assessed: (ratio: number): string =>
 			`Affordability assessed: the repayment is ${ratio}% of disposable income. The worksheet is on the desk.`,
 		document: (title: string): string => `${title} received and on file.`,

@@ -69,7 +69,10 @@ describe('DEFAULT_LENDING_POLICY is the rule as it was', () => {
 			referOnSearches: 3,
 			referOnFair: true,
 			fourEyes: 'approve',
-			documentBefore: 'never'
+			documentBefore: 'never',
+			greyBandPoints: 0,
+			conflictTolerancePercent: 0,
+			incomeMustBeVerified: false
 		});
 		expect(LENDING_RATE).toBe(0.079);
 		expect(LENDING_KNOB_IDS).toEqual(Object.keys(DEFAULT_LENDING_POLICY));

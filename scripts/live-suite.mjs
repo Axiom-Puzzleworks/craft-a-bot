@@ -48,6 +48,21 @@ export const SUITES = {
 		workDir: '.live-work-oversight',
 		trials: 2,
 		designs: 'oversight'
+	},
+	// Plan 114 Phase BB (decisions under pressure): the 122B over books that carry the grey zone (WP200) and, later, an adversary
+	// who tries (WP202). Its own folders, so the first suites' evidence is untouched.
+	pressure: {
+		id: 'pressure',
+		cartridge: 'dgx-spark/giant-qwen',
+		model: 'Qwen3.5-122B-A10B-NVFP4',
+		short: '122B',
+		pattern: 'reasoning-pair',
+		experimentsDir: 'experiments/live-pressure',
+		evidenceDir: 'docs/evidence/live-pressure',
+		recordingsDir: 'recordings/pressure',
+		workDir: '.live-work-pressure',
+		trials: 2,
+		designs: 'pressure'
 	}
 };
 
