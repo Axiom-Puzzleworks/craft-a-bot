@@ -78,6 +78,13 @@ const manifest: PackManifest = {
 export default manifest;
 
 export * from './model.js';
+export {
+	HARM_WEIGHTS,
+	decisionHarmEvaluator,
+	harmOf,
+	type HarmLabel,
+	type HarmWords
+} from './harm.js';
 export { bankCase, type BankCaseOptions } from './generate/case.js';
 export {
 	BILL_RATES,

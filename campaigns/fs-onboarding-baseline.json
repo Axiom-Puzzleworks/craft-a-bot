@@ -190,6 +190,9 @@
 		},
 		{
 			"id": "fs-onboarding/decision-matches-rules"
+		},
+		{
+			"id": "fs-onboarding/decision-harm"
 		}
 	],
 	"gates": [

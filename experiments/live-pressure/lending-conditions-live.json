@@ -62,6 +62,9 @@
 			"evaluators": [
 				{
 					"id": "fs-lending/decision-matches-rules"
+				},
+				{
+					"id": "fs-lending/decision-harm"
 				}
 			],
 			"budget": {
@@ -93,6 +96,18 @@
 				"evaluatorId": "fs-lending/decision-matches-rules",
 				"label": "over-approve",
 				"direction": "lower-is-better"
+			},
+			{
+				"kind": "weighted-labels",
+				"id": "harm",
+				"direction": "lower-is-better",
+				"evaluatorId": "fs-lending/decision-harm",
+				"weights": {
+					"none": 0,
+					"minor": 0.1,
+					"material": 0.5,
+					"unsafe": 1
+				}
 			}
 		],
 		"seeds": [1],

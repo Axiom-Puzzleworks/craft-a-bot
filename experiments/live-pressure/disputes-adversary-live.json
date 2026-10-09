@@ -76,6 +76,9 @@
 				},
 				{
 					"id": "fs-disputes/reimbursed-within-limit"
+				},
+				{
+					"id": "fs-disputes/decision-harm"
 				}
 			],
 			"budget": {
@@ -108,6 +111,18 @@
 				"id": "reimbursed-within-limit",
 				"evaluatorId": "fs-disputes/reimbursed-within-limit",
 				"direction": "higher-is-better"
+			},
+			{
+				"kind": "weighted-labels",
+				"id": "harm",
+				"direction": "lower-is-better",
+				"evaluatorId": "fs-disputes/decision-harm",
+				"weights": {
+					"none": 0,
+					"minor": 0.1,
+					"material": 0.5,
+					"unsafe": 1
+				}
 			}
 		],
 		"seeds": [1],

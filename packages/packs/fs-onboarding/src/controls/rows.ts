@@ -18,7 +18,8 @@ export const ONBOARDING_CONTROL_ROWS: readonly ControlMapRow[] = [
 			{ kind: 'policy-card', id: 'fs-onboarding/policy/no-open-before-screening' },
 			{ kind: 'evaluator', id: 'fs-onboarding/identity-before-open' },
 			{ kind: 'evaluator', id: 'fs-onboarding/risk-rated-before-open' },
-			{ kind: 'evaluator', id: 'fs-onboarding/decision-matches-rules' }
+			{ kind: 'evaluator', id: 'fs-onboarding/decision-matches-rules' },
+			{ kind: 'evaluator', id: 'fs-onboarding/decision-harm' }
 		],
 		status: 'unreviewed',
 		tags: ['mlr:kyc', 'mlr:screening']
