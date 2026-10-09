@@ -1,0 +1,745 @@
+
+> craft-a-bot@0.0.1 test
+> turbo run test
+
+• turbo 2.10.9
+
+   • Packages in scope: @craftabot/core, @craftabot/desk, @craftabot/evals, @craftabot/evidence, @craftabot/example-gated-agent, @craftabot/example-plain-node-agent, @craftabot/example-scaffold-veterinary-practice, @craftabot/gate, @craftabot/governance, @craftabot/harness, @craftabot/metrics, @craftabot/pack-anthropic, @craftabot/pack-azure-content-safety, @craftabot/pack-bedrock-guardrails, @craftabot/pack-dgx-spark, @craftabot/pack-evaluators, @craftabot/pack-fs-advice, @craftabot/pack-fs-bank, @craftabot/pack-fs-collections, @craftabot/pack-fs-disputes, @craftabot/pack-fs-fraud, @craftabot/pack-fs-lending, @craftabot/pack-fs-onboarding, @craftabot/pack-fs-servicing, @craftabot/pack-geap, @craftabot/pack-gemini, @craftabot/pack-guard-local, @craftabot/pack-lakera-guard, @craftabot/pack-monitor, @craftabot/pack-ollama, @craftabot/pack-openai, @craftabot/pack-pdp-cedar, @craftabot/pack-pdp-opa, @craftabot/pack-personas, @craftabot/pack-readers-llm, @craftabot/pack-starter, @craftabot/pack-testkit, @craftabot/pack-typesafe, @craftabot/pack-workshop, @craftabot/telemetry, @craftabot/workbench, @craftabot/workflow
+   • Running test in 42 packages
+   • Remote caching disabled
+
+@craftabot/core:test: cache miss, executing 005f88f445ca6e11
+@craftabot/core:build: cache hit, replaying logs d99d3969e791b363
+@craftabot/core:build: 
+@craftabot/core:build: > @craftabot/core@1.0.0 build
+@craftabot/core:build: > tsc -p tsconfig.build.json
+@craftabot/core:build: 
+@craftabot/metrics:test: cache miss, executing 4721c55d5802c625
+@craftabot/metrics:build: cache hit, replaying logs 17c53fc11e03370e
+@craftabot/metrics:build: 
+@craftabot/metrics:build: > @craftabot/metrics@0.1.0 build
+@craftabot/metrics:build: > tsc -p tsconfig.build.json
+@craftabot/metrics:build: 
+@craftabot/governance:test: cache miss, executing 21e98a78c2c7b815
+@craftabot/governance:build: cache hit, replaying logs 80f75e41b6473121
+@craftabot/core:test: 
+@craftabot/core:test: > @craftabot/core@1.0.0 test
+@craftabot/core:test: > vitest run --coverage
+@craftabot/core:test: 
+@craftabot/governance:build: 
+@craftabot/governance:build: > @craftabot/governance@1.0.0 build
+@craftabot/governance:build: > tsc -p tsconfig.build.json
+@craftabot/governance:build: 
+@craftabot/pack-testkit:test: cache miss, executing 244b4ef8286f8e9b
+@craftabot/example-plain-node-agent:test: cache miss, executing 4247911926256771
+@craftabot/pack-testkit:build: cache hit, replaying logs 52fccc294c27b63b
+@craftabot/pack-testkit:build: 
+@craftabot/pack-testkit:build: > @craftabot/pack-testkit@0.0.1 build
+@craftabot/pack-testkit:build: > tsc -p tsconfig.build.json
+@craftabot/pack-testkit:build: 
+@craftabot/pack-pdp-opa:test: cache miss, executing 3a2cf87629a54249
+@craftabot/pack-anthropic:test: cache miss, executing 6af6e49fa3a07b37
+@craftabot/pack-openai:test: cache miss, executing bd50effdc611ba69
+@craftabot/evidence:test: cache miss, executing 19750fefbab2d2f3
+@craftabot/pack-bedrock-guardrails:build: cache hit, replaying logs 679e482018b0201d
+@craftabot/pack-bedrock-guardrails:build: 
+@craftabot/pack-bedrock-guardrails:build: > @craftabot/pack-bedrock-guardrails@0.0.1 build
+@craftabot/pack-bedrock-guardrails:build: > tsc -p tsconfig.build.json
+@craftabot/pack-bedrock-guardrails:build: 
+@craftabot/pack-lakera-guard:build: cache hit, replaying logs fbfc6f5afa012b6d
+@craftabot/metrics:test: 
+@craftabot/metrics:test: > @craftabot/metrics@0.1.0 test
+@craftabot/metrics:test: > vitest run --coverage
+@craftabot/metrics:test: 
+@craftabot/pack-lakera-guard:build: 
+@craftabot/pack-lakera-guard:build: > @craftabot/pack-lakera-guard@0.0.1 build
+@craftabot/pack-lakera-guard:build: > tsc -p tsconfig.build.json
+@craftabot/pack-lakera-guard:build: 
+@craftabot/pack-azure-content-safety:build: cache hit, replaying logs bd773b7ea1a0bf7f
+@craftabot/pack-azure-content-safety:build: 
+@craftabot/pack-azure-content-safety:build: > @craftabot/pack-azure-content-safety@0.0.1 build
+@craftabot/pack-azure-content-safety:build: > tsc -p tsconfig.build.json
+@craftabot/pack-azure-content-safety:build: 
+@craftabot/telemetry:build: cache hit, replaying logs f1e0c9fb18f90b7d
+@craftabot/governance:test: 
+@craftabot/governance:test: > @craftabot/governance@1.0.0 test
+@craftabot/governance:test: > vitest run --coverage
+@craftabot/governance:test: 
+@craftabot/telemetry:build: 
+@craftabot/telemetry:build: > @craftabot/telemetry@0.0.1 build
+@craftabot/telemetry:build: > tsc -p tsconfig.build.json
+@craftabot/telemetry:build: 
+@craftabot/pack-gemini:test: cache miss, executing be2ff11f2d1cce5f
+@craftabot/pack-testkit:test: 
+@craftabot/pack-testkit:test: > @craftabot/pack-testkit@0.0.1 test
+@craftabot/pack-testkit:test: > vitest run --coverage
+@craftabot/pack-testkit:test: 
+@craftabot/example-plain-node-agent:test: 
+@craftabot/example-plain-node-agent:test: > @craftabot/example-plain-node-agent@0.0.1 test
+@craftabot/example-plain-node-agent:test: > vitest run
+@craftabot/example-plain-node-agent:test: 
+@craftabot/pack-pdp-opa:test: 
+@craftabot/pack-pdp-opa:test: > @craftabot/pack-pdp-opa@0.0.1 test
+@craftabot/pack-pdp-opa:test: > vitest run --coverage
+@craftabot/pack-pdp-opa:test: 
+@craftabot/pack-anthropic:test: 
+@craftabot/pack-anthropic:test: > @craftabot/pack-anthropic@0.0.1 test
+@craftabot/pack-anthropic:test: > vitest run
+@craftabot/pack-anthropic:test: 
+@craftabot/pack-openai:test: 
+@craftabot/pack-openai:test: > @craftabot/pack-openai@0.0.1 test
+@craftabot/pack-openai:test: > vitest run
+@craftabot/pack-openai:test: 
+@craftabot/pack-gemini:test: 
+@craftabot/pack-gemini:test: > @craftabot/pack-gemini@0.0.1 test
+@craftabot/pack-gemini:test: > vitest run
+@craftabot/pack-gemini:test: 
+@craftabot/evidence:test: 
+@craftabot/evidence:test: > @craftabot/evidence@0.0.1 test
+@craftabot/evidence:test: > vitest run --coverage
+@craftabot/evidence:test: 
+@craftabot/example-plain-node-agent:test: 
+@craftabot/example-plain-node-agent:test: [1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mC:/src/craft-a-bot/examples/plain-node-agent[39m
+@craftabot/example-plain-node-agent:test: 
+@craftabot/pack-openai:test: 
+@craftabot/pack-openai:test: [1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mC:/src/craft-a-bot/packages/packs/openai[39m
+@craftabot/pack-openai:test: 
+@craftabot/pack-gemini:test: 
+@craftabot/pack-gemini:test: [1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mC:/src/craft-a-bot/packages/packs/gemini[39m
+@craftabot/pack-gemini:test: 
+@craftabot/core:test: 
+@craftabot/core:test: [1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mC:/src/craft-a-bot/packages/core[39m
+@craftabot/core:test:       [2mCoverage enabled with [22m[33mv8[39m
+@craftabot/core:test: 
+@craftabot/metrics:test: 
+@craftabot/metrics:test: [1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mC:/src/craft-a-bot/packages/metrics[39m
+@craftabot/metrics:test:       [2mCoverage enabled with [22m[33mv8[39m
+@craftabot/metrics:test: 
+@craftabot/governance:test: 
+@craftabot/pack-testkit:test: 
+@craftabot/governance:test: [1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mC:/src/craft-a-bot/packages/governance[39m
+@craftabot/governance:test:       [2mCoverage enabled with [22m[33mv8[39m
+@craftabot/governance:test: 
+@craftabot/pack-testkit:test: [1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mC:/src/craft-a-bot/packages/pack-testkit[39m
+@craftabot/pack-testkit:test:       [2mCoverage enabled with [22m[33mv8[39m
+@craftabot/pack-testkit:test: 
+@craftabot/pack-pdp-opa:test: 
+@craftabot/pack-pdp-opa:test: [1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mC:/src/craft-a-bot/packages/packs/pdp-opa[39m
+@craftabot/pack-pdp-opa:test:       [2mCoverage enabled with [22m[33mv8[39m
+@craftabot/pack-pdp-opa:test: 
+@craftabot/evidence:test: 
+@craftabot/evidence:test: [1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mC:/src/craft-a-bot/packages/evidence[39m
+@craftabot/evidence:test:       [2mCoverage enabled with [22m[33mv8[39m
+@craftabot/evidence:test: 
+@craftabot/pack-anthropic:test: 
+@craftabot/pack-anthropic:test: [1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mC:/src/craft-a-bot/packages/packs/anthropic[39m
+@craftabot/pack-anthropic:test: 
+@craftabot/pack-gemini:test:  [32m✓[39m src/sse.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+@craftabot/pack-openai:test:  [32m✓[39m src/sse.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+@craftabot/pack-gemini:test:  [32m✓[39m src/wire.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+@craftabot/metrics:test:  [32m✓[39m src/normal.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+@craftabot/metrics:test:  [32m✓[39m src/reliability.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 22[2mms[22m[39m
+@craftabot/metrics:test:  [32m✓[39m src/agreement.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+@craftabot/pack-gemini:test:  [32m✓[39m src/provider.test.ts [2m([22m[2m27 tests[22m[2m)[22m[32m 149[2mms[22m[39m
+@craftabot/metrics:test:  [32m✓[39m src/edges.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/policy-compiler.test.js [2m([22m[2m22 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+@craftabot/pack-anthropic:test:  [32m✓[39m src/wire.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+@craftabot/pack-anthropic:test:  [32m✓[39m src/sse.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+@craftabot/pack-anthropic:test:  [32m✓[39m src/provider.test.ts [2m([22m[2m30 tests[22m[2m)[22m[32m 65[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/hosted/guardrails.test.js [2m([22m[2m17 tests[22m[2m)[22m[32m 19[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/guardrails/guardrails.test.js [2m([22m[2m54 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+@craftabot/pack-openai:test:  [32m✓[39m src/provider.test.ts [2m([22m[2m28 tests[22m[2m)[22m[32m 66[2mms[22m[39m
+@craftabot/pack-openai:test:  [32m✓[39m src/wire.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/reports/control-inventory.test.js [2m([22m[2m10 tests[22m[2m)[22m[32m 64[2mms[22m[39m
+@craftabot/pack-testkit:test:  [32m✓[39m dist/checks/synthetic.test.js [2m([22m[2m10 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/reports/drift.test.js [2m([22m[2m13 tests[22m[2m)[22m[32m 40[2mms[22m[39m
+@craftabot/metrics:test:  [32m✓[39m src/calibration.test.ts [2m([22m[2m5 tests[22m[2m)[22m[33m 1600[2mms[22m[39m
+@craftabot/metrics:test:      [33m[2m✓[22m[39m flags a miscalibrated reader, and bootstraps the same interval every run [33m 1590[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/reports/boundary.test.js [2m([22m[2m6 tests[22m[2m)[22m[32m 42[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/components/components.test.js [2m([22m[2m6 tests[22m[2m)[22m[32m 39[2mms[22m[39m
+@craftabot/governance:test:  [31m❯[39m dist/reports/assurance-pack.test.js [2m([22m[2m12 tests[22m[2m | [22m[31m1 failed[39m[2m)[22m[33m 539[2mms[22m[39m
+@craftabot/governance:test: [31m     [31m×[31m folds a fixture bot with one campaign and one incident — the snapshot[39m[32m 68[2mms[22m[39m
+@craftabot/governance:test:      [32m✓[39m a bot with no runs and no campaign says so in every section, never a zero that reads as a rate[32m 8[2mms[22m[39m
+@craftabot/governance:test:      [32m✓[39m the digest covers every constituent and not the clock[32m 41[2mms[22m[39m
+@craftabot/governance:test:      [32m✓[39m the store path folds the same pack as the pure one[32m 40[2mms[22m[39m
+@craftabot/governance:test:      [32m✓[39m markdown: every campaign, evaluation and approval figure cites its runs; both postures ride along[32m 9[2mms[22m[39m
+@craftabot/governance:test:      [32m✓[39m HTML: one file, no script, the app’s tokens inlined, every run id an anchor into the appendix[32m 116[2mms[22m[39m
+@craftabot/governance:test:      [32m✓[39m the inlined tokens are the app’s (tokens.css), value for value[32m 1[2mms[22m[39m
+@craftabot/governance:test:      [32m✓[39m the empty pack renders too, with every section present[32m 4[2mms[22m[39m
+@craftabot/governance:test:      [32m✓[39m §5 carries the Control Effectiveness Register: every map row untested without results, and an effect cited by its experiment and run ids with one (WP90)[32m 147[2mms[22m[39m
+@craftabot/governance:test:      [32m✓[39m files a reader’s review beside the row it is about, and both renderers print it[32m 36[2mms[22m[39m
+@craftabot/governance:test:      [32m✓[39m reads a review of a control row and the control-review alias from the store, the later winning (WP129)[32m 51[2mms[22m[39m
+@craftabot/governance:test:      [32m✓[39m says what was measured, and that every other guard is unmeasured[32m 14[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/reports/control-effectiveness.test.js [2m([22m[2m10 tests[22m[2m)[22m[32m 21[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/reports/story.test.js [2m([22m[2m12 tests[22m[2m)[22m[32m 27[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/reports/summary.test.js [2m([22m[2m8 tests[22m[2m)[22m[32m 26[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/reports/safety-case.test.js [2m([22m[2m10 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/reports/dossier.test.js [2m([22m[2m6 tests[22m[2m)[22m[32m 50[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/hosted/verdict.test.js [2m([22m[2m33 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/taint.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/shadow.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/components/provenance.test.js [2m([22m[2m7 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/pdp.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 36[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/components/privilege.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/controls/controls.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 34[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/components/reader.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/exports.test.ts [2m([22m[2m1 test[22m[2m)[22m[33m 527[2mms[22m[39m
+@craftabot/governance:test:      [33m[2m✓[22m[39m documents every export of both barrels [33m 524[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/policy-compiler.test.ts [2m([22m[2m22 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/catalogue/catalogue.test.js [2m([22m[2m10 tests[22m[2m)[22m[32m 70[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/readers/hosted-llm.test.js [2m([22m[2m8 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/components/bounds.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/components/stage-guards.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/persistence/trace-export.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 48[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/components/integrity.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/storage/memory.test.ts [2m([22m[2m64 tests[22m[2m)[22m[32m 147[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/taint.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/validate-spec.test.ts [2m([22m[2m26 tests[22m[2m)[22m[32m 103[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/schemas/scenario.test.ts [2m([22m[2m11 tests[22m[2m)[22m[33m 400[2mms[22m[39m
+@craftabot/core:test:      [33m[2m✓[22m[39m draws one option per seed at its weight, carries its tags and injections, and says what it chose [33m 368[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/readers/rule.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/hosted/selectors.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/session/fork.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 136[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/session/live-sensors.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 203[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/session/session-group.test.ts [2m([22m[2m30 tests[22m[2m)[22m[33m 331[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/reports/campaign-evidence.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/session/principal.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 299[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/schemas/review.test.js [2m([22m[2m6 tests[22m[2m)[22m[32m 181[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/session/live-sensors.test.js [2m([22m[2m8 tests[22m[2m)[22m[32m 195[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/storage/memory.test.js [2m([22m[2m64 tests[22m[2m)[22m[33m 311[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/schemas/fixtures.test.ts [2m([22m[2m41 tests[22m[2m)[22m[32m 89[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/session/fork.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 212[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/persistence/bundle.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 130[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/session/session-group.test.js [2m([22m[2m30 tests[22m[2m)[22m[33m 433[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/components/privilege.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/components/bounds.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/service-line-tools.test.js [2m([22m[2m7 tests[22m[2m)[22m[32m 134[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/components/peer-auth.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/pdp.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/provider-cassette.test.ts [2m([22m[2m19 tests[22m[2m)[22m[33m 712[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/session/principal.test.js [2m([22m[2m7 tests[22m[2m)[22m[33m 302[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/persistence/kit-export.test.ts [2m([22m[2m20 tests[22m[2m)[22m[32m 57[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/components/provenance.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/components/integrity.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+@craftabot/pack-testkit:test:  [32m✓[39m dist/checks/corpus.test.js [2m([22m[2m8 tests[22m[2m)[22m[32m 24[2mms[22m[39m
+@craftabot/pack-testkit:test:  [32m✓[39m dist/checks/manifest-requires.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+@craftabot/pack-testkit:test:  [32m✓[39m dist/checks/calibration.test.js [2m([22m[2m6 tests[22m[2m)[22m[32m 21[2mms[22m[39m
+@craftabot/example-plain-node-agent:test:  [32m✓[39m src/index.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 10[2mms[22m[39m
+@craftabot/pack-testkit:test:  [32m✓[39m dist/checks/control-map.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 21[2mms[22m[39m
+@craftabot/example-plain-node-agent:test: 
+@craftabot/example-plain-node-agent:test: [2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+@craftabot/example-plain-node-agent:test: [2m      Tests [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+@craftabot/example-plain-node-agent:test: [2m   Start at [22m 22:34:19
+@craftabot/example-plain-node-agent:test: [2m   Duration [22m 7.18s[2m (transform 4.24s, setup 0ms, import 6.97s, tests 10ms, environment 0ms)[22m
+@craftabot/example-plain-node-agent:test: 
+@craftabot/core:test:  [32m✓[39m dist/provider-cassette.test.js [2m([22m[2m19 tests[22m[2m)[22m[33m 849[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/hosted/guardrails.test.ts [2m([22m[2m17 tests[22m[2m)[22m[32m 26[2mms[22m[39m
+@craftabot/pack-testkit:test:  [32m✓[39m dist/checks/adversarial.test.js [2m([22m[2m6 tests[22m[2m)[22m[32m 33[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/guardrails/guardrails.test.ts [2m([22m[2m54 tests[22m[2m)[22m[32m 21[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/egress.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 37[2mms[22m[39m
+@craftabot/pack-testkit:test:  [32m✓[39m src/checks/corpus.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 24[2mms[22m[39m
+@craftabot/pack-testkit:test:  [32m✓[39m src/checks/adversarial.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 72[2mms[22m[39m
+@craftabot/pack-testkit:test:  [32m✓[39m src/checks/manifest-requires.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+@craftabot/pack-testkit:test:  [32m✓[39m src/checks/calibration.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 20[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/session/agent-session.test.ts [2m([22m[2m125 tests[22m[2m)[22m[33m 1298[2mms[22m[39m
+@craftabot/pack-testkit:test:  [32m✓[39m dist/checks/desk.test.js [2m([22m[2m16 tests[22m[2m)[22m[32m 154[2mms[22m[39m
+@craftabot/pack-testkit:test:  [32m✓[39m src/checks/control-map.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 22[2mms[22m[39m
+@craftabot/pack-testkit:test:  [32m✓[39m dist/checks/service-line.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 157[2mms[22m[39m
+@craftabot/pack-testkit:test:  [32m✓[39m src/checks/desk.test.ts [2m([22m[2m16 tests[22m[2m)[22m[32m 126[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/persistence/kit-export.test.js [2m([22m[2m20 tests[22m[2m)[22m[32m 53[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/components/peer-auth.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/session/world-config.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 31[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/session/agent-session.test.js [2m([22m[2m125 tests[22m[2m)[22m[33m 1405[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/schemas/content.test.js [2m([22m[2m12 tests[22m[2m)[22m[32m 50[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/schemas/fixtures.test.js [2m([22m[2m41 tests[22m[2m)[22m[32m 123[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/validate-spec.test.js [2m([22m[2m26 tests[22m[2m)[22m[32m 143[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/schemas/trace-file.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 138[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/schemas/content.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 42[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/persistence/trace-export.test.js [2m([22m[2m6 tests[22m[2m)[22m[32m 136[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/components/context-assembly.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/session/decision-fault.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 29[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/controls/controls.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 21[2mms[22m[39m
+@craftabot/desk:test: cache miss, executing b19476256995ba84
+@craftabot/core:test:  [32m✓[39m src/session/truth-on-finish.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 31[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/schemas/review.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 129[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/pack-registry.test.ts [2m([22m[2m18 tests[22m[2m)[22m[32m 28[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/session/approval-reentrancy.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 37[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/reports/decision-explanation.test.js [2m([22m[2m8 tests[22m[2m)[22m[32m 25[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/components/components.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 78[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/session/brick-runtimes.test.js [2m([22m[2m36 tests[22m[2m)[22m[32m 62[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/persistence/bundle.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 126[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/session/brick-runtimes.test.ts [2m([22m[2m36 tests[22m[2m)[22m[32m 30[2mms[22m[39m
+@craftabot/pack-testkit:test:  [32m✓[39m src/checks/synthetic.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/egress.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 39[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/session/world-config.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 31[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/reports/boundary.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 136[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/session/truth-on-finish.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 30[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/schemas/agent-spec-v2.test.ts [2m([22m[2m18 tests[22m[2m)[22m[32m 122[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/session/decision-fault.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 32[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/persistence/agent-card.test.ts [2m([22m[2m9 tests[22m[2m)[22m[32m 28[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/session/approval-reentrancy.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 109[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/schemas/records.test.ts [2m([22m[2m14 tests[22m[2m)[22m[32m 25[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/session/budgets.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 22[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/components/stage-guards.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 21[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/schemas/trace-file.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 194[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/schemas/policy-card.test.js [2m([22m[2m12 tests[22m[2m)[22m[32m 124[2mms[22m[39m
+@craftabot/pack-testkit:test:  [32m✓[39m src/checks/service-line.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 149[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/schemas/agent-spec-v2.test.js [2m([22m[2m18 tests[22m[2m)[22m[32m 132[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/schemas/policy-card.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 26[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/schemas/slot-contracts.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 20[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/persistence/agent-card.test.js [2m([22m[2m9 tests[22m[2m)[22m[32m 26[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/reports/sensors.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/session/world-create-options.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 44[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/reports/verdict-flow.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 34[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/catalogue/catalogue.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 52[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/reports/control-inventory.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 66[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/components/context-assembly.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/schemas/records.test.js [2m([22m[2m14 tests[22m[2m)[22m[32m 26[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/reports/campaign-evidence.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/reports/incidents.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 19[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/service-line-tools.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 128[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/session/prompt.test.ts [2m([22m[2m22 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/reports/story.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 31[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/reports/readings.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/schemas/kit-file.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 21[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/reports/coverage-measured.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 24[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/session/world-create-options.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 23[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/pack-registry.test.js [2m([22m[2m18 tests[22m[2m)[22m[32m 25[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/reports/verdict-flow.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 166[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/schemas/slot-contracts.test.js [2m([22m[2m8 tests[22m[2m)[22m[32m 23[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/testing/mock-provider.test.js [2m([22m[2m20 tests[22m[2m)[22m[32m 19[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/reports/control-effectiveness.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/reports/sensors.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/session/budgets.test.js [2m([22m[2m13 tests[22m[2m)[22m[32m 24[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/reports/decision-explanation.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 24[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/schemas/events.test.js [2m([22m[2m6 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/schemas/kit-file.test.js [2m([22m[2m12 tests[22m[2m)[22m[32m 22[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/testing/mock-provider.test.ts [2m([22m[2m20 tests[22m[2m)[22m[32m 20[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/reports/drift.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 31[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/reports/telemetry.test.ts [2m([22m[2m11 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/readers/hosted-llm.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/persistence/kit-fixtures-core.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/capabilities.test.js [2m([22m[2m7 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/capabilities.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/schemas/shape-drift.test.js [2m([22m[2m7 tests[22m[2m)[22m[32m 19[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/schemas/reader.test.js [2m([22m[2m6 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/reports/summary.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/persistence/kit-fixtures-core.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/pack-digest.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/schemas/scenario.test.js [2m([22m[2m11 tests[22m[2m)[22m[33m 314[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/schemas/corpus.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/reports/incidents.test.js [2m([22m[2m10 tests[22m[2m)[22m[32m 19[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/reports/safety-case-v2.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 21[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/reports/safety-tally.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/schemas/pack-manifest.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/schemas/assertion-card.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/session/reply-contract.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 45[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/schemas/shape-drift.test.ts [2m([22m[2m7 tests[22m[2m)[22m[32m 160[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/reports/dossier.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 32[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/session/guardrail-chain.test.js [2m([22m[2m13 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/reports/safety-case.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/schemas/events.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 78[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/hosted/verdict.test.ts [2m([22m[2m33 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/evaluators.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/schemas/agent-spec.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/schemas/assertion-card.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/schemas/pack-manifest.test.js [2m([22m[2m8 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/session/guardrail-chain.test.ts [2m([22m[2m13 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/reports/recommendation.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 22[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/reports/safety-tally.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/session/brick-charters.test.js [2m([22m[2m10 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/session/brick-charters.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/reports/telemetry.test.js [2m([22m[2m11 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/event-bus.test.js [2m([22m[2m10 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/session/prompt.test.js [2m([22m[2m22 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/reports/assurance-pack.test.ts [2m([22m[2m12 tests[22m[2m)[22m[33m 843[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/reports/control-map.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/readers/rule.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 13[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/shadow.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/reports/safety-case-v2.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 23[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/reports/readings.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/testing/provider-seams.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/failover.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/schemas/reader.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/hosted/selectors.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/reports/recommendation.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 65[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/semver.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/hosted/strings.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/evaluators.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/components/reader.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/event-bus.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/schemas/external-call-record.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/pack-registry-requires.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/hosted/strings.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/session/decide.test.js [2m([22m[2m10 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/session/strategies.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/projection/run-projection.test.js [2m([22m[2m8 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/types/guardrail-service.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/pack-digest.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 16[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/reports/coverage-measured.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 37[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/schemas/agent-spec.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 74[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/types/guardrail-service.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/projection/run-projection.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/semver.test.js [2m([22m[2m6 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/hosted/config.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/hosted/config.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/reports/control-map.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/failover.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/session/decide.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/schemas/external-call-record.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/session/reply-contract.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 38[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/schemas/corpus.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 15[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/persistence/redact.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/pack-registry-requires.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/session/strategies.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/persistence/redact.test.js [2m([22m[2m10 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/session/memory.test.js [2m([22m[2m10 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/projection/group-replay-projection.test.ts [2m([22m[2m5 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/index.test.js [2m([22m[2m1 test[22m[2m)[22m[32m 7[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/persistence/run-record.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/persistence/kit-import-versions.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 8[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m dist/exports.test.js [2m([22m[2m1 test[22m[2m)[22m[33m 556[2mms[22m[39m
+@craftabot/governance:test:      [33m[2m✓[22m[39m documents every export of both barrels [33m 554[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/session/memory.test.ts [2m([22m[2m10 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/persistence/kit-import-versions.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/projection/group-replay-projection.test.js [2m([22m[2m5 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/types/desk-world.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/brick-config.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+@craftabot/governance:test:  [32m✓[39m src/index.test.ts [2m([22m[2m1 test[22m[2m)[22m[32m 5[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/brick-config.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/types/evaluator.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/types/evaluator.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/egress-suffix.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/types/desk-world.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/testing/provider-seams.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/types/world-multi-agent.test.js [2m([22m[2m8 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/schemas/run-finished.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+@craftabot/desk:test: 
+@craftabot/desk:test: > @craftabot/desk@0.1.0 test
+@craftabot/desk:test: > vitest run --coverage
+@craftabot/desk:test: 
+@craftabot/core:test:  [32m✓[39m src/types/world-multi-agent.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/persistence/run-record.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/egress-suffix.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+@craftabot/pack-testkit:test:  [32m✓[39m dist/checks/connection.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+@craftabot/pack-testkit:test:  [32m✓[39m src/checks/connection.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 7[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/schemas/run-finished.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 5[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m dist/version.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+@craftabot/core:test:  [32m✓[39m src/version.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 4[2mms[22m[39m
+@craftabot/pack-testkit:test:  [32m✓[39m dist/checks/reader-kinds.test.js [2m([22m[2m4 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+@craftabot/pack-testkit:test:  [32m✓[39m src/checks/reader-kinds.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 17[2mms[22m[39m
+@craftabot/pack-testkit:test:  [32m✓[39m src/checks/reader.test.ts [2m([22m[2m8 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+@craftabot/pack-testkit:test:  [32m✓[39m dist/checks/reader.test.js [2m([22m[2m8 tests[22m[2m)[22m[32m 18[2mms[22m[39m
+@craftabot/metrics:test:  [32m✓[39m src/validation/suite.test.ts [2m([22m[2m35 tests[22m[2m)[22m[32m 14[2mms[22m[39m
+@craftabot/evidence:test:  [32m✓[39m src/evidence.test.ts [2m([22m[2m6 tests[22m[2m)[22m[32m 50[2mms[22m[39m
+@craftabot/pack-anthropic:test:  [32m✓[39m src/contract.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 12[2mms[22m[39m
+@craftabot/pack-anthropic:test: 
+@craftabot/pack-anthropic:test: [2m Test Files [22m [1m[32m4 passed[39m[22m[90m (4)[39m
+@craftabot/pack-anthropic:test: [2m      Tests [22m [1m[32m59 passed[39m[22m[90m (59)[39m
+@craftabot/pack-anthropic:test: [2m   Start at [22m 22:34:20
+@craftabot/pack-anthropic:test: [2m   Duration [22m 12.98s[2m (transform 9.82s, setup 0ms, import 13.50s, tests 92ms, environment 0ms)[22m
+@craftabot/pack-anthropic:test: 
+@craftabot/pack-testkit:test:  [32m✓[39m dist/checks/control-map-generic.test.js [2m([22m[2m2 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+@craftabot/pack-testkit:test:  [32m✓[39m src/checks/control-map-generic.test.ts [2m([22m[2m2 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+@craftabot/pack-testkit:test:  [32m✓[39m src/pack-testkit.test.ts [2m([22m[2m40 tests[22m[2m)[22m[32m 217[2mms[22m[39m
+@craftabot/pack-testkit:test:  [32m✓[39m dist/pack-testkit.test.js [2m([22m[2m40 tests[22m[2m)[22m[32m 206[2mms[22m[39m
+@craftabot/pack-openai:test:  [32m✓[39m src/contract.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 10[2mms[22m[39m
+@craftabot/pack-openai:test: 
+@craftabot/pack-openai:test: [2m Test Files [22m [1m[32m4 passed[39m[22m[90m (4)[39m
+@craftabot/pack-openai:test: [2m      Tests [22m [1m[32m55 passed[39m[22m[90m (55)[39m
+@craftabot/pack-openai:test: [2m   Start at [22m 22:34:20
+@craftabot/pack-openai:test: [2m   Duration [22m 13.20s[2m (transform 12.62s, setup 0ms, import 15.84s, tests 92ms, environment 0ms)[22m
+@craftabot/pack-openai:test: 
+@craftabot/evidence:test:  [32m✓[39m src/supabase.test.ts [2m([22m[2m12 tests[22m[2m | [22m[33m1 skipped[39m[2m)[22m[32m 168[2mms[22m[39m
+@craftabot/pack-lakera-guard:test: cache miss, executing ccd744cfef3f0595
+@craftabot/metrics:test: 
+@craftabot/metrics:test: [2m Test Files [22m [1m[32m6 passed[39m[22m[90m (6)[39m
+@craftabot/metrics:test: [2m      Tests [22m [1m[32m67 passed[39m[22m[90m (67)[39m
+@craftabot/metrics:test: [2m   Start at [22m 22:34:20
+@craftabot/metrics:test: [2m   Duration [22m 13.16s[2m (transform 929ms, setup 0ms, import 13.62s, tests 1.68s, environment 1ms)[22m
+@craftabot/metrics:test: 
+@craftabot/metrics:test: [34m % [39m[2mCoverage report from [22m[33mv8[39m
+@craftabot/metrics:test: -----------------|---------|----------|---------|---------|---------------------
+@craftabot/metrics:test: File             | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s   
+@craftabot/metrics:test: -----------------|---------|----------|---------|---------|---------------------
+@craftabot/metrics:test: All files        |   98.21 |    92.23 |    99.2 |   99.08 |                     
+@craftabot/metrics:test:  src             |   97.66 |    92.08 |   98.74 |   98.85 |                     
+@craftabot/metrics:test:   agreement.ts   |     100 |    94.11 |     100 |     100 | 58                  
+@craftabot/metrics:test:   calibration.ts |     100 |    97.72 |     100 |     100 | 77                  
+@craftabot/metrics:test:   confusion.ts   |     100 |       75 |     100 |     100 | 34,44               
+@craftabot/metrics:test:   drift.ts       |   96.93 |    84.12 |     100 |     100 | 42,101-155          
+@craftabot/metrics:test:   fairness.ts    |   95.36 |    90.43 |     100 |   94.69 | 446-458             
+@craftabot/metrics:test:   human-load.ts  |   96.77 |       90 |   92.59 |     100 | 73,195,213,234,253  
+@craftabot/metrics:test:   index.ts       |       0 |        0 |       0 |       0 |                     
+@craftabot/metrics:test:   intervals.ts   |     100 |      100 |     100 |     100 |                     
+@craftabot/metrics:test:   normal.ts      |   95.61 |    88.88 |     100 |     100 | 107-123,162         
+@craftabot/metrics:test:   random.ts      |     100 |      100 |     100 |     100 |                     
+@craftabot/metrics:test:   reliability.ts |   98.78 |    95.74 |     100 |     100 | 86,103              
+@craftabot/metrics:test:   tests.ts       |     100 |      100 |     100 |     100 |                     
+@craftabot/metrics:test:  src/validation  |   99.65 |    92.63 |     100 |   99.61 |                     
+@craftabot/metrics:test:   generators.ts  |   99.12 |     95.4 |     100 |   98.95 | 39                  
+@craftabot/metrics:test:   suite.ts       |     100 |    90.29 |     100 |     100 | ...,600-602,900-967 
+@craftabot/metrics:test: -----------------|---------|----------|---------|---------|---------------------
+@craftabot/evidence:test: 
+@craftabot/evidence:test: [2m Test Files [22m [1m[32m2 passed[39m[22m[90m (2)[39m
+@craftabot/evidence:test: [2m      Tests [22m [1m[32m17 passed[39m[22m[2m | [22m[33m1 skipped[39m[90m (18)[39m
+@craftabot/evidence:test: [2m   Start at [22m 22:34:20
+@craftabot/evidence:test: [2m   Duration [22m 13.18s[2m (transform 18.90s, setup 0ms, import 24.61s, tests 217ms, environment 0ms)[22m
+@craftabot/evidence:test: 
+@craftabot/evidence:test: [34m % [39m[2mCoverage report from [22m[33mv8[39m
+@craftabot/evidence:test: -------------|---------|----------|---------|---------|-------------------
+@craftabot/evidence:test: File         | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+@craftabot/evidence:test: -------------|---------|----------|---------|---------|-------------------
+@craftabot/evidence:test: All files    |   98.98 |    91.22 |     100 |   98.85 |                   
+@craftabot/evidence:test:  index.ts    |     100 |      100 |     100 |     100 |                   
+@craftabot/evidence:test:  memory.ts   |     100 |       90 |     100 |     100 | 46,88             
+@craftabot/evidence:test:  supabase.ts |    98.5 |    91.89 |     100 |   98.24 | 81                
+@craftabot/evidence:test: -------------|---------|----------|---------|---------|-------------------
+@craftabot/pack-readers-llm:test: cache miss, executing f8a685d55d823591
+@craftabot/core:test:  [32m✓[39m src/index.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+@craftabot/pack-gemini:build: cache hit, replaying logs 576ee681aebf16ab
+@craftabot/pack-evaluators:build: cache hit, replaying logs 1c6b64e5d35e6b37
+@craftabot/pack-evaluators:build: 
+@craftabot/pack-evaluators:build: > @craftabot/pack-evaluators@0.0.1 build
+@craftabot/pack-evaluators:build: > tsc -p tsconfig.build.json
+@craftabot/pack-evaluators:build: 
+@craftabot/core:test:  [32m✓[39m dist/index.test.js [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+@craftabot/pack-openai:build: cache hit, replaying logs e709cc5e17166ac9
+@craftabot/pack-openai:build: 
+@craftabot/pack-openai:build: > @craftabot/pack-openai@0.0.1 build
+@craftabot/pack-openai:build: > tsc -p tsconfig.build.json
+@craftabot/pack-openai:build: 
+@craftabot/pack-evaluators:test: cache miss, executing fa5c0c59e58203a7
+@craftabot/governance:test: 
+@craftabot/governance:test: [31m⎯⎯⎯⎯⎯⎯⎯[39m[1m[41m Failed Tests 1 [49m[22m[31m⎯⎯⎯⎯⎯⎯⎯[39m
+@craftabot/governance:test: 
+@craftabot/governance:test: [41m[1m FAIL [22m[49m dist/reports/assurance-pack.test.js[2m > [22massurancePackFor[2m > [22mfolds a fixture bot with one campaign and one incident — the snapshot
+@craftabot/governance:test: [31m[1mError[22m: Snapshot `assurancePackFor > folds a fixture bot with one campaign and one incident — the snapshot 1` mismatched[39m
+@craftabot/governance:test: 
+@craftabot/governance:test: [32m- Expected[39m
+@craftabot/governance:test: [31m+ Received[39m
+@craftabot/governance:test: 
+@craftabot/governance:test: [33m@@ -841,11 +841,11 @@[39m
+@craftabot/governance:test: [2m          ],[22m
+@craftabot/governance:test: [2m          "title": "The baseline",[22m
+@craftabot/governance:test: [2m        },[22m
+@craftabot/governance:test: [2m      ],[22m
+@craftabot/governance:test: [2m    },[22m
+@craftabot/governance:test: [32m-   "digest": "a1a1289e2f6ab533d4eb10e7a1c75d48179710e9d733d75d94a1abdc2ee55f1e",[39m
+@craftabot/governance:test: [31m+   "digest": "8afdce23bb624a3af99c590a37cea538240baed4920e75ba8ab0dcd7e34c3a59",[39m
+@craftabot/governance:test: [2m    "format": "craftabot-assurance-pack",[22m
+@craftabot/governance:test: [2m    "formatVersion": 1,[22m
+@craftabot/governance:test: [2m    "generatedAt": "2026-09-06T12:00:00.000Z",[22m
+@craftabot/governance:test: [2m    "governance": {[22m
+@craftabot/governance:test: [2m      "approvals": {[22m
+@craftabot/governance:test: [33m@@ -965,23 +965,23 @@[39m
+@craftabot/governance:test: [2m        "byStatus": {[22m
+@craftabot/governance:test: [2m          "bespoke": 0,[22m
+@craftabot/governance:test: [2m          "blueprint": 1,[22m
+@craftabot/governance:test: [2m          "connectable": 1,[22m
+@craftabot/governance:test: [2m          "not-applicable": 6,[22m
+@craftabot/governance:test: [32m-         "shipped": 61,[39m
+@craftabot/governance:test: [31m+         "shipped": 62,[39m
+@craftabot/governance:test: [2m        },[22m
+@craftabot/governance:test: [2m        "edition": "2026-10",[22m
+@craftabot/governance:test: [32m-       "entries": 69,[39m
+@craftabot/governance:test: [31m+       "entries": 70,[39m
+@craftabot/governance:test: [2m        "notApplicable": [[22m
+@craftabot/governance:test: [2m          "Rate limits",[22m
+@craftabot/governance:test: [2m          "Sandboxed tool and code execution",[22m
+@craftabot/governance:test: [2m          "Guardrail frameworks",[22m
+@craftabot/governance:test: [2m          "Retention and deletion",[22m
+@craftabot/governance:test: [2m          "Access control on the controls",[22m
+@craftabot/governance:test: [2m          "Content credentials on outputs",[22m
+@craftabot/governance:test: [2m        ],[22m
+@craftabot/governance:test: [32m-       "pending": 69,[39m
+@craftabot/governance:test: [31m+       "pending": 70,[39m
+@craftabot/governance:test: [2m        "reviewed": 0,[22m
+@craftabot/governance:test: [2m      },[22m
+@craftabot/governance:test: [2m      "effects": [[22m
+@craftabot/governance:test: [2m        {[22m
+@craftabot/governance:test: [2m          "controlId": "test/control-map/support",[22m
+@craftabot/governance:test: 
+@craftabot/governance:test: [36m [2m❯[22m src/reports/assurance-pack.test.ts:[2m394:15[22m[39m
+@craftabot/pack-pdp-opa:test:  [32m✓[39m src/service.test.ts [2m([22m[2m12 tests[22m[2m)[22m[32m 62[2mms[22m[39m
+@craftabot/governance:test:     [90m392|[39m   })[33m;[39m
+@craftabot/governance:test:     [90m393|[39m   [34mexpect[39m(pack[33m.[39mgovernance[33m.[39mprincipal[33m.[39mrecorded)[33m.[39m[34mtoBe[39m([35mtrue[39m)[33m;[39m
+@craftabot/governance:test:     [90m394|[39m   [34mexpect[39m(pack)[33m.[39m[34mtoMatchSnapshot[39m()[33m;[39m
+@craftabot/governance:test:     [90m   |[39m               [31m^[39m
+@craftabot/governance:test:     [90m395|[39m   // WP134: the controls this bot runs with, as the Control Inventory …
+@craftabot/governance:test:     [90m396|[39m   expect(pack.inventory.controls.map((control) => control.ref)).toEqua…
+@craftabot/governance:test: 
+@craftabot/governance:test: [31m[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯[22m[39m
+@craftabot/governance:test: 
+@craftabot/governance:test: 
+@craftabot/governance:test: [2m  Snapshots [22m [1m[31m1 failed[39m[22m
+@craftabot/governance:test: [2m Test Files [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m93 passed[39m[22m[90m (94)[39m
+@craftabot/governance:test: [2m      Tests [22m [1m[31m1 failed[39m[22m[2m | [22m[1m[32m723 passed[39m[22m[90m (724)[39m
+@craftabot/governance:test: [2m   Start at [22m 22:34:20
+@craftabot/governance:test: [2m   Duration [22m 13.35s[2m (transform 54.95s, setup 0ms, import 127.34s, tests 4.56s, environment 18ms)[22m
+@craftabot/governance:test: 
+@craftabot/pack-gemini:test:  [32m✓[39m src/contract.test.ts [2m([22m[2m4 tests[22m[2m)[22m[32m 11[2mms[22m[39m
+@craftabot/pack-gemini:build: 
+@craftabot/pack-gemini:build: > @craftabot/pack-gemini@0.0.1 build
+@craftabot/pack-gemini:build: > tsc -p tsconfig.build.json
+@craftabot/pack-gemini:build: 
+@craftabot/pack-gemini:test: 
+@craftabot/pack-gemini:test: [2m Test Files [22m [1m[32m4 passed[39m[22m[90m (4)[39m
+@craftabot/pack-gemini:test: [2m      Tests [22m [1m[32m54 passed[39m[22m[90m (54)[39m
+@craftabot/pack-gemini:test: [2m   Start at [22m 22:34:20
+@craftabot/pack-gemini:test: [2m   Duration [22m 13.49s[2m (transform 10.31s, setup 0ms, import 13.54s, tests 174ms, environment 0ms)[22m
+@craftabot/pack-gemini:test: 
+@craftabot/pack-pdp-opa:test: 
+@craftabot/pack-readers-llm:build: cache hit, replaying logs a1927bfb2c04fed1
+@craftabot/pack-pdp-opa:test: [2m Test Files [22m [1m[32m1 passed[39m[22m[90m (1)[39m
+@craftabot/pack-pdp-opa:test: [2m      Tests [22m [1m[32m12 passed[39m[22m[90m (12)[39m
+@craftabot/pack-pdp-opa:test: [2m   Start at [22m 22:34:20
+@craftabot/pack-pdp-opa:test: [2m   Duration [22m 13.41s[2m (transform 9.51s, setup 0ms, import 12.45s, tests 62ms, environment 0ms)[22m
+@craftabot/pack-pdp-opa:test: 
+@craftabot/pack-pdp-opa:test: [34m % [39m[2mCoverage report from [22m[33mv8[39m
+@craftabot/pack-readers-llm:build: 
+@craftabot/pack-readers-llm:build: > @craftabot/pack-readers-llm@0.1.0 build
+@craftabot/pack-readers-llm:build: > tsc -p tsconfig.build.json
+@craftabot/pack-readers-llm:build: 
+@craftabot/pack-pdp-opa:test: --------------|---------|----------|---------|---------|-------------------
+@craftabot/pack-pdp-opa:test: File          | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+@craftabot/pack-pdp-opa:test: --------------|---------|----------|---------|---------|-------------------
+@craftabot/pack-pdp-opa:test: All files     |     100 |    96.66 |     100 |     100 |                   
+@craftabot/pack-pdp-opa:test:  src          |     100 |    96.66 |     100 |     100 |                   
+@craftabot/pack-pdp-opa:test:   client.ts   |     100 |    92.85 |     100 |     100 | 58                
+@craftabot/pack-pdp-opa:test:   index.ts    |     100 |      100 |     100 |     100 |                   
+@craftabot/pack-pdp-opa:test:   reading.ts  |     100 |      100 |     100 |     100 |                   
+@craftabot/pack-pdp-opa:test:   service.ts  |     100 |      100 |     100 |     100 |                   
+@craftabot/pack-pdp-opa:test:   strings.ts  |     100 |      100 |     100 |     100 |                   
+@craftabot/pack-pdp-opa:test:  src/fixtures |     100 |      100 |     100 |     100 |                   
+@craftabot/pack-pdp-opa:test:   index.ts    |     100 |      100 |     100 |     100 |                   
+@craftabot/pack-pdp-opa:test: --------------|---------|----------|---------|---------|-------------------
+@craftabot/evidence:build: cache hit, replaying logs c15ef10c1859f3a9
+@craftabot/evidence:build: 
+@craftabot/evidence:build: > @craftabot/evidence@0.0.1 build
+@craftabot/evidence:build: > tsc -p tsconfig.build.json
+@craftabot/evidence:build: 
+@craftabot/pack-guard-local:build: cache hit, replaying logs 8f7963bf8284a4c5
+@craftabot/pack-guard-local:build: 
+@craftabot/pack-guard-local:build: > @craftabot/pack-guard-local@0.0.1 build
+@craftabot/pack-guard-local:build: > tsc -p tsconfig.build.json
+@craftabot/pack-guard-local:build: 
+@craftabot/desk:build: cache hit, replaying logs e58e8827dd6b13c4
+@craftabot/desk:build: 
+@craftabot/desk:build: > @craftabot/desk@0.1.0 build
+@craftabot/desk:build: > tsc -p tsconfig.build.json
+@craftabot/desk:build: 
+@craftabot/pack-testkit:test: 
+@craftabot/pack-testkit:test: [2m Test Files [22m [1m[32m26 passed[39m[22m[90m (26)[39m
+@craftabot/pack-testkit:test: [2m      Tests [22m [1m[32m232 passed[39m[22m[90m (232)[39m
+@craftabot/pack-testkit:test: [2m   Start at [22m 22:34:20
+@craftabot/pack-testkit:test: [2m   Duration [22m 13.49s[2m (transform 105.32s, setup 0ms, import 159.03s, tests 1.41s, environment 3ms)[22m
+@craftabot/desk:test: 
+@craftabot/pack-testkit:test: 
+@craftabot/desk:test: [1m[30m[46m RUN [49m[39m[22m [36mv4.1.10 [39m[90mC:/src/craft-a-bot/packages/desk[39m
+@craftabot/desk:test:       [2mCoverage enabled with [22m[33mv8[39m
+@craftabot/desk:test: 
+@craftabot/pack-testkit:test: [34m % [39m[2mCoverage report from [22m[33mv8[39m
+@craftabot/pack-testkit:test: -------------------|---------|----------|---------|---------|-------------------
+@craftabot/pack-testkit:test: File               | % Stmts | % Branch | % Funcs | % Lines | Uncovered Line #s 
+@craftabot/pack-testkit:test: -------------------|---------|----------|---------|---------|-------------------
+@craftabot/pack-testkit:test: All files          |   85.72 |    77.65 |   92.17 |   85.89 |                   
+@craftabot/pack-testkit:test:  src               |   55.55 |    52.94 |   81.81 |   57.69 |                   
+@craftabot/pack-testkit:test:   ...onformance.ts |   55.55 |    52.94 |   81.81 |   57.69 | ...34,142,158-163 
+@craftabot/pack-testkit:test:  src/checks        |   86.79 |    79.23 |   93.52 |   86.75 |                   
+@craftabot/pack-testkit:test:   adversarial.ts   |     100 |    80.55 |     100 |     100 | ...01-104,110-114 
+@craftabot/pack-testkit:test:   calibration.ts   |   91.48 |    86.66 |     100 |   89.18 | 54,69,87,93       
+@craftabot/pack-testkit:test:   cartridge.ts     |     100 |      100 |     100 |     100 |                   
+@craftabot/pack-testkit:test:   component.ts     |      62 |       55 |     100 |   61.03 | ...81-182,188-196 
+@craftabot/pack-testkit:test:   connection.ts    |     100 |      100 |     100 |     100 |                   
+@craftabot/pack-testkit:test:   control-map.ts   |   97.26 |    92.53 |     100 |   96.42 | 78,137            
+@craftabot/pack-testkit:test:   corpus.ts        |     100 |    96.66 |     100 |     100 | 28                
+@craftabot/pack-testkit:test:   desk.ts          |   90.78 |     81.1 |   92.59 |   90.34 | ...89-593,639,673 
+@craftabot/pack-testkit:test:   evaluator.ts     |   91.66 |    76.19 |   93.75 |   93.22 | 43,119-123,127    
+@craftabot/pack-testkit:test:   golden-trace.ts  |       0 |        0 |       0 |       0 | 27-69             
+@craftabot/pack-testkit:test:   ...il-service.ts |   98.43 |    81.25 |     100 |   97.95 | 117               
+@craftabot/pack-testkit:test:   guardrail.ts     |      96 |    91.66 |     100 |   94.11 | 45                
+@craftabot/pack-testkit:test:   manifest.ts      |   82.92 |     87.3 |     100 |   91.37 | 35,44,53,68,71    
+@craftabot/pack-testkit:test:   reader.ts        |     100 |    97.84 |     100 |     100 | 87                
+@craftabot/pack-testkit:test:   service-line.ts  |   88.48 |    78.84 |    92.3 |   88.17 | ...08-214,242-243 
+@craftabot/pack-testkit:test:   stack.ts         |       0 |        0 |       0 |       0 | 29-106            
+@craftabot/pack-testkit:test:   synthetic.ts     |   96.75 |    88.67 |     100 |     100 | ...65,199,240,260 
+@craftabot/pack-testkit:test:   tool.ts          |   80.55 |    77.77 |   84.61 |      80 | 11-12,20,50,75-79 
+@craftabot/pack-testkit:test:   world.ts         |   91.75 |    81.48 |     100 |   89.33 | ...46,213-217,221 
+@craftabot/pack-testkit:test:  src/fixtures      |   95.48 |    71.66 |   91.76 |   95.83 |                   
+@craftabot/pack-testkit:test:   broken-pack.ts   |   94.18 |    92.85 |   89.58 |   94.36 | 37,170,175,377    
+@craftabot/pack-testkit:test:   example-pack.ts  |    97.1 |    65.21 |   94.59 |   97.95 | 106               
+@craftabot/pack-testkit:test: -------------------|---------|----------|---------|---------|-------------------
+@craftabot/pack-pdp-opa:build: cache hit, replaying logs 9727f740321a3e0a
+@craftabot/pack-pdp-opa:build: 
+@craftabot/pack-pdp-opa:build: > @craftabot/pack-pdp-opa@0.0.1 build
+@craftabot/pack-pdp-opa:build: > tsc -p tsconfig.build.json
+@craftabot/pack-pdp-opa:build: 
+@craftabot/governance:test: npm error Lifecycle script `test` failed with error:
+@craftabot/governance:test: npm error code 1
+@craftabot/governance:test: npm error path C:\src\craft-a-bot\packages\governance
+@craftabot/governance:test: npm error workspace @craftabot/governance@1.0.0
+@craftabot/pack-guard-local:test: cache miss, executing f5d79844249f67ce
+@craftabot/governance:test: npm error location C:\src\craft-a-bot\packages\governance
+@craftabot/governance:test: npm error command failed
+@craftabot/governance:test: npm error command C:\WINDOWS\system32\cmd.exe /d /s /c vitest run --coverage
+@craftabot/pack-lakera-guard:test: 
+@craftabot/pack-lakera-guard:test: > @craftabot/pack-lakera-guard@0.0.1 test
+@craftabot/pack-lakera-guard:test: > vitest run --coverage
+@craftabot/pack-lakera-guard:test: 
+@craftabot/pack-azure-content-safety:test: cache miss, executing 490783e681f538bf
+@craftabot/pack-ollama:test: cache miss, executing 033440d3df336210
+@craftabot/telemetry:test: cache miss, executing 1be1cb855e0babbc
+@craftabot/pack-bedrock-guardrails:test: cache miss, executing a2c3b4ad81af9be2
+@craftabot/pack-pdp-cedar:build: cache hit, replaying logs 09d396a5e019fa50
+@craftabot/pack-pdp-cedar:build: 
+@craftabot/pack-pdp-cedar:build: > @craftabot/pack-pdp-cedar@0.0.1 build
+@craftabot/pack-pdp-cedar:build: > tsc -p tsconfig.build.json
+@craftabot/pack-pdp-cedar:build: 
+@craftabot/pack-pdp-cedar:test: cache miss, executing 6f03dc466fb4ae35
+@craftabot/pack-personas:build: cache hit, replaying logs 443e7030b2d57b8f
+@craftabot/pack-anthropic:build: cache hit, replaying logs 45e675b24f276fed
+@craftabot/pack-anthropic:build: 
+@craftabot/pack-anthropic:build: > @craftabot/pack-anthropic@0.0.1 build
+@craftabot/pack-anthropic:build: > tsc -p tsconfig.build.json
+@craftabot/pack-anthropic:build: 
+@craftabot/pack-personas:test: cache miss, executing e8df905283141acb
+@craftabot/pack-ollama:build: cache hit, replaying logs f7425dd9388c00a3
+@craftabot/pack-ollama:build: 
+@craftabot/pack-ollama:build: > @craftabot/pack-ollama@0.0.1 build
+@craftabot/pack-ollama:build: > tsc -p tsconfig.build.json
+@craftabot/pack-ollama:build: 
+@craftabot/pack-starter:test: cache miss, executing 72589401cc4dcc9a
+@craftabot/pack-personas:build: 
+@craftabot/pack-personas:build: > @craftabot/pack-personas@0.0.1 build
+@craftabot/pack-personas:build: > tsc -p tsconfig.build.json
+@craftabot/pack-personas:build: 
+@craftabot/workflow:test: cache miss, executing 951b1d58aad6d8db
+@craftabot/workflow:build: cache hit, replaying logs 530480d47f4489ea
+@craftabot/workflow:build: 
+@craftabot/workflow:build: > @craftabot/workflow@0.1.0 build
+@craftabot/workflow:build: > tsc -p tsconfig.build.json
+@craftabot/workflow:build: 
+@craftabot/pack-readers-llm:test: 
+@craftabot/pack-readers-llm:test: > @craftabot/pack-readers-llm@0.1.0 test
+@craftabot/pack-readers-llm:test: > vitest run --coverage
+@craftabot/pack-readers-llm:test: 
+@craftabot/pack-starter:build: cache hit, replaying logs e7117cb981f9c7cf
+@craftabot/pack-starter:build: 
+@craftabot/pack-starter:build: > @craftabot/pack-starter@0.0.1 build
+@craftabot/pack-starter:build: > tsc -p tsconfig.build.json
+@craftabot/pack-starter:build: 
+@craftabot/pack-evaluators:test: 
+@craftabot/pack-evaluators:test: > @craftabot/pack-evaluators@0.0.1 test
+@craftabot/pack-evaluators:test: > vitest run --coverage
+@craftabot/pack-evaluators:test: 
+@craftabot/desk:test:  [32m✓[39m src/helpers.test.ts [2m([22m[2m3 tests[22m[2m)[22m[32m 6[2mms[22m[39m
+@craftabot/desk:test:  [32m✓[39m src/counterpart.test.ts [2m([22m[2m17 tests[22m[2m)[22m[32m 9[2mms[22m[39m
+@craftabot/governance#test:  ERROR  command (C:\src\craft-a-bot\packages\governance) C:\nvm4w\nodejs\node.exe C:\nvm4w\nodejs\node_modules\npm\bin\npm-cli.js run test exited (1)
+
+ Tasks:    29 successful, 45 total
+Cached:    22 cached, 45 total
+  Time:    16.382s 
+Failed:    @craftabot/governance#test
+
+ ERROR  run failed: command  exited (1)
