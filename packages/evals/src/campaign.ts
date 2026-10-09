@@ -2705,7 +2705,9 @@ export function resolveHabits(
 	return (model.habits ?? []).map((habit) => {
 		const table = registry.getCalibrationTable(habit.rate.table);
 		if (!table)
-			throw new Error(`error model '${id}': no calibration table '${habit.rate.table}' is installed`);
+			throw new Error(
+				`error model '${id}': no calibration table '${habit.rate.table}' is installed`
+			);
 		const rate = calibrationRow(table, habit.rate.row).distribution[habit.rate.key];
 		if (rate === undefined || !(rate >= 0 && rate <= 1))
 			throw new Error(

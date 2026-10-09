@@ -73,11 +73,7 @@
 			{
 				"axis": "override",
 				"override": "temperature",
-				"levels": [
-					"0",
-					"0.4",
-					"0.8"
-				]
+				"levels": ["0", "0.4", "0.8"]
 			}
 		],
 		"baseline": {
@@ -98,9 +94,7 @@
 				"direction": "higher-is-better"
 			}
 		],
-		"seeds": [
-			1
-		],
+		"seeds": [1],
 		"replicates": 1,
 		"confidence": 0.95,
 		"minimumDetectableEffect": 0.05,

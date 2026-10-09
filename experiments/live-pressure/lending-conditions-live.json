@@ -3,13 +3,8 @@
 	"id": "lending-conditions-live",
 	"title": "The policy-card stack on the loan book — with the 122B on the DGX Sparks as the brain",
 	"hypothesis": "The policy-card stack raises agreement with the lending rule and lowers over-approval across the reference configurations, at a stated approval-load cost. Here the decisions are made by a live model, `dgx-spark/giant-qwen` (Qwen3.5-122B-A10B-NVFP4 on the builder's DGX Sparks), at temperature 0 with a 2048-token reply limit, over a book of 400: a single sample, recorded once and replayed from its cassette. The design's scripted and fallible columns are `lending-stack`. The factor is `temperature`: what a reply with no tool call means at the journey's agent stages (plan 114 WP205); `none` is the desk as it was.",
-	"controls": [
-		"fs-lending/control-map/affordability-first"
-	],
-	"obligations": [
-		"fca:conc:affordability",
-		"fca:conc:creditworthiness"
-	],
+	"controls": ["fs-lending/control-map/affordability-first"],
+	"obligations": ["fca:conc:affordability", "fca:conc:creditworthiness"],
 	"design": {
 		"template": {
 			"scenarios": [],
@@ -77,11 +72,7 @@
 			{
 				"axis": "override",
 				"override": "temperature",
-				"levels": [
-					"0",
-					"0.4",
-					"0.8"
-				]
+				"levels": ["0", "0.4", "0.8"]
 			}
 		],
 		"baseline": {
@@ -104,9 +95,7 @@
 				"direction": "lower-is-better"
 			}
 		],
-		"seeds": [
-			1
-		],
+		"seeds": [1],
 		"replicates": 1,
 		"confidence": 0.95,
 		"minimumDetectableEffect": 0.05,

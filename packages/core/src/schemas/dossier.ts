@@ -86,6 +86,8 @@ export function parseDecisionDossier(value: unknown): DecisionDossier {
 	const parsed = decisionDossierSchema.parse(value);
 	const expected = decisionDossierDigest(parsed);
 	if (expected !== parsed.digest)
-		throw new Error(`decision dossier ${parsed.id}: digest mismatch (${parsed.digest} ≠ ${expected})`);
+		throw new Error(
+			`decision dossier ${parsed.id}: digest mismatch (${parsed.digest} ≠ ${expected})`
+		);
 	return parsed;
 }

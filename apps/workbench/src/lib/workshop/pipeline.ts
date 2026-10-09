@@ -188,8 +188,8 @@ export function workflowRowOf(
 			stored.run.outcome === 'completed'
 				? 'pass'
 				: stored.run.outcome === 'abandoned' ||
-					stored.run.outcome === 'handed-off' ||
-					stored.run.outcome === 'escalated'
+					  stored.run.outcome === 'handed-off' ||
+					  stored.run.outcome === 'escalated'
 					? 'inconclusive'
 					: 'fail',
 		outcomeWord: stored.run.outcome,

@@ -11,7 +11,14 @@ import { sha256Hex } from './sha256.js';
  * it without the design, which lives beside the campaign schema in
  * `@craftabot/evals`. `docs/schemas/experiment-result.schema.json`.
  */
-export const experimentAxisSchema = z.enum(['guard', 'context', 'executors', 'knob', 'brain', 'override']);
+export const experimentAxisSchema = z.enum([
+	'guard',
+	'context',
+	'executors',
+	'knob',
+	'brain',
+	'override'
+]);
 export type ExperimentAxis = z.infer<typeof experimentAxisSchema>;
 
 export const effectSideSchema = z.object({

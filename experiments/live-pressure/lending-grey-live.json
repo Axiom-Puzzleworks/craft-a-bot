@@ -3,13 +3,8 @@
 	"id": "lending-grey-live",
 	"title": "The policy-card stack on the loan book — with the 122B on the DGX Sparks as the brain",
 	"hypothesis": "The policy-card stack raises agreement with the lending rule and lowers over-approval across the reference configurations, at a stated approval-load cost. Here the decisions are made by a live model, `dgx-spark/giant-qwen` (Qwen3.5-122B-A10B-NVFP4 on the builder's DGX Sparks), at temperature 0 with a 2048-token reply limit, over a book of 800: a single sample, recorded once and replayed from its cassette. The design's scripted and fallible columns are `lending-stack`. The book draws the grey zone (plan 114 WP200): of the applications the plain rule would approve, some sit at its threshold, carry incomes that conflict, or have none verified, and the policy on the case file says refer for each.",
-	"controls": [
-		"fs-lending/control-map/affordability-first"
-	],
-	"obligations": [
-		"fca:conc:affordability",
-		"fca:conc:creditworthiness"
-	],
+	"controls": ["fs-lending/control-map/affordability-first"],
+	"obligations": ["fca:conc:affordability", "fca:conc:creditworthiness"],
 	"design": {
 		"template": {
 			"scenarios": [],
@@ -102,18 +97,11 @@
 		"factors": [
 			{
 				"axis": "guard",
-				"levels": [
-					"none",
-					"policy-cards"
-				]
+				"levels": ["none", "policy-cards"]
 			},
 			{
 				"axis": "executors",
-				"levels": [
-					"rules-only",
-					"bot-with-a-person-at-the-decision",
-					"bot-everywhere"
-				]
+				"levels": ["rules-only", "bot-with-a-person-at-the-decision", "bot-everywhere"]
 			}
 		],
 		"baseline": {
@@ -147,9 +135,7 @@
 				}
 			}
 		],
-		"seeds": [
-			1
-		],
+		"seeds": [1],
 		"replicates": 1,
 		"confidence": 0.95,
 		"minimumDetectableEffect": 0.05,

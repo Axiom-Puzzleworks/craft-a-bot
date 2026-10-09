@@ -7,10 +7,7 @@
 		"fs-advice/control-map/suitability",
 		"fs-advice/control-map/minimisation-and-purpose"
 	],
-	"obligations": [
-		"fca:cobs-9:suitability",
-		"ukgdpr:data-minimisation"
-	],
+	"obligations": ["fca:cobs-9:suitability", "ukgdpr:data-minimisation"],
 	"design": {
 		"template": {
 			"scenarios": [],
@@ -79,19 +76,12 @@
 		"factors": [
 			{
 				"axis": "context",
-				"levels": [
-					"case-file",
-					"relational"
-				]
+				"levels": ["case-file", "relational"]
 			},
 			{
 				"axis": "override",
 				"override": "replyContract",
-				"levels": [
-					"none",
-					"say",
-					"retry-with-nudge"
-				]
+				"levels": ["none", "say", "retry-with-nudge"]
 			}
 		],
 		"baseline": {
@@ -113,9 +103,7 @@
 				"direction": "higher-is-better"
 			}
 		],
-		"seeds": [
-			1
-		],
+		"seeds": [1],
 		"replicates": 1,
 		"confidence": 0.95,
 		"minimumDetectableEffect": 0.05,

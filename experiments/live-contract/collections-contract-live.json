@@ -74,11 +74,7 @@
 			{
 				"axis": "override",
 				"override": "replyContract",
-				"levels": [
-					"none",
-					"say",
-					"retry-with-nudge"
-				]
+				"levels": ["none", "say", "retry-with-nudge"]
 			}
 		],
 		"baseline": {
@@ -99,9 +95,7 @@
 				"direction": "higher-is-better"
 			}
 		],
-		"seeds": [
-			1
-		],
+		"seeds": [1],
 		"replicates": 1,
 		"confidence": 0.95,
 		"minimumDetectableEffect": 0.05,
