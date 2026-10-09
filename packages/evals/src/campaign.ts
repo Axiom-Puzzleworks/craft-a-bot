@@ -187,7 +187,9 @@ export const specOverridesSchema = z.object({
 	/** The workflow's named configuration this build runs, in a book campaign (WP80, `73-…` §4): an autonomy level applied to the journey. Not a spec override either. */
 	configuration: z.string().min(1).optional(),
 	/** The reviewer model at the journey's human stages (WP115, `103-…` §6), by id: the person as a model, in a book campaign. Not a spec override. */
-	reviewer: z.string().min(1).optional()
+	reviewer: z.string().min(1).optional(),
+	/** What a reply with no tool call means at the journey's agent stages (plan 114 WP205). A workflow setting, not a spec override. */
+	replyContract: z.enum(['say', 'retry-with-nudge', 'fail']).optional()
 });
 
 export const noiseRatesSchema = z.object({
@@ -1811,7 +1813,10 @@ async function runBookCell(
 		...(named ?? {}),
 		...(Object.keys(knobs).length > 0 ? { knobs } : {}),
 		...(cell.context ? { context: cell.context } : {}),
-		...(build.overrides?.reviewer !== undefined ? { reviewer: build.overrides.reviewer } : {})
+		...(build.overrides?.reviewer !== undefined ? { reviewer: build.overrides.reviewer } : {}),
+		...(build.overrides?.replyContract !== undefined
+			? { replyContract: build.overrides.replyContract }
+			: {})
 	};
 	const spec = specFor(cell);
 	const seat = createTestClock({ seed, idOffset: cell.ordinal * ID_STRIDE });
@@ -2574,7 +2579,11 @@ function cleanOverrides(
 		// `knobs` are the world's, `configuration` and `reviewer` the workflow's, not the spec's (WP78, WP80, WP115).
 		Object.entries(overrides).filter(
 			([key, value]) =>
-				key !== 'knobs' && key !== 'configuration' && key !== 'reviewer' && value !== undefined
+				key !== 'knobs' &&
+				key !== 'configuration' &&
+				key !== 'reviewer' &&
+				key !== 'replyContract' &&
+				value !== undefined
 		)
 	) as Omit<SpecOverrides, 'goalCardId' | 'tools'>;
 }

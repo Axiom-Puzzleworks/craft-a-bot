@@ -1560,6 +1560,14 @@
 											"reviewer": {
 												"type": "string",
 												"minLength": 1
+											},
+											"replyContract": {
+												"type": "string",
+												"enum": [
+													"say",
+													"retry-with-nudge",
+													"fail"
+												]
 											}
 										}
 									}
@@ -1944,7 +1952,8 @@
 									"context",
 									"executors",
 									"knob",
-									"brain"
+									"brain",
+									"override"
 								]
 							},
 							"levels": {
@@ -1956,6 +1965,10 @@
 								}
 							},
 							"knob": {
+								"type": "string",
+								"minLength": 1
+							},
+							"override": {
 								"type": "string",
 								"minLength": 1
 							},
@@ -1998,7 +2011,8 @@
 							"context",
 							"executors",
 							"knob",
-							"brain"
+							"brain",
+							"override"
 						]
 					},
 					"additionalProperties": {

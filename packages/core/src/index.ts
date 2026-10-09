@@ -603,7 +603,8 @@ export type {
 	FaultShape,
 	HabitFault
 } from './types/error-model.js';
-export type { ReviewerModel } from './types/workflow.js';
+export type { ReplyContract, ReviewerModel } from './types/workflow.js';
+export { REPLY_CONTRACTS } from './types/workflow.js';
 export {
 	reviewerAnswerSchema,
 	reviewerDrewSchema,

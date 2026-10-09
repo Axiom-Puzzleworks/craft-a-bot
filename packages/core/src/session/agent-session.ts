@@ -925,6 +925,37 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 				decision = decide(response, { toolNames, actionNames });
 			}
 
+			// The reply contract (plan 114 WP205): what a reply in prose, with no tool call, means at this stage.
+			if (decision.kind === 'thought-only' && options.replyContract !== undefined) {
+				const speak = [...actionNames].find((name) => name === 'say' || name.endsWith('/say'));
+				if (options.replyContract === 'say' && speak !== undefined) {
+					decision = {
+						kind: 'call',
+						thought: decision.thought,
+						call: { kind: 'action', name: speak, arguments: { text: decision.thought } }
+					};
+				} else if (options.replyContract === 'fail') {
+					emit('error', {
+						message: 'the reply had no tool call and the stage allows none',
+						kind: 'engine'
+					});
+					return finish('ERROR');
+				} else {
+					const names = [...toolNames, ...actionNames].join(', ');
+					messages = [
+						...messages,
+						{ role: 'assistant', content: decision.thought },
+						{
+							role: 'user',
+							content: `That reply had no tool call, and this desk can only hear a tool call. Reply again by calling exactly one of: ${names}.`
+						}
+					];
+					emit('prompt.composed', { messages, estimatedTokens: estimateTokens(messages) });
+					response = await callProviderWithRetry(messages);
+					decision = decide(response, { toolNames, actionNames });
+				}
+			}
+
 			thought = decision.kind === 'malformed' ? '' : decision.thought;
 			inHand = { ...inHand, messages, response };
 			emit('decision', {

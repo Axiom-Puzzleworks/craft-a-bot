@@ -10,6 +10,10 @@ export interface LiveEntry {
 	reviewer?: string;
 	/** Plan 114 WP200: the book draws the grey zone. */
 	greyZone?: boolean;
+	/** Plan 114 WP205: factors of the base held at one level each. */
+	pin?: Record<string, string>;
+	/** Plan 114 WP205: a build override as a factor, `none` leaving it unset. */
+	overrideFactor?: { override: string; levels: string[] };
 	/** Plan 114 WP204: guard levels added to the base's, each a stack by id. */
 	extraGuards?: Array<{ id: string; stack: string }>;
 	/** Plan 114 WP201: a harm index over a graded evaluator. */
@@ -34,3 +38,4 @@ export function liveIdOf(entry: LiveEntry): string;
 export function cassettePathOf(entry: LiveEntry, cassetteRoot?: string, suite?: LiveSuite): string;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function liveDesign(entry: LiveEntry, cassetteRoot?: string, suite?: LiveSuite): any;
+export const CONTRACT: LiveEntry[];

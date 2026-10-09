@@ -121,9 +121,34 @@ export const PRESSURE = [
 	}
 ];
 
+/**
+ * Plan 114 WP205: what a reply with no tool call means, on the three desks where the 35B answered in prose most (advice 71% of calls,
+ * collections 52%, fraud 38%) — the contract as a factor, `none` being the desk as it was.
+ */
+export const CONTRACT = ['advice-context', 'collections-stack', 'fraud-stack'].map((base) => ({
+	id: `${base.replace(/-(context|stack)$/, '')}-contract-live`,
+	base,
+	size: base === 'advice-context' ? 600 : base === 'collections-stack' ? 300 : 6,
+	trials: 2,
+	overrideFactor: { override: 'replyContract', levels: ['none', 'say', 'retry-with-nudge'] },
+	// The contract is the point: the desk's other factors are held at one level each, so the arms are the contracts and little else.
+	pin:
+		base === 'advice-context'
+			? { executors: 'bot-everywhere' }
+			: base === 'collections-stack'
+				? { guard: 'none' }
+				: { guard: 'none', executors: 'bot-everywhere' }
+}));
+
 /** The designs a suite records: its own list where it names one, else the ten of the first suites. */
 export const designsOf = (suite) =>
-	suite.designs === 'oversight' ? OVERSIGHT : suite.designs === 'pressure' ? PRESSURE : LIVE;
+	suite.designs === 'oversight'
+		? OVERSIGHT
+		: suite.designs === 'pressure'
+			? PRESSURE
+			: suite.designs === 'contract'
+				? CONTRACT
+				: LIVE;
 
 export const liveIdOf = ({ id, base, variant, seat }) =>
 	id ?? `${base}-live${seat ? '-seat' : ''}${variant ? `-${variant}` : ''}`;
@@ -145,6 +170,29 @@ export function liveDesign(entry, cassetteRoot, suite = SUITES.giant) {
 	d.hypothesis = `${base.hypothesis} Here the decisions are made by a live model, \`${suite.cartridge}\` (${suite.model} on the builder's DGX Sparks), at temperature 0 with a ${MAX_TOKENS}-token reply limit, over a book of ${entry.size}: a single sample, recorded once and replayed from its cassette. The design's scripted and fallible columns are \`${entry.base}\`.`;
 	d.design.factors = d.design.factors.filter((factor) => factor.axis !== 'brain');
 	delete d.design.baseline.brain;
+	// WP205: hold some of the base's factors at one level each (the guard, the executors).
+	for (const [axis, level] of Object.entries(entry.pin ?? {})) {
+		d.design.factors = d.design.factors.filter((factor) => factor.axis !== axis);
+		d.design.baseline[axis] = level;
+		if (axis === 'guard')
+			d.design.template.guards = d.design.template.guards.filter((guard) => guard.id === level);
+		else if (axis === 'executors')
+			d.design.template.builds = d.design.template.builds.map((build) => ({
+				...build,
+				overrides: { ...(build.overrides ?? {}), configuration: level }
+			}));
+		else throw new Error(`cannot pin ${axis}`);
+	}
+	// WP205: a build override as a factor (`none` = unset, the baseline).
+	if (entry.overrideFactor) {
+		d.design.factors.push({
+			axis: 'override',
+			override: entry.overrideFactor.override,
+			levels: entry.overrideFactor.levels
+		});
+		d.design.baseline.override = entry.overrideFactor.levels[0];
+		d.hypothesis = `${d.hypothesis} The factor is \`${entry.overrideFactor.override}\`: what a reply with no tool call means at the journey's agent stages (plan 114 WP205); \`none\` is the desk as it was.`;
+	}
 	// WP204: guard levels beside the base's, each a stack by id.
 	if (entry.extraGuards) {
 		for (const guard of entry.extraGuards)

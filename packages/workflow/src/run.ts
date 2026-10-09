@@ -475,7 +475,11 @@ export async function runWorkflow(
 			break;
 		}
 		// An agent stage a guardrail escalated (plan 114 WP204) has no output to carry on with: the case is a person's, and the journey ends.
-		if (record.status === 'escalated' && record.executor.kind === 'agent' && latestOutput === null) {
+		if (
+			record.status === 'escalated' &&
+			record.executor.kind === 'agent' &&
+			latestOutput === null
+		) {
 			outcome = 'escalated';
 			break;
 		}
@@ -861,6 +865,10 @@ export async function runWorkflow(
 			...(options.egress && !options.session?.egress ? { egress: options.egress } : {}),
 			...(executor.maxTicks !== undefined
 				? { budgets: { ...(options.session?.budgets ?? {}), maxTicks: executor.maxTicks } }
+				: {}),
+			// Plan 114 WP205: what a prose reply means at this journey's agent stages.
+			...(config.replyContract !== undefined && !options.session?.replyContract
+				? { replyContract: config.replyContract }
 				: {})
 		};
 		const agentSpec = { ...options.spec, goalCardId } as AnyAgentSpec;
@@ -1007,10 +1015,10 @@ export async function runWorkflow(
 				: status === 'escalated'
 					? 'a guardrail escalated the case to a person'
 					: status === 'blocked'
-					? 'a guardrail stopped the run'
-					: read && 'finding' in read
-						? read.finding
-						: `the run ended ${result}`;
+						? 'a guardrail stopped the run'
+						: read && 'finding' in read
+							? read.finding
+							: `the run ended ${result}`;
 		const record = await finishStage(
 			base,
 			started,

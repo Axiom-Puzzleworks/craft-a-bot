@@ -1535,6 +1535,14 @@
 							"reviewer": {
 								"type": "string",
 								"minLength": 1
+							},
+							"replyContract": {
+								"type": "string",
+								"enum": [
+									"say",
+									"retry-with-nudge",
+									"fail"
+								]
 							}
 						}
 					}

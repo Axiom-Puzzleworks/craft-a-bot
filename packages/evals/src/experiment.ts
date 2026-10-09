@@ -66,6 +66,8 @@ export const experimentFactorSchema = z
 		levels: z.array(z.string().min(1)).min(2),
 		/** The knob's name, for a `knob` axis. */
 		knob: z.string().min(1).optional(),
+		/** The build override's name, for an `override` axis (plan 114 WP205, WP212): `replyContract`, `maxTokens`, `temperature`. */
+		override: z.string().min(1).optional(),
 		/**
 		 * The controls a level tests (WP150, `110-CONTROL-SUITE-PLAN.md` §10):
 		 * joined to that level's effects only, so a design that runs several
@@ -81,6 +83,9 @@ export const experimentFactorSchema = z
 	})
 	.refine((factor) => factor.axis !== 'knob' || factor.knob !== undefined, {
 		message: 'a knob factor names its knob'
+	})
+	.refine((factor) => factor.axis !== 'override' || factor.override !== undefined, {
+		message: 'an override factor names its override'
 	})
 	.refine(
 		(factor) => Object.keys(factor.controls ?? {}).every((level) => factor.levels.includes(level)),
@@ -282,6 +287,20 @@ export function campaignFor(experiment: Experiment, combination: LevelCombinatio
 					overrides: { ...(build.overrides ?? {}), configuration: level }
 				}));
 				break;
+			case 'override': {
+				const name = factor.override ?? '';
+				// The level `none` leaves the override unset: the way a design names "as it was" as its baseline.
+				builds = builds.map((build) => {
+					const { [name]: _unset, ...rest } = (build.overrides ?? {}) as Record<string, unknown>;
+					return {
+						...build,
+						overrides: (level === 'none'
+							? rest
+							: { ...rest, [name]: knobValueOf(level) }) as typeof build.overrides
+					};
+				});
+				break;
+			}
 			case 'knob': {
 				const knob = factor.knob ?? '';
 				builds = builds.map((build) => ({
