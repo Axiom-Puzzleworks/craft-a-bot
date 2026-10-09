@@ -146,6 +146,12 @@ export async function artefactSchemas() {
 			description:
 				'A pre-registered hypothesis, a campaign template, the factors over its axes with a baseline level each, the metrics with their good direction, the seeds — and the campaign ids the design expands to (72-EXPERIMENTS.md §3).'
 		},
+		'decision-dossier': {
+			schema: core.decisionDossierSchema,
+			title: 'Craft A Bot decision dossier (v1)',
+			description:
+				'One claim about a model making one kind of decision: eight measures — accuracy, reliability, robustness, faithfulness, fairness, oversight, cost, harm — each with its value, interval, source and a threshold, a verdict on each (met, not met, not shown) and one for the dossier; a digest (plan 114 WP214).'
+		},
 		'experiment-result': {
 			schema: core.experimentResultSchema,
 			title: 'Craft A Bot experiment result (v1)',

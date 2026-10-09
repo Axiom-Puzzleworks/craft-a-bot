@@ -833,6 +833,19 @@ export {
 	type PointKind
 } from './types/guardrail-component.js';
 export {
+	DOSSIER_MEASURES,
+	decisionDossierDigest,
+	decisionDossierSchema,
+	dossierMeasureIdSchema,
+	dossierMeasureSchema,
+	dossierVerdictSchema,
+	parseDecisionDossier,
+	type DecisionDossier,
+	type DossierMeasure,
+	type DossierMeasureId,
+	type DossierVerdict
+} from './schemas/dossier.js';
+export {
 	billSchema,
 	byNewestExperimentResult,
 	effectRecordSchema,

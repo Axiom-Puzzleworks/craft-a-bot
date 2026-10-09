@@ -76,6 +76,12 @@ import {
 import { sensorsFor, renderSensorsSummary, writeSensors } from './commands/sensors.js';
 import { renderStory, storyOf, type StoryFormat } from './commands/story.js';
 import { controlsFor, renderControlsSummary, writeControls } from './commands/controls.js';
+import {
+	dossierFiles,
+	dossiersFor,
+	thresholdsFromTable,
+	writeDossiers
+} from './commands/dossier.js';
 import { gateAnswer, gateServe } from './commands/gate.js';
 import {
 	agreementForFiles,
@@ -242,6 +248,7 @@ Usage:
       The Sensor Inventory (WP159): every event type a run can carry, its source, its
       readers and its optional fields; with --store, how many of each the store holds.
       list prints the counts and the open findings; export writes the table.
+  craftabot dossier [--evidence <dir>] [--out <dir>] [--check]
   craftabot controls list | export [--format json|markdown] [--out <file>] [--store <dir>] [--experiments <dir>]
       The Control Inventory (WP134): every control the installed packs ship, with its
       catalogue entries, where it is fitted (the shipped campaigns and --experiments),
@@ -1755,6 +1762,40 @@ ${renderEvaluations(report)}`);
 `
 						: text
 				);
+				return 0;
+			}
+			case 'dossier': {
+				// Plan 114 WP214: a decision dossier for every live design in the committed evidence.
+				const evidenceDir = stringFlag(args, 'evidence') ?? 'docs/evidence';
+				const out = stringFlag(args, 'out') ?? join(evidenceDir, 'dossiers');
+				const registry = createRegistry(await configFrom(args));
+				const at = stringFlag(args, 'at');
+				const runs = await dossiersFor({
+					evidenceDir,
+					...(at ? { generatedAt: at } : {}),
+					thresholds: thresholdsFromTable(
+						registry.getCalibrationTable('fs-bank/dossier-thresholds')
+					)
+				});
+				if (args.flags['check'] === true) {
+					const wanted = dossierFiles(runs, out);
+					const stale = [...wanted.keys()].filter(
+						(path) =>
+							!existsSync(path) ||
+							readFileSync(path, 'utf8').replace(/\r\n/g, '\n') !== wanted.get(path)
+					);
+					if (stale.length > 0) {
+						io.stderr(
+							`dossier: ${stale.length} file(s) out of date, e.g. ${stale[0]}; run craftabot dossier\n`
+						);
+						return 1;
+					}
+					io.stdout(`dossier: ${wanted.size} files are what the committed evidence folds to\n`);
+					return 0;
+				}
+				const written = await writeDossiers(runs, out);
+				for (const { dossier } of runs) io.stdout(`${dossier.verdict.padEnd(9)} ${dossier.id}\n`);
+				io.stdout(`dossier: ${runs.length} dossiers, ${written.length} files under ${out}\n`);
 				return 0;
 			}
 			case 'benchmark': {
