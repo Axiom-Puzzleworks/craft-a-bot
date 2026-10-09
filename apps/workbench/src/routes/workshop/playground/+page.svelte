@@ -101,7 +101,9 @@
 	const sourceOf = (row: CalibrationRow): string =>
 		row.source.kind === 'publication'
 			? `${row.source.publisher} — ${row.source.title} (${row.source.edition}); ${row.source.table}`
-			: `stated assumption — ${row.note ?? ''}`;
+			: row.source.kind === 'measurement'
+				? `measured on ${row.source.model} (${row.source.recording}), n = ${row.source.n} — ${row.note ?? ''}`
+				: `${row.role === 'stress' ? 'stress rate, a stated assumption' : 'stated assumption'} — ${row.note ?? ''}`;
 	const calibrationColumns = [
 		{ id: 'row', label: 'Row', kind: 'text' as const },
 		{ id: 'kind', label: 'Kind', kind: 'text' as const },

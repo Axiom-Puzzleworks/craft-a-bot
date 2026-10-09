@@ -1,6 +1,5 @@
 import {
 	createPackRegistry,
-	parseProviderCassette,
 	toSpecV2,
 	type AnyAgentSpec,
 	type Book,
@@ -9,6 +8,8 @@ import {
 	type ExecutorRecord,
 	type PackManifest,
 	type ProviderCassetteFile,
+	type ProviderRecordingFile,
+	parseAnyProviderCassette,
 	type WorkflowConfig
 } from '@craftabot/core';
 import { createMockProvider } from '@craftabot/core/testing';
@@ -60,13 +61,16 @@ export interface CampaignHostDeps {
 class CancelledError extends Error {}
 
 /** The cassettes the page handed over, parsed once, as the runner's synchronous `cassetteFor`. */
-function cassetteFrom(handed: Record<string, unknown>): (path: string) => ProviderCassetteFile {
-	const parsed = new Map<string, ProviderCassetteFile>();
+function cassetteFrom(
+	handed: Record<string, unknown>
+): (path: string) => ProviderCassetteFile | ProviderRecordingFile {
+	const parsed = new Map<string, ProviderCassetteFile | ProviderRecordingFile>();
 	return (path) => {
 		const cached = parsed.get(path);
 		if (cached) return cached;
 		if (!(path in handed)) throw new Error(`the cassette ${path} was not handed to the Worker`);
-		const file = parseProviderCassette(handed[path]);
+		// Either version: a cell-scoped recording (`113-…`, version 2) is what the live tier is committed as.
+		const file = parseAnyProviderCassette(handed[path]).file;
 		parsed.set(path, file);
 		return file;
 	};

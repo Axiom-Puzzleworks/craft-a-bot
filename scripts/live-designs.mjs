@@ -66,8 +66,37 @@ export const LIVE = [
 	{ base: 'fraud-stack', size: 6, trials: 2 }
 ];
 
-export const liveIdOf = ({ base, variant, seat }) =>
-	`${base}-live${seat ? '-seat' : ''}${variant ? `-${variant}` : ''}`;
+/**
+ * WP198: the designs of the oversight suite. Each derives from a base design like the others, but names the person at the bank's
+ * decisions — the reviewer model that refuses, asks first and is late (`fs-bank/reviewer/person-at-approval`) — and the autonomy
+ * levels to compare: the person at the decision and the bot with the go-ahead its own (where a stack's approval is the only person
+ * left). `rules-only` is left out: it has no bot to oversee, and a live design costs cells.
+ */
+export const OVERSIGHT = [
+	{
+		id: 'lending-oversight-live',
+		base: 'lending-stack',
+		size: 800,
+		trials: 2,
+		reviewer: 'fs-bank/reviewer/person-at-approval',
+		executors: ['bot-with-a-person-at-the-decision', 'bot-everywhere']
+	},
+	{
+		id: 'complaints-oversight-live',
+		base: 'complaints-stack',
+		size: 200,
+		trials: 2,
+		reviewer: 'fs-bank/reviewer/person-at-approval',
+		executors: ['bot-with-a-person-at-approval', 'bot-everywhere'],
+		baselineExecutors: 'bot-everywhere'
+	}
+];
+
+/** The designs a suite records: its own list where it names one, else the ten of the first suites. */
+export const designsOf = (suite) => (suite.designs === 'oversight' ? OVERSIGHT : LIVE);
+
+export const liveIdOf = ({ id, base, variant, seat }) =>
+	id ?? `${base}-live${seat ? '-seat' : ''}${variant ? `-${variant}` : ''}`;
 
 export function cassettePathOf(entry, cassetteRoot, suite = SUITES.giant) {
 	const id = liveIdOf(entry);
@@ -86,6 +115,19 @@ export function liveDesign(entry, cassetteRoot, suite = SUITES.giant) {
 	d.hypothesis = `${base.hypothesis} Here the decisions are made by a live model, \`${suite.cartridge}\` (${suite.model} on the builder's DGX Sparks), at temperature 0 with a ${MAX_TOKENS}-token reply limit, over a book of ${entry.size}: a single sample, recorded once and replayed from its cassette. The design's scripted and fallible columns are \`${entry.base}\`.`;
 	d.design.factors = d.design.factors.filter((factor) => factor.axis !== 'brain');
 	delete d.design.baseline.brain;
+	// WP198: a person at the decisions. The reviewer model goes on every build; the executors factor lists the levels to compare.
+	if (entry.reviewer)
+		d.design.template.builds = d.design.template.builds.map((build) => ({
+			...build,
+			overrides: { ...build.overrides, reviewer: entry.reviewer }
+		}));
+	if (entry.executors) {
+		d.design.factors = d.design.factors.filter((factor) => factor.axis !== 'executors');
+		d.design.factors.push({ axis: 'executors', levels: entry.executors });
+		d.design.baseline.executors =
+			entry.baselineExecutors ?? d.design.baseline.executors ?? entry.executors.at(-1);
+		d.hypothesis = `${d.hypothesis} The person at the decisions is the reviewer model \`${entry.reviewer}\`, who refuses an approval one time in twelve, asks a question first one time in eight and is late one time in ten.`;
+	}
 	d.design.template.brains = [
 		{
 			id: 'live',
@@ -128,7 +170,7 @@ function main(args) {
 	const dir = join(ROOT, suite.experimentsDir);
 	if (!check) mkdirSync(dir, { recursive: true });
 	let bad = 0;
-	for (const entry of LIVE) {
+	for (const entry of designsOf(suite)) {
 		const file = join(dir, `${liveIdOf(entry)}.json`);
 		const wanted = text(liveDesign(entry, cassetteRoot, suite));
 		if (check) {

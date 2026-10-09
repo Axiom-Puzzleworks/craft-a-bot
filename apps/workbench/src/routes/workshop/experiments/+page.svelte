@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { resolve } from '$app/paths';
+	import { base, resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import {
 		parseExperimentResult,
@@ -20,6 +20,12 @@
 	import { appStorage } from '$lib/state/app-storage.svelte.js';
 	import { campaignRunner } from '$lib/state/campaign-runner-app.svelte.js';
 	import { isoAt } from '$lib/workshop/pipeline.js';
+	import {
+		fetchLiveDesign,
+		fetchLiveResult,
+		loadLiveIndex,
+		type LiveRecording
+	} from '$lib/workshop/live-recordings.js';
 	import {
 		bandText,
 		deltaText,
@@ -205,6 +211,46 @@
 		}
 	}
 
+	// ---- the live recordings the site serves (WP196's remainder, 114) ----------
+	let live = $state.raw<LiveRecording[]>([]);
+	let liveNote = $state('');
+	$effect(() => {
+		void loadLiveIndex(base).then((rows) => (live = rows));
+	});
+	/** Open a recorded result: held to its digest, stored like an imported one, and selected. */
+	async function openLive(recording: LiveRecording): Promise<void> {
+		try {
+			const recorded = await fetchLiveResult(base, recording);
+			const storage = await appStorage();
+			await storage.putExperimentResult(recorded);
+			await loadResults();
+			selectedId = recorded.id;
+			liveNote = `Opened ${recorded.title} — ${recorded.verdict}.`;
+		} catch (error) {
+			liveNote = error instanceof Error ? error.message : String(error);
+		}
+	}
+	/** Replay a recorded design in the Worker from its cassette: no model, no key, the recorded answers. */
+	async function replayLive(recording: LiveRecording): Promise<void> {
+		try {
+			const experiment = await fetchLiveDesign(base, recording);
+			const expandedLive = expandExperiment(experiment);
+			const queued: string[] = [];
+			for (const campaign of expandedLive.campaigns) {
+				const entry = campaignRunner.enqueue(campaign);
+				if (typeof entry === 'string') {
+					liveNote = entry;
+					return;
+				}
+				queued.push(entry.id);
+			}
+			pending = { experiment: expandedLive.experiment, queued };
+			liveNote = `Replaying ${recording.id}: ${expandedLive.campaigns.length} campaigns from the recording; the result lands when every report has.`;
+		} catch (error) {
+			liveNote = error instanceof Error ? error.message : String(error);
+		}
+	}
+
 	async function analyse(experiment: Experiment): Promise<void> {
 		if (analysing) return;
 		analysing = true;
@@ -248,6 +294,41 @@
 			/>
 		</label>
 		{#if importNote}<p class="hint" data-testid="experiment-import-note">{importNote}</p>{/if}
+		{#if live.length > 0}
+			<details class="live" data-testid="live-recordings">
+				<summary>Live recordings ({live.length}) — a model in the brain’s seat, recorded</summary>
+				<p class="hint">
+					Each was made once on the builder’s DGX Sparks and is replayed from its cassette: no model
+					is called and no key is used. Open the recorded result, or replay the design here.
+				</p>
+				<table>
+					<thead>
+						<tr
+							><th>Design</th><th>Model</th><th>Recorded</th><th>Cells</th><th>Verdict</th><th
+							></th></tr
+						>
+					</thead>
+					<tbody>
+						{#each live as row (row.id)}
+							<tr data-testid="live-row-{row.id}">
+								<td>{row.id}{row.suite === 'oversight' ? ' (a person at the decisions)' : ''}</td>
+								<td>{row.model}</td>
+								<td>{row.recordedOn}</td>
+								<td>{row.cells}{row.trials > 1 ? ` · ${row.trials} performances` : ''}</td>
+								<td>{row.verdict}</td>
+								<td>
+									<button type="button" onclick={() => openLive(row)}>Open the result</button>
+									<button type="button" onclick={() => replayLive(row)} disabled={running}
+										>Replay here</button
+									>
+								</td>
+							</tr>
+						{/each}
+					</tbody>
+				</table>
+				{#if liveNote}<p class="hint" data-testid="live-note">{liveNote}</p>{/if}
+			</details>
+		{/if}
 		{#if results.length > 0}
 			<label class="picker">
 				Result

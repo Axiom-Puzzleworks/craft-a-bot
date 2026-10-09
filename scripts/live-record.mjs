@@ -38,7 +38,7 @@ import {
 } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { LIVE, liveIdOf } from './live-designs.mjs';
+import { designsOf, liveIdOf } from './live-designs.mjs';
 import { suiteFrom, trialsOf } from './live-suite.mjs';
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -174,8 +174,9 @@ function readdirSyncSafe(path) {
 }
 
 async function one(id, { replayOnly = false, trials, trial, resume = false } = {}) {
-	const entry = LIVE.find((e) => liveIdOf(e) === id);
-	if (!entry) throw new Error(`no live design "${id}"; known: ${LIVE.map(liveIdOf).join(', ')}`);
+	const entry = designsOf(SUITE).find((e) => liveIdOf(e) === id);
+	if (!entry)
+		throw new Error(`no live design "${id}"; known: ${designsOf(SUITE).map(liveIdOf).join(', ')}`);
 	const file = `${SUITE.experimentsDir}/${id}.json`;
 	const dest = join(OUT, id);
 	const work = join(WORK, id);
@@ -324,9 +325,9 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
 	// `--all` (not replay-only) is the plan: pass 0 of every design, then pass 1 of every design performed twice, and so on, so a stopped
 	// run leaves every design recorded once before any is recorded twice (113 §12). `--resume` skips a pass already on disk.
 	if (args.includes('--all') && !replayOnly) {
-		const most = Math.max(...LIVE.map((e) => trialsOf(e, SUITE)));
+		const most = Math.max(...designsOf(SUITE).map((e) => trialsOf(e, SUITE)));
 		for (let pass = 0; pass < most; pass += 1)
-			for (const entry of LIVE) {
+			for (const entry of designsOf(SUITE)) {
 				const k = trialsOf(entry, SUITE);
 				if (pass >= k) continue;
 				await one(liveIdOf(entry), {
@@ -337,7 +338,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
 		process.exit(0);
 	}
 	const ids = args.includes('--all')
-		? LIVE.map(liveIdOf)
+		? designsOf(SUITE).map(liveIdOf)
 		: args.filter((a) => !a.startsWith('--') && !(flagValues.has(a) && /^\d+$/.test(a)));
 	if (ids.length === 0) {
 		console.error(

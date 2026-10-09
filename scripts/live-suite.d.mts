@@ -10,6 +10,8 @@ export interface LiveSuite {
 	recordingsDir: string;
 	workDir: string;
 	trials?: number;
+	/** The oversight suite names its own designs (WP198). */
+	designs?: string;
 }
 export const SUITES: Record<string, LiveSuite>;
 export function suiteFrom(

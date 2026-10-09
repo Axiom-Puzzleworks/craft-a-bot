@@ -5,6 +5,8 @@ import { compareReplay, effectKey, replayProblems } from '../../../../scripts/li
 import { SUITES, suiteFrom, trialsOf } from '../../../../scripts/live-suite.mjs';
 import {
 	LIVE,
+	OVERSIGHT,
+	designsOf,
 	liveDesign,
 	liveIdOf,
 	CARTRIDGE,
@@ -288,5 +290,40 @@ describe('the comparison of the two suites (113 §12)', () => {
 		);
 		expect(text).toContain('100% / 90%');
 		expect(text).toContain('3% / 10%');
+	});
+});
+
+/**
+ * **The oversight suite** (WP198, `114-DECISIONS-UNDER-PRESSURE-PLAN.md`): the lending and complaints journeys with the reviewer model of
+ * a person who says no at the decisions, over the levels where a person sits, on the 122B, in folders of its own.
+ */
+describe('the oversight suite', () => {
+	const suite = SUITES.oversight!;
+
+	it('is a suite of its own with the 122B, and the first two suites do not list its designs', () => {
+		expect(suite.model).toBe(SUITES.giant!.model);
+		expect(designsOf(suite)).toBe(OVERSIGHT);
+		expect(designsOf(SUITES.giant!)).toBe(LIVE);
+		expect(designsOf(SUITES.quick!)).toBe(LIVE);
+		expect(LIVE.some((entry) => OVERSIGHT.includes(entry))).toBe(false);
+	});
+
+	it('names a person who refuses, asks and is late at every build, and only the levels with a person', () => {
+		for (const entry of OVERSIGHT) {
+			const design = liveDesign(entry, undefined, suite);
+			expect(design.id).toBe(liveIdOf(entry));
+			for (const build of design.design.template.builds)
+				expect(build.overrides.reviewer).toBe('fs-bank/reviewer/person-at-approval');
+			const executors = design.design.factors.find((f: { axis: string }) => f.axis === 'executors');
+			expect(executors.levels).toEqual(entry.executors);
+			expect(executors.levels).not.toContain('rules-only');
+			expect(design.design.baseline.executors).toBe(
+				entry.baselineExecutors ?? entry.executors!.at(-1)
+			);
+			expect(design.design.trials).toBe(2);
+			expect(design.design.template.brains[0].cassette).toBe(
+				`docs/evidence/live-oversight/${liveIdOf(entry)}/${liveIdOf(entry)}.provider-cassette.json`
+			);
+		}
 	});
 });

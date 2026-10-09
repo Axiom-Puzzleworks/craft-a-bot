@@ -28,6 +28,23 @@ export const calibrationSourceSchema = z.discriminatedUnion('kind', [
 		retrieved: z.string().regex(/^\d{4}-\d{2}-\d{2}$/)
 	}),
 	z.object({
+		/**
+		 * A rate read off a live recording (`114-DECISIONS-UNDER-PRESSURE-PLAN.md` WP197): the result it came from, the model that
+		 * answered, what was counted and the interval. One sample of one model on this synthetic bank, never a statement about the model.
+		 */
+		kind: z.literal('measurement'),
+		/** The experiment result's id the figure was read from. */
+		recording: z.string().min(1),
+		/** The model that was the brain. */
+		model: z.string().min(1),
+		/** The items the rate is over. */
+		n: z.number().int().positive(),
+		/** The 95% interval of the rate in the row's `distribution.wrong`. */
+		interval: z.tuple([z.number().min(0).max(1), z.number().min(0).max(1)]),
+		/** ISO date the recording was made. */
+		retrieved: z.string().regex(/^\d{4}-\d{2}-\d{2}$/)
+	}),
+	z.object({
 		kind: z.literal('assumption'),
 		/** ISO date the assumption was stated. */
 		retrieved: z.string().regex(/^\d{4}-\d{2}-\d{2}$/)
@@ -61,7 +78,12 @@ export const calibrationRowSchema = z.object({
 	note: z.string().optional(),
 	/** The calibration test's allowed absolute deviation per category, on the marginal. */
 	tolerance: z.number().gt(0).lt(1),
-	review: calibrationReviewSchema
+	review: calibrationReviewSchema,
+	/**
+	 * What the row is for, where it is not a description of the world: `stress` — a planted rate set high enough for a campaign of a few
+	 * hundred cases to see a control move it, kept beside the measured one (WP197), never read as how often a model errs.
+	 */
+	role: z.literal('stress').optional()
 });
 export type CalibrationRow = z.infer<typeof calibrationRowSchema>;
 

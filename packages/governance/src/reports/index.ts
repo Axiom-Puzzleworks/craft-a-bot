@@ -119,7 +119,11 @@ export {
 export {
 	controlEffectiveness,
 	type ControlEffectivenessHeadline,
-	type ControlEffectivenessRow
+	type ControlEffectivenessRow,
+	type ControlLiveColumn,
+	type ControlLiveEffect,
+	type ControlPrice,
+	type LiveRunSource
 } from './control-effectiveness.js';
 /** The Control Inventory (WP133, `110-CONTROL-SUITE-PLAN.md` §4): one row per control instance, eight facets. */
 export {

@@ -77,6 +77,31 @@ describe('the campaign runner store', () => {
 		expect(typeof runner.enqueue({})).toBe('string');
 		expect(runner.queue).toEqual([]);
 	});
+
+	it('accepts a live brain only when the host serves cassettes and the brain names one', () => {
+		const withCassette = injectionBaseline([1]);
+		withCassette.brains.push({
+			id: 'live',
+			tier: 'live',
+			cartridgeId: 'openai/gpt',
+			cassette: 'docs/evidence/live/x/x.provider-cassette.json'
+		} as never);
+		const noCassettes = createCampaignRunner({ spawn, persist: async () => {} });
+		expect(noCassettes.enqueue(withCassette)).toBe(
+			'a campaign with a live brain runs from the harness, not here'
+		);
+		const serving = createCampaignRunner({
+			spawn: () => new Promise(() => {}) as never,
+			persist: async () => {},
+			cassettes: () => new Promise(() => {})
+		});
+		expect(typeof serving.enqueue(withCassette)).toBe('object');
+		const unnamed = injectionBaseline([1]);
+		unnamed.brains.push({ id: 'live', tier: 'live', cartridgeId: 'openai/gpt' } as never);
+		expect(serving.enqueue(unnamed)).toBe(
+			'a campaign with a live brain runs from the harness, not here'
+		);
+	});
 });
 
 /** A book's workflow runs reach the store with their agent runs (WP86, `77-…` §3), one per cell, each with its item. */

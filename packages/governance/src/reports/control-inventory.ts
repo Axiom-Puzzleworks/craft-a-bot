@@ -20,7 +20,7 @@ import {
 } from '@craftabot/core';
 import { CONTROL_MECHANISMS } from '../controls/mechanisms.js';
 import { GOVERNANCE_GUARDRAIL_IDS } from './control-map.js';
-import type { ControlEffectivenessRow } from './control-effectiveness.js';
+import type { ControlEffectivenessRow, ControlPrice } from './control-effectiveness.js';
 
 /**
  * **The Control Inventory** (WP133, `110-CONTROL-SUITE-PLAN.md` §4): one row
@@ -150,6 +150,19 @@ export interface ControlInventoryRow {
 		metricId?: string;
 		/** WP150: the stack whose verdict this is, when the control's own rows have none — measured as part of that stack, not alone. */
 		via?: ControlRef;
+		/**
+		 * WP196: the best verdict over the live recordings (a live model as the brain), read apart from the scripted and fallible
+		 * tiers' — with the models that answered and what the control cost. One sample of one model, never a ranking.
+		 */
+		live?: {
+			state: 'evidenced' | 'inconclusive' | 'untestable';
+			/** The model whose effect is quoted (the largest n); the others the control was measured on follow. */
+			model: string;
+			alsoOn: string[];
+			delta: number;
+			metricId: string;
+			price?: ControlPrice;
+		};
 	};
 	reviewed: {
 		state: 'accepted' | 'amended' | 'rejected' | 'unread' | 'not-applicable';
@@ -798,13 +811,35 @@ export function controlInventory(input: ControlInventoryInput): ControlInventory
 			.filter((each): each is ControlEffectivenessRow => each !== undefined)
 			.sort((a, b) => EFFECT_RANK[a.status] - EFFECT_RANK[b.status]);
 		const best = found[0];
+		// WP196: the live column, read apart — the best live verdict over the same rows, with its model and its price.
+		const liveFound = found
+			.flatMap((each) => (each.live ? [each.live] : []))
+			.sort((a, b) => EFFECT_RANK[a.status] - EFFECT_RANK[b.status]);
+		const liveBest = liveFound[0];
+		const liveEffect = liveBest ? [...liveBest.effects].sort((a, b) => b.n - a.n)[0] : undefined;
+		const live: ControlInventoryRow['effect']['live'] | undefined =
+			liveBest && liveEffect
+				? {
+						state: liveBest.status,
+						model: liveEffect.model,
+						alsoOn: [...new Set(liveBest.effects.map((each) => each.model))]
+							.filter((each) => each !== liveEffect.model)
+							.sort(),
+						delta: liveEffect.delta,
+						metricId: liveEffect.metricId,
+						...(liveEffect.price ? { price: liveEffect.price } : {})
+					}
+				: undefined;
 		row.effect = best
 			? {
 					state: best.status,
 					controlIds: found
 						.filter((each) => each.status === best.status)
 						.map((each) => each.controlId),
-					...(best.headline ? { delta: best.headline.delta, metricId: best.headline.metricId } : {})
+					...(best.headline
+						? { delta: best.headline.delta, metricId: best.headline.metricId }
+						: {}),
+					...(live ? { live } : {})
 				}
 			: { state: 'untested', controlIds: [] };
 	}
@@ -968,7 +1003,16 @@ export function controlFacetWords(row: ControlInventoryRow): Record<InventoryFac
 			: row.effect.delta !== undefined
 				? `${row.effect.state} ${signedDelta(row.effect.delta)}${row.effect.metricId ? ` (${row.effect.metricId})` : ''}`
 				: row.effect.state;
-	const effect = row.effect.via ? `${verdict}, via ${row.effect.via}` : verdict;
+	const viaWords = row.effect.via ? `${verdict}, via ${row.effect.via}` : verdict;
+	const live = row.effect.live;
+	// WP196: the live column beside the tiers' own verdict, with its price: lost/stopped shares, arm to arm.
+	const effect = live
+		? `${viaWords}; live (${live.model}${live.alsoOn.length > 0 ? `; also ${live.alsoOn.join(', ')}` : ''}): ${live.state} ${signedDelta(live.delta)} (${live.metricId})${
+				live.price
+					? `, lost ${percent(live.price.lost.baseline)}→${percent(live.price.lost.treatment)}, stopped ${percent(live.price.stopped.baseline)}→${percent(live.price.stopped.treatment)}`
+					: ''
+			}`
+		: viaWords;
 	const reviewed =
 		row.reviewed.state === 'not-applicable'
 			? '—'

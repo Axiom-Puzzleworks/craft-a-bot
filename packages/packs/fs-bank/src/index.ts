@@ -13,6 +13,7 @@ import {
 	CALIBRATION,
 	DECK_WEIGHTS,
 	ERROR_RATES,
+	ERROR_RATES_MEASURED,
 	REVIEWER_RATES,
 	bankReviewerModels
 } from './calibration/index.js';
@@ -49,6 +50,7 @@ const manifest: PackManifest = {
 		DECK_WEIGHTS,
 		BOOK_INCIDENCES,
 		ERROR_RATES,
+		ERROR_RATES_MEASURED,
 		REVIEWER_RATES,
 		BILL_RATES,
 		COMPLICATIONS
@@ -80,6 +82,7 @@ export {
 	PERSON_AT_APPROVAL_REVIEWER_ID,
 	DECK_WEIGHTS,
 	ERROR_RATES,
+	ERROR_RATES_MEASURED,
 	REVIEWER_RATES,
 	bankReviewerModels,
 	everyNth,

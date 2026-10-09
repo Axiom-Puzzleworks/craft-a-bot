@@ -248,6 +248,13 @@ jobs:
         run: node scripts/live-column.mjs --suite quick --check
       - name: Check the 122B and 35B comparison is the one the two suites give
         run: node scripts/live-compare.mjs --check
+      # WP198 (114 §6): the oversight suite — a person who says no at a lending and a complaints decision, on the 122B.
+      - name: Check the oversight designs against their base designs
+        run: node scripts/live-designs.mjs --suite oversight --check
+      - name: Replay the oversight suite from its cassettes
+        run: node scripts/live-check.mjs --suite oversight
+      - name: Check the measured error rates are the ones the live results give (WP197)
+        run: node scripts/measured-error-rates.mjs --check
 
       # WP123 (106-BENCHMARK.md §6): every guard over the seven adversarial corpora, the stand-ins unmeasured.
       - name: Run the reference benchmark

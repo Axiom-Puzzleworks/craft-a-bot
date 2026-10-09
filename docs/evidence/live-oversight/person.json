@@ -1,0 +1,81 @@
+[
+	{
+		"design": "complaints-oversight-live",
+		"arm": "executors=bot-everywhere--guard=none",
+		"draws": 0,
+		"paths": {},
+		"late": 0,
+		"seconds": 0
+	},
+	{
+		"design": "complaints-oversight-live",
+		"arm": "executors=bot-everywhere--guard=policy-cards",
+		"draws": 46,
+		"paths": {
+			"approved": 38,
+			"asked": 4,
+			"refused": 4
+		},
+		"late": 6,
+		"seconds": 6900
+	},
+	{
+		"design": "complaints-oversight-live",
+		"arm": "executors=bot-with-a-person-at-approval--guard=none",
+		"draws": 0,
+		"paths": {},
+		"late": 0,
+		"seconds": 0
+	},
+	{
+		"design": "complaints-oversight-live",
+		"arm": "executors=bot-with-a-person-at-approval--guard=policy-cards",
+		"draws": 42,
+		"paths": {
+			"approved": 36,
+			"asked": 4,
+			"refused": 2
+		},
+		"late": 6,
+		"seconds": 6240
+	},
+	{
+		"design": "lending-oversight-live",
+		"arm": "executors=bot-everywhere--guard=none",
+		"draws": 0,
+		"paths": {},
+		"late": 0,
+		"seconds": 0
+	},
+	{
+		"design": "lending-oversight-live",
+		"arm": "executors=bot-everywhere--guard=policy-cards",
+		"draws": 11,
+		"paths": {
+			"approved": 10,
+			"refused": 1
+		},
+		"late": 3,
+		"seconds": 1560
+	},
+	{
+		"design": "lending-oversight-live",
+		"arm": "executors=bot-with-a-person-at-the-decision--guard=none",
+		"draws": 0,
+		"paths": {},
+		"late": 0,
+		"seconds": 0
+	},
+	{
+		"design": "lending-oversight-live",
+		"arm": "executors=bot-with-a-person-at-the-decision--guard=policy-cards",
+		"draws": 311,
+		"paths": {
+			"approved": 258,
+			"asked": 29,
+			"refused": 24
+		},
+		"late": 31,
+		"seconds": 54540
+	}
+]
