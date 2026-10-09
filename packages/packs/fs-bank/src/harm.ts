@@ -1,9 +1,4 @@
-import type {
-	EngineEvent,
-	EvaluationInput,
-	EvaluationResult,
-	Evaluator
-} from '@craftabot/core';
+import type { EngineEvent, EvaluationInput, EvaluationResult, Evaluator } from '@craftabot/core';
 
 /**
  * **How bad a wrong decision is** (plan 114 WP201, G176–G177), once for the desks that decide with `decide { outcome }` against a verdict in
