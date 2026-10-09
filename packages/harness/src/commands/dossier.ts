@@ -5,7 +5,9 @@ import type { CalibrationTable, DecisionDossier, ExperimentResult } from '@craft
 import {
 	DEFAULT_DOSSIER_THRESHOLDS,
 	decisionDossier,
+	recommendationFrom,
 	renderDossierMarkdown,
+	renderRecommendationMarkdown,
 	type DossierThresholds
 } from '@craftabot/governance/reports';
 import { liveRecordings } from './controls.js';
@@ -147,3 +149,32 @@ function dossierIndex(runs: readonly DossierRun[]): string {
 }
 
 export const dossiersExist = (dir: string): boolean => existsSync(join(dir, 'README.md'));
+
+/** What `craftabot recommend` writes, as path → text: a recommendation per dossier, as JSON and as a page, and an index. */
+export function recommendationFiles(runs: readonly DossierRun[], dir: string): Map<string, string> {
+	const files = new Map<string, string>();
+	const rows: string[] = [];
+	for (const { dossier, designId } of runs) {
+		const recommendation = recommendationFrom(dossier);
+		const base = join(dir, `${designId}.${modelTag(dossier.model)}.recommendation`);
+		files.set(`${base}.json`, `${JSON.stringify(recommendation, null, '\t')}\n`);
+		files.set(`${base}.md`, renderRecommendationMarkdown(recommendation));
+		rows.push(
+			`| [${designId}](${designId}.${modelTag(dossier.model)}.recommendation.md) | ${modelTag(dossier.model)} | **${recommendation.posture}** | ${dossier.verdict} |`
+		);
+	}
+	files.set(
+		join(dir, 'README.md'),
+		[
+			'# Recommendations',
+			'',
+			'Written by `craftabot recommend` from the decision dossiers (plan 114 WP213); do not edit by hand. A posture is a reading of a dossier and never more than it shows: where accuracy, reliability and harm are not all shown, a person stays on every decision. About this synthetic bank and one sample of one model; it transfers as method and shape, never as magnitude.',
+			'',
+			'| Design | Model | Posture | Dossier |',
+			'|---|---|---|---|',
+			...rows,
+			''
+		].join('\n')
+	);
+	return files;
+}

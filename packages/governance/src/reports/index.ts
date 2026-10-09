@@ -236,3 +236,6 @@ export {
 	type DossierInput,
 	type DossierThresholds
 } from './dossier.js';
+
+/** The recommendation (plan 114 WP213): a dossier read into one of four postures. */
+export { recommendationFrom, renderRecommendationMarkdown } from './recommendation.js';

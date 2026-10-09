@@ -1,0 +1,102 @@
+{
+	"$id": "https://craftabot.dev/schemas/recommendation.schema.json",
+	"title": "Craft A Bot recommendation (v1)",
+	"description": "What a decision dossier lets a bank do with a decision: one of four postures, the reasons, what evidence would move it, and the dossier it rests on by id and digest; a digest (plan 114 WP213).",
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"type": "object",
+	"properties": {
+		"schemaVersion": {
+			"type": "number",
+			"const": 1
+		},
+		"id": {
+			"type": "string",
+			"minLength": 1
+		},
+		"subject": {
+			"type": "string",
+			"minLength": 1
+		},
+		"decisionKind": {
+			"type": "string",
+			"minLength": 1
+		},
+		"model": {
+			"type": "string",
+			"minLength": 1
+		},
+		"posture": {
+			"type": "string",
+			"enum": [
+				"delegate-within-ceilings",
+				"delegate-with-a-person-on-the-irreversible-step",
+				"keep-a-person-on-every-decision",
+				"do-not-delegate"
+			]
+		},
+		"because": {
+			"type": "array",
+			"items": {
+				"type": "string"
+			}
+		},
+		"wouldShow": {
+			"type": "array",
+			"items": {
+				"type": "string"
+			}
+		},
+		"dossier": {
+			"type": "object",
+			"properties": {
+				"id": {
+					"type": "string",
+					"minLength": 1
+				},
+				"digest": {
+					"type": "string",
+					"pattern": "^[0-9a-f]{64}$"
+				},
+				"verdict": {
+					"type": "string",
+					"enum": [
+						"fit",
+						"not-fit",
+						"not-shown"
+					]
+				}
+			},
+			"required": [
+				"id",
+				"digest",
+				"verdict"
+			]
+		},
+		"caveat": {
+			"type": "string"
+		},
+		"generatedAt": {
+			"type": "string",
+			"format": "date-time",
+			"pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d(?::[0-5]\\d(?:\\.\\d+)?)?(?:Z))$"
+		},
+		"digest": {
+			"type": "string",
+			"pattern": "^[0-9a-f]{64}$"
+		}
+	},
+	"required": [
+		"schemaVersion",
+		"id",
+		"subject",
+		"decisionKind",
+		"model",
+		"posture",
+		"because",
+		"wouldShow",
+		"dossier",
+		"caveat",
+		"generatedAt",
+		"digest"
+	]
+}

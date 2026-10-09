@@ -146,6 +146,12 @@ export async function artefactSchemas() {
 			description:
 				'A pre-registered hypothesis, a campaign template, the factors over its axes with a baseline level each, the metrics with their good direction, the seeds — and the campaign ids the design expands to (72-EXPERIMENTS.md §3).'
 		},
+		recommendation: {
+			schema: core.recommendationSchema,
+			title: 'Craft A Bot recommendation (v1)',
+			description:
+				'What a decision dossier lets a bank do with a decision: one of four postures, the reasons, what evidence would move it, and the dossier it rests on by id and digest; a digest (plan 114 WP213).'
+		},
 		'decision-dossier': {
 			schema: core.decisionDossierSchema,
 			title: 'Craft A Bot decision dossier (v1)',

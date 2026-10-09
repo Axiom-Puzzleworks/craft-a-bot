@@ -833,6 +833,15 @@ export {
 	type PointKind
 } from './types/guardrail-component.js';
 export {
+	RECOMMENDATION_POSTURES,
+	parseRecommendation,
+	recommendationDigest,
+	recommendationPostureSchema,
+	recommendationSchema,
+	type Recommendation,
+	type RecommendationPosture
+} from './schemas/recommendation.js';
+export {
 	DOSSIER_MEASURES,
 	decisionDossierDigest,
 	decisionDossierSchema,

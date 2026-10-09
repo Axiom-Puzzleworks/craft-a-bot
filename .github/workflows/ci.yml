@@ -259,6 +259,8 @@ jobs:
         run: node scripts/measured-habits.mjs --check
       - name: Check the decision dossiers are what the committed evidence folds to (plan 114 WP214)
         run: npm run craftabot -- dossier --check
+      - name: Check the recommendations are what the dossiers say (plan 114 WP213)
+        run: npm run craftabot -- recommend --check
 
       # WP123 (106-BENCHMARK.md §6): every guard over the seven adversarial corpora, the stand-ins unmeasured.
       - name: Run the reference benchmark
