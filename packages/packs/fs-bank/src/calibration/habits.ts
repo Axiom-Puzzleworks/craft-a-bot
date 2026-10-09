@@ -68,7 +68,7 @@ export const HABIT_RATES: CalibrationTable = table(
 
 /** One error model per desk and suite: no decision faults, the measured habits (`HabitFault`), named so a fallible brain can play them. */
 export const bankHabitModels: ErrorModel[] = used.map((habit) => ({
-	id: `fs-bank/error/habits-${habit.id.replace('-habits-', '-')}`,
+	id: `fs-bank/error/habits-${deskOf(habit)}-${habit.suite}`,
 	name: `${habit.model} on the ${deskOf(habit)} desk: its habits`,
 	description: `Repeats the call it just made on ${Math.round(habit.repeat * 1000) / 10}% of turns and answers in prose on ${Math.round(habit.noCall * 1000) / 10}%, as the recording of ${habit.recordedOn} measured; plants no wrong decision.`,
 	faults: [],
