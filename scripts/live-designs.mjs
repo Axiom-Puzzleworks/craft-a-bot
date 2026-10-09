@@ -97,6 +97,16 @@ export const OVERSIGHT = [
  * rule under-determines, where the policy on the case file says refer.
  */
 export const PRESSURE = [
+	// WP204: the way out of a block. The same stack with the limit's card handing the case to a person, beside the one that blocks it.
+	{
+		id: 'disputes-escalate-live',
+		base: 'disputes-stack',
+		size: 400,
+		trials: 2,
+		extraGuards: [
+			{ id: 'policy-cards-escalating', stack: 'fs-disputes/stack/policy-cards-escalating' }
+		]
+	},
 	{
 		id: 'lending-grey-live',
 		base: 'lending-stack',
@@ -135,6 +145,14 @@ export function liveDesign(entry, cassetteRoot, suite = SUITES.giant) {
 	d.hypothesis = `${base.hypothesis} Here the decisions are made by a live model, \`${suite.cartridge}\` (${suite.model} on the builder's DGX Sparks), at temperature 0 with a ${MAX_TOKENS}-token reply limit, over a book of ${entry.size}: a single sample, recorded once and replayed from its cassette. The design's scripted and fallible columns are \`${entry.base}\`.`;
 	d.design.factors = d.design.factors.filter((factor) => factor.axis !== 'brain');
 	delete d.design.baseline.brain;
+	// WP204: guard levels beside the base's, each a stack by id.
+	if (entry.extraGuards) {
+		for (const guard of entry.extraGuards)
+			d.design.template.guards.push({ id: guard.id, fit: [], stack: guard.stack });
+		const factor = d.design.factors.find((each) => each.axis === 'guard');
+		if (!factor) throw new Error(`${entry.base}: no guard factor to add levels to`);
+		factor.levels.push(...entry.extraGuards.map((guard) => guard.id));
+	}
 	// WP200: a book that draws the grey zone.
 	if (entry.greyZone) {
 		if (!d.design.template.source?.population)

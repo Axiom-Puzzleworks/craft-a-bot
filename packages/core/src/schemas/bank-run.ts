@@ -91,7 +91,7 @@ export const bankRunSchema = z.object({
 			desk: z.string(),
 			runId: z.string(),
 			digest: z.string(),
-			outcome: z.enum(['completed', 'stopped', 'abandoned', 'handed-off'])
+			outcome: z.enum(['completed', 'stopped', 'abandoned', 'handed-off', 'escalated'])
 		})
 	),
 	/** The clock's, never the wall's. */

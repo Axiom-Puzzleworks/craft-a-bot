@@ -4,7 +4,7 @@ import { DISPUTES_CORPUS } from './corpora/index.js';
 import { DISPUTE_WORDS_READER } from './words-reader.js';
 import { DISPUTES_READERS } from './readers.js';
 import type { PackManifest } from '@craftabot/core';
-import { disputesPolicyCards } from './cards/policy.js';
+import { WITHIN_THE_LIMIT_ESCALATES, disputesPolicyCards } from './cards/policy.js';
 import { disputesControlMap } from './controls/rows.js';
 import { disputesGoalCards } from './decks/goal-cards.js';
 import { disputesScenarios } from './decks/scenarios.js';
@@ -55,7 +55,11 @@ export const fsDisputesPack: PackManifest = {
 			campaign: () => disputesBookCampaign()
 		}
 	],
-	policyCards: [...disputesPolicyCards, REIMBURSEMENT_WAITS_FOR_THE_FILE],
+	policyCards: [
+		...disputesPolicyCards,
+		WITHIN_THE_LIMIT_ESCALATES,
+		REIMBURSEMENT_WAITS_FOR_THE_FILE
+	],
 	evaluators: disputesEvaluators,
 	// WP154: the fallible tier's error model.
 	errorModels: disputesErrorModels,

@@ -214,7 +214,13 @@ export const predicateExprSchema: z.ZodType<PredicateExpr> = z.lazy(() =>
 	])
 );
 
-export const policyDispositionSchema = z.enum(['block-action', 'stop-run', 'require-approval']);
+export const policyDispositionSchema = z.enum([
+	'block-action',
+	'stop-run',
+	'require-approval',
+	// Plan 114 WP204: refuse the act and hand the case to a person; the run ends there, not in a retry loop.
+	'escalate'
+]);
 export type PolicyDisposition = z.infer<typeof policyDispositionSchema>;
 
 export const policyRuleSchema = z.object({

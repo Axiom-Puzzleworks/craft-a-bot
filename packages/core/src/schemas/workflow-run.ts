@@ -147,7 +147,8 @@ export const workflowRunSchema = z.object({
 	startedAt: z.string(),
 	finishedAt: z.string(),
 	/** `handed-off` (WP102): the journey ended by handing its item on to another; `handoff` says which. */
-	outcome: z.enum(['completed', 'stopped', 'abandoned', 'handed-off']),
+	// `escalated` (plan 114 WP204): a guardrail refused an act and handed the case to a person; the journey ends there, neither failed nor finished.
+	outcome: z.enum(['completed', 'stopped', 'abandoned', 'handed-off', 'escalated']),
 	/** The handoff this run ended with (WP102, `83-…` §6.5.3): the target journey and the item it was handed — the item, never the desk state. */
 	handoff: z
 		.object({

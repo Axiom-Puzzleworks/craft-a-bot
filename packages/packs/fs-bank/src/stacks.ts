@@ -134,6 +134,11 @@ export interface DeskStacksOptions {
 	safety: DeskSafety;
 	/** The cards the baseline's Safety brick names, as objects (their rules' hooks decide the fits). */
 	cards: readonly PolicyCard[];
+	/**
+	 * The same cards with the ones that block fitted to `escalate` instead (plan 114 WP204): a stack of its own, `policy-cards-escalating`,
+	 * so the way out of a block is measured against the block. Absent, no such stack.
+	 */
+	escalating?: readonly PolicyCard[];
 	/** The classifier the `+local-classifier` guard fits; absent, no such stack. */
 	localClassifier?: string;
 	/**
@@ -188,6 +193,15 @@ export function deskStacks(options: DeskStacksOptions): Stack[] {
 			base
 		)
 	];
+	if (options.escalating)
+		stacks.push(
+			stack(
+				'policy-cards-escalating',
+				`${options.deskName}: the cards, escalating`,
+				'The same cards, the ones that block handing the case to a person instead: the run ends there rather than in a retry loop (plan 114 WP204).',
+				[...safetyFits(options.safety), ...cardFits(options.escalating)]
+			)
+		);
 	if (options.localClassifier)
 		stacks.push(
 			stack(

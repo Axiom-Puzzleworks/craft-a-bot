@@ -175,6 +175,8 @@ function compileRule(card: PolicyCard, rule: PolicyRule, index: number): Guardra
 					return { allow: false, reason: rule.reason, disposition: 'block-action' };
 				case 'stop-run':
 					return { allow: false, reason: rule.reason, disposition: 'stop-run' };
+				case 'escalate':
+					return { allow: false, reason: rule.reason, disposition: 'escalate' };
 				case 'require-approval':
 					return { pause: true, reason: rule.reason };
 			}

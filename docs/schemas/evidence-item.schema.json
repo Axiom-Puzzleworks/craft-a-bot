@@ -2664,7 +2664,8 @@
 																					"type": "string",
 																					"enum": [
 																						"block-action",
-																						"stop-run"
+																						"stop-run",
+																						"escalate"
 																					]
 																				},
 																				"cause": {
@@ -2814,7 +2815,8 @@
 																	"type": "string",
 																	"enum": [
 																		"block-action",
-																		"stop-run"
+																		"stop-run",
+																		"escalate"
 																	]
 																},
 																"cause": {
@@ -4009,7 +4011,8 @@
 																							"stop-run",
 																							"pause",
 																							"redact",
-																							"annotate"
+																							"annotate",
+																							"escalate"
 																						]
 																					},
 																					"componentId": {
@@ -6731,7 +6734,8 @@
 																				"type": "string",
 																				"enum": [
 																					"block-action",
-																					"stop-run"
+																					"stop-run",
+																					"escalate"
 																				]
 																			},
 																			"cause": {
@@ -6881,7 +6885,8 @@
 																"type": "string",
 																"enum": [
 																	"block-action",
-																	"stop-run"
+																	"stop-run",
+																	"escalate"
 																]
 															},
 															"cause": {
@@ -8076,7 +8081,8 @@
 																						"stop-run",
 																						"pause",
 																						"redact",
-																						"annotate"
+																						"annotate",
+																						"escalate"
 																					]
 																				},
 																				"componentId": {
@@ -9293,7 +9299,8 @@
 								"completed",
 								"stopped",
 								"abandoned",
-								"handed-off"
+								"handed-off",
+								"escalated"
 							]
 						},
 						"handoff": {
@@ -9737,7 +9744,8 @@
 																"stop-run",
 																"pause",
 																"redact",
-																"annotate"
+																"annotate",
+																"escalate"
 															]
 														},
 														"componentId": {
@@ -12154,7 +12162,8 @@
 																		"type": "string",
 																		"enum": [
 																			"block-action",
-																			"stop-run"
+																			"stop-run",
+																			"escalate"
 																		]
 																	},
 																	"cause": {
@@ -12304,7 +12313,8 @@
 														"type": "string",
 														"enum": [
 															"block-action",
-															"stop-run"
+															"stop-run",
+															"escalate"
 														]
 													},
 													"cause": {
@@ -13499,7 +13509,8 @@
 																				"stop-run",
 																				"pause",
 																				"redact",
-																				"annotate"
+																				"annotate",
+																				"escalate"
 																			]
 																		},
 																		"componentId": {
@@ -14301,7 +14312,8 @@
 											"completed",
 											"stopped",
 											"abandoned",
-											"handed-off"
+											"handed-off",
+											"escalated"
 										]
 									}
 								},

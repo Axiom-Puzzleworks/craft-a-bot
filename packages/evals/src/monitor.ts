@@ -450,7 +450,12 @@ export function foldMonitor(runs: readonly MonitorRun[], options: MonitorOptions
 	const incidents: MonitorIncident[] = [];
 	for (const entry of ordered) {
 		// A handed-off run (WP102) finished its part; the target's run is its own entry.
-		if (entry.run.outcome !== 'completed' && entry.run.outcome !== 'handed-off') {
+		// An escalation (plan 114 WP204) is the control working, a case handed to a person: not an incident.
+		if (
+			entry.run.outcome !== 'completed' &&
+			entry.run.outcome !== 'handed-off' &&
+			entry.run.outcome !== 'escalated'
+		) {
 			const failed = entry.run.stages.find(
 				(stage) => stage.status === 'error' || stage.status === 'blocked'
 			);

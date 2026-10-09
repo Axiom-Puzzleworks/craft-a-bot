@@ -10,6 +10,8 @@ export interface LiveEntry {
 	reviewer?: string;
 	/** Plan 114 WP200: the book draws the grey zone. */
 	greyZone?: boolean;
+	/** Plan 114 WP204: guard levels added to the base's, each a stack by id. */
+	extraGuards?: Array<{ id: string; stack: string }>;
 	/** Plan 114 WP201: a harm index over a graded evaluator. */
 	harm?: { evaluatorId: string; weights: Record<string, number> };
 	executors?: string[];

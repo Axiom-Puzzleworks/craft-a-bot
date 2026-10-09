@@ -724,7 +724,7 @@ export const campaignCellSchema = z.object({
 			workflowId: z.string().optional(),
 			configuration: z.string().optional(),
 			autonomy: z.number().int().min(1).max(5).optional(),
-			outcome: z.enum(['completed', 'stopped', 'abandoned', 'handed-off']),
+			outcome: z.enum(['completed', 'stopped', 'abandoned', 'handed-off', 'escalated']),
 			/** The handoff the run ended with (WP102): the target journey and the item; the cell's own run is the source's. */
 			handoff: z.object({ to: z.string(), itemId: z.string() }).optional(),
 			stages: z.array(
@@ -1953,7 +1953,8 @@ async function runBookCell(
 	const outcome: RunOutcome =
 		run.outcome === 'completed' || run.outcome === 'handed-off'
 			? 'SUCCESS'
-			: run.stages.some((stage) => stage.status === 'blocked')
+			: // A guardrail escalated the case to a person (plan 114 WP204): the control acted and the cell ends there.
+				run.outcome === 'escalated' || run.stages.some((stage) => stage.status === 'blocked')
 				? 'STOPPED_BY_GUARDRAIL'
 				: 'ERROR';
 	const replay = finishCellReplay(

@@ -1,6 +1,10 @@
 import type { Stack } from '@craftabot/core';
 import { FALLBACK, FALLBACK_CARD_ID, deskStacks } from '@craftabot/pack-fs-bank';
-import { DISPUTES_POLICY_CARD_IDS, disputesPolicyCards } from './cards/policy.js';
+import {
+	DISPUTES_POLICY_CARD_IDS,
+	disputesEscalatingCards,
+	disputesPolicyCards
+} from './cards/policy.js';
 import { disputesControlMap } from './controls/rows.js';
 import { MATCHED_PAIR_SCENARIO, disputesScenarios } from './decks/scenarios.js';
 import {
@@ -226,6 +230,7 @@ export const disputesStacks: Stack[] = deskStacks({
 	deskName: 'Disputes Desk',
 	safety: { maxTicks: 20, blockedActions: [], approval: 'off' },
 	cards: [...disputesPolicyCards, FALLBACK],
+	escalating: [...disputesEscalatingCards, FALLBACK],
 	localClassifier: 'guard-local/llama-guard',
 	obligations: ['psr:app-reimbursement', 'fca:cd:support'],
 	controls: disputesControlMap.rows.map((row) => `${disputesControlMap.id}/${row.ref}`)

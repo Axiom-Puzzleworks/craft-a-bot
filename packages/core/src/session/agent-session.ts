@@ -1004,10 +1004,15 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 					refused = message;
 				}
 			} else if (!('allow' in preAct.verdict && preAct.verdict.allow)) {
-				const message = `You tried to ${decision.call.name}, but a safety rule stopped you: ${preAct.verdict.reason}`;
+				const escalated = preAct.verdict.disposition === 'escalate';
+				const message = escalated
+					? `You tried to ${decision.call.name}, but a safety rule stopped you and has handed this case to a person: ${preAct.verdict.reason}`
+					: `You tried to ${decision.call.name}, but a safety rule stopped you: ${preAct.verdict.reason}`;
 				run.feedback.push(message);
 				refused = message;
-				if (preAct.verdict.disposition === 'stop-run') return finish('STOPPED_BY_GUARDRAIL');
+				// An escalation ends the run here (plan 114 WP204): the case is a person's now, and a bot that is refused again and again helps no one.
+				if (preAct.verdict.disposition === 'stop-run' || escalated)
+					return finish('STOPPED_BY_GUARDRAIL');
 			} else {
 				const { call, redacted } = redactedCall(decision, preAct);
 				acted = await performCall(call, attestationFor(), redacted);
