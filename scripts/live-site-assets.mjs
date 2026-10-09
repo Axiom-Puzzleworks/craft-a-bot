@@ -25,6 +25,11 @@ export const SERVED_SUITES = [
 		id: 'pressure',
 		experiments: 'experiments/live-pressure',
 		evidence: 'docs/evidence/live-pressure'
+	},
+	{
+		id: 'contract',
+		experiments: 'experiments/live-contract',
+		evidence: 'docs/evidence/live-contract'
 	}
 ];
 
