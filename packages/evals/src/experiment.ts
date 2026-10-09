@@ -291,7 +291,8 @@ export function campaignFor(experiment: Experiment, combination: LevelCombinatio
 				const name = factor.override ?? '';
 				// The level `none` leaves the override unset: the way a design names "as it was" as its baseline.
 				builds = builds.map((build) => {
-					const { [name]: _unset, ...rest } = (build.overrides ?? {}) as Record<string, unknown>;
+					const rest = { ...(build.overrides ?? {}) } as Record<string, unknown>;
+					delete rest[name];
 					return {
 						...build,
 						overrides: (level === 'none'
