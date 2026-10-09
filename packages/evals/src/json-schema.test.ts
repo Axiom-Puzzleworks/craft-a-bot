@@ -38,7 +38,7 @@ describe('docs/schemas', () => {
 		}
 	});
 
-	it('names twenty-three artefacts (the review since WP129), each with an $id, a title and a draft-2020-12 marker', () => {
+	it('names twenty-five artefacts (the decision dossier and the recommendation since plan 114), each with an $id, a title and a draft-2020-12 marker', () => {
 		expect(Object.keys(schemas).sort()).toEqual([
 			'bank-run',
 			'benchmark-report',
@@ -53,6 +53,7 @@ describe('docs/schemas', () => {
 			'craftabot-provider-recording',
 			'craftabot-scenarios',
 			'craftabot-trace',
+			'decision-dossier',
 			'domain',
 			'evaluation-record',
 			'evidence-item',
@@ -60,6 +61,7 @@ describe('docs/schemas', () => {
 			'experiment-result',
 			'guardrail-catalogue',
 			'reader',
+			'recommendation',
 			'review',
 			'stack',
 			'workflow-run'
