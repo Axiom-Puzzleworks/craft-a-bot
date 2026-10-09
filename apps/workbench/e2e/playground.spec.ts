@@ -60,7 +60,7 @@ test('the Advice Desk page generates a case with its suitable set under the flap
 	await expect(page.getByTestId('advice-decks').locator('tbody tr')).toHaveCount(31);
 	await expect(page.getByTestId('advice-cards').locator('li')).toHaveCount(7);
 	// WP145: each desk with a mandatory disclosure lists its disclosure evaluator.
-	await expect(page.getByTestId('advice-evaluators').locator('li')).toHaveCount(14);
+	await expect(page.getByTestId('advice-evaluators').locator('li')).toHaveCount(15);
 	await expect(page.locator('[data-testid^="advice-map-node-service-line-"]')).toHaveCount(1);
 });
 
@@ -106,7 +106,7 @@ test('the Lending Desk page generates a case with its verdict under the flap, an
 	await expect(page.getByTestId('lending-hidden').getByTestId('desk-truth-verdict')).toBeAttached();
 	await expect(page.getByTestId('lending-decks').locator('tbody tr')).toHaveCount(17);
 	await expect(page.getByTestId('lending-cards').locator('li')).toHaveCount(5);
-	await expect(page.getByTestId('lending-evaluators').locator('li')).toHaveCount(6);
+	await expect(page.getByTestId('lending-evaluators').locator('li')).toHaveCount(7);
 	await expect(page.locator('[data-testid^="lending-map-node-service-line-"]')).toHaveCount(1);
 });
 
@@ -145,7 +145,7 @@ test('the Onboarding Desk generates a case with the list under the flap, and lis
 	).toBeAttached();
 	await expect(page.getByTestId('onboarding-decks').locator('tbody tr')).toHaveCount(10);
 	await expect(page.getByTestId('onboarding-cards').locator('li')).toHaveCount(3);
-	await expect(page.getByTestId('onboarding-evaluators').locator('li')).toHaveCount(4);
+	await expect(page.getByTestId('onboarding-evaluators').locator('li')).toHaveCount(5);
 	await expect(page.locator('[data-testid^="onboarding-map-node-service-line-"]')).toHaveCount(1);
 });
 
@@ -166,7 +166,7 @@ test('the Disputes Desk generates a case with the rule under the flap, and lists
 	).toBeAttached();
 	await expect(page.getByTestId('disputes-decks').locator('tbody tr')).toHaveCount(11);
 	await expect(page.getByTestId('disputes-cards').locator('li')).toHaveCount(4);
-	await expect(page.getByTestId('disputes-evaluators').locator('li')).toHaveCount(5);
+	await expect(page.getByTestId('disputes-evaluators').locator('li')).toHaveCount(6);
 	await expect(page.locator('[data-testid^="disputes-map-node-service-line-"]')).toHaveCount(1);
 });
 
