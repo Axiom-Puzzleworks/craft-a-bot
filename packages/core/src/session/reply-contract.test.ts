@@ -181,3 +181,37 @@ describe('the reply contract (WP205)', () => {
 		});
 	});
 });
+
+/**
+ * **Escalate** (plan 114 WP204): a deny whose disposition is `escalate` refuses the act, tells the bot a person has the case, and ends
+ * the run at once — the way out of a block that would otherwise be retried until the turns ran out.
+ */
+describe('escalate (WP204)', () => {
+	it('refuses the act, says a person has the case, and ends the run stopped by the guard', async () => {
+		spoken.length = 0;
+		const clock = createTestClock();
+		const events: EngineEvent[] = [];
+		const session = createSession({
+			spec,
+			registry: registry(),
+			provider: createMockProvider({ script: [turn('Deciding.', 'decide', { outcome: 'x' })] }),
+			guardrails: [
+				{
+					id: 'test/escalates',
+					name: 'Escalates',
+					description: 'Hands every decision to a person.',
+					hooks: ['pre-act'],
+					check: () => ({ allow: false, reason: 'above the limit', disposition: 'escalate' })
+				}
+			],
+			options: { now: clock.now, newId: clock.newId, random: clock.random }
+		});
+		session.events.onAny((event) => events.push(event));
+		const tick = await session.step();
+		expect(tick.outcome).toBe('STOPPED_BY_GUARDRAIL');
+		const tripped = events.find((event) => event.type === 'guardrail.tripped');
+		expect(tripped?.payload).toMatchObject({ disposition: 'escalate', reason: 'above the limit' });
+		// The act was never performed.
+		expect(events.some((event) => event.type === 'action.performed')).toBe(false);
+	});
+});
