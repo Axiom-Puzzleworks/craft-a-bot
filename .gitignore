@@ -56,3 +56,6 @@ campaign-out/
 
 # The live runs' own stores and call logs (113-RECORDING-AND-RELIABILITY.md D1): local, never committed. The committed cassette regenerates a transcript by replay.
 recordings/
+
+# Live-run logs (scripts/live-record.mjs output kept beside the repo while a run is going)
+.live-*.log

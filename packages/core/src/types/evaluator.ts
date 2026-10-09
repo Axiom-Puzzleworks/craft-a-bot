@@ -56,6 +56,8 @@ export interface EvaluationResult {
 	/** What a dashboard reads, 0..1. */
 	score?: number;
 	label?: string;
+	/** How bad a failure is (plan 114 WP201): minor, material or unsafe. Absent on a pass and on an evaluator that does not grade harm. */
+	severity?: 'minor' | 'material' | 'unsafe';
 	explanation: string;
 	/** Which events the verdict rests on — never the whole trace. */
 	evidence: EvaluationEvidence[];

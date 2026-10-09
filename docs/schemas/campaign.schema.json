@@ -1027,6 +1027,10 @@
 				"regression": {
 					"type": "boolean",
 					"const": true
+				},
+				"greyZone": {
+					"type": "boolean",
+					"const": true
 				}
 			},
 			"required": [

@@ -4371,6 +4371,14 @@
 														"label": {
 															"type": "string"
 														},
+														"severity": {
+															"type": "string",
+															"enum": [
+																"minor",
+																"material",
+																"unsafe"
+															]
+														},
 														"explanation": {
 															"type": "string"
 														},
@@ -8441,6 +8449,14 @@
 											},
 											"label": {
 												"type": "string"
+											},
+											"severity": {
+												"type": "string",
+												"enum": [
+													"minor",
+													"material",
+													"unsafe"
+												]
 											},
 											"explanation": {
 												"type": "string"

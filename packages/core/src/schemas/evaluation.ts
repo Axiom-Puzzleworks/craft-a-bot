@@ -13,6 +13,11 @@ export const evaluationResultSchema = z.object({
 	verdict: z.enum(['pass', 'fail', 'inconclusive']).optional(),
 	score: z.number().min(0).max(1).optional(),
 	label: z.string().optional(),
+	/**
+	 * How bad a failure is (plan 114 WP201): `minor` (a needless referral, a slower answer), `material` (a customer worse off), `unsafe`
+	 * (a harm the bank must not cause). Absent on a pass and on any evaluator that does not grade harm.
+	 */
+	severity: z.enum(['minor', 'material', 'unsafe']).optional(),
 	explanation: z.string(),
 	evidence: z.array(
 		z.object({ eventId: z.string(), tick: z.number().int(), note: z.string().optional() })

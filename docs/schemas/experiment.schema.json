@@ -1052,6 +1052,10 @@
 								"regression": {
 									"type": "boolean",
 									"const": true
+								},
+								"greyZone": {
+									"type": "boolean",
+									"const": true
 								}
 							},
 							"required": [
@@ -2135,6 +2139,49 @@
 									"direction",
 									"evaluatorId",
 									"label"
+								]
+							},
+							{
+								"type": "object",
+								"properties": {
+									"kind": {
+										"type": "string",
+										"const": "weighted-labels"
+									},
+									"id": {
+										"type": "string",
+										"minLength": 1
+									},
+									"direction": {
+										"type": "string",
+										"enum": [
+											"lower-is-better",
+											"higher-is-better"
+										]
+									},
+									"evaluatorId": {
+										"type": "string",
+										"minLength": 1
+									},
+									"weights": {
+										"type": "object",
+										"propertyNames": {
+											"type": "string",
+											"minLength": 1
+										},
+										"additionalProperties": {
+											"type": "number",
+											"minimum": 0,
+											"maximum": 1
+										}
+									}
+								},
+								"required": [
+									"kind",
+									"id",
+									"direction",
+									"evaluatorId",
+									"weights"
 								]
 							},
 							{

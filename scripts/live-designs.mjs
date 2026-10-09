@@ -97,7 +97,18 @@ export const OVERSIGHT = [
  * rule under-determines, where the policy on the case file says refer.
  */
 export const PRESSURE = [
-	{ id: 'lending-grey-live', base: 'lending-stack', size: 800, trials: 2, greyZone: true }
+	{
+		id: 'lending-grey-live',
+		base: 'lending-stack',
+		size: 800,
+		trials: 2,
+		greyZone: true,
+		// WP201: the decision graded by how bad a wrong one is, and a harm index over the grades.
+		harm: {
+			evaluatorId: 'fs-lending/decision-harm',
+			weights: { none: 0, minor: 0.1, material: 0.5, unsafe: 1 }
+		}
+	}
 ];
 
 /** The designs a suite records: its own list where it names one, else the ten of the first suites. */
@@ -130,6 +141,19 @@ export function liveDesign(entry, cassetteRoot, suite = SUITES.giant) {
 			throw new Error(`${entry.base}: a grey-zone design needs a book to draw it in`);
 		d.design.template.source.greyZone = true;
 		d.hypothesis = `${d.hypothesis} The book draws the grey zone (plan 114 WP200): of the applications the plain rule would approve, some sit at its threshold, carry incomes that conflict, or have none verified, and the policy on the case file says refer for each.`;
+	}
+	// WP201: a harm index beside the agreement rate, over the evaluator that grades how bad a wrong decision is.
+	if (entry.harm) {
+		const template = d.design.template;
+		if (!template.evaluators.some((e) => e.id === entry.harm.evaluatorId))
+			template.evaluators.push({ id: entry.harm.evaluatorId });
+		d.design.metrics.push({
+			kind: 'weighted-labels',
+			id: 'harm',
+			direction: 'lower-is-better',
+			evaluatorId: entry.harm.evaluatorId,
+			weights: entry.harm.weights
+		});
 	}
 	// WP198: a person at the decisions. The reviewer model goes on every build; the executors factor lists the levels to compare.
 	if (entry.reviewer)

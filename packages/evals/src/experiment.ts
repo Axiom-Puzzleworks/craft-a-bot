@@ -117,6 +117,17 @@ export const experimentMetricSchema = z.discriminatedUnion('kind', [
 		evaluatorId: z.string().min(1),
 		label: z.string().min(1)
 	}),
+	/**
+	 * A **harm index** (plan 114 WP201): the mean over cells of a weight per label of a labelled evaluator, so a wrong approval can
+	 * count for more than a needless referral. Each weight is in [0, 1]; a label with none weighs nothing; a cell the evaluator did not
+	 * label is not counted.
+	 */
+	z.object({
+		kind: z.literal('weighted-labels'),
+		...metricBase,
+		evaluatorId: z.string().min(1),
+		weights: z.record(z.string().min(1), z.number().min(0).max(1))
+	}),
 	/** The mean of a world's per-case metric (`caseMetrics[name]`). */
 	z.object({ kind: z.literal('case-metric'), ...metricBase, name: z.string().min(1) }),
 	z.object({
@@ -394,6 +405,10 @@ const escalationRateOf = (cell: CampaignCell): number | undefined => {
 /** A number per cell for a mean metric, or `undefined` when the cell carries none. */
 function valueOf(metric: ExperimentMetric, cell: CampaignCell): number | undefined {
 	switch (metric.kind) {
+		case 'weighted-labels': {
+			const label = cell.labels[metric.evaluatorId];
+			return label === undefined ? undefined : (metric.weights[label] ?? 0);
+		}
 		case 'case-metric':
 			return cell.caseMetrics[metric.name];
 		case 'cost':
@@ -695,6 +710,7 @@ function differenceOf(
 		case 'label-rate':
 			return rateDifference(metric, baseline, treatment, confidence);
 		case 'case-metric':
+		case 'weighted-labels':
 		case 'cost':
 			return meanDifference(metric, baseline, treatment, confidence);
 		case 'fairness':
