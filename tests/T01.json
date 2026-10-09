@@ -1,0 +1,17 @@
+{
+	"schemaVersion": 1,
+	"id": "T01",
+	"title": "Where should the person sit?",
+	"question": "At which stage does a human reviewer buy the most error caught per minute spent, and does it change with the model’s error rate?",
+	"designs": [
+		"experiments/human-oversight.json",
+		"experiments/live-oversight/lending-oversight-live.json",
+		"experiments/live-oversight/complaints-oversight-live.json"
+	],
+	"reads": ["agreement", "breaches", "the bill"],
+	"informs": "The autonomy level per decision kind, and the ceiling table’s defence as a number.",
+	"status": "partly-run",
+	"evidence": ["human-oversight", "lending-oversight-live", "complaints-oversight-live"],
+	"note": "Two journeys, one model, a person who draws at stated rates. The finding so far: the person appears only where the policy cards ask for them, costs 33–37 times the bot’s spend a case, and has nothing to catch on this bank (both verdicts inconclusive). The other desks and the shaped tier are not run.",
+	"source": "docs/design-day2/112-REAL-ENOUGH-PLAN.md §9"
+}

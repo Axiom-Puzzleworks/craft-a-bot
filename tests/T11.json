@@ -1,0 +1,13 @@
+{
+	"schemaVersion": 1,
+	"id": "T11",
+	"title": "What does the Gate cost, and what does it catch, on a wire that is not ours?",
+	"question": "The Gate over a live gated agent under the five presets, shadow then enforce.",
+	"designs": [],
+	"reads": ["latency per call", "tokens", "catches", "false stops"],
+	"informs": "Whether a bank governs at the wire, in the agent, or both.",
+	"status": "not-run",
+	"evidence": [],
+	"note": "The Gate has governed only a scripted agent (plan 114 WP215).",
+	"source": "docs/design-day2/112-REAL-ENOUGH-PLAN.md §9"
+}

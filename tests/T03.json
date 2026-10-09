@@ -1,0 +1,17 @@
+{
+	"schemaVersion": 1,
+	"id": "T03",
+	"title": "Which guard, where, for what?",
+	"question": "On the live tier’s own errors and the adversary’s attacks, which stack layer catches which, and what does each cost?",
+	"designs": [
+		"experiments/live/disputes-stack-live.json",
+		"experiments/live/fraud-stack-live.json",
+		"experiments/live/lending-stack-live.json"
+	],
+	"reads": ["catch rate by attack kind", "tokens", "seconds", "pounds"],
+	"informs": "The stack per desk: the minimum layers that earn their price.",
+	"status": "partly-run",
+	"evidence": ["disputes-stack-live", "fraud-stack-live", "lending-stack-live"],
+	"note": "One layer (the cards) against none, on the live tier, priced by the register’s live column. The classifier, hosted guard and watchbot layers are not run live; the hosted guards need a key.",
+	"source": "docs/design-day2/112-REAL-ENOUGH-PLAN.md §9"
+}

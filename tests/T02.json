@@ -1,0 +1,16 @@
+{
+	"schemaVersion": 1,
+	"id": "T02",
+	"title": "Does a person at an approval help, or rubber-stamp?",
+	"question": "When the approver errs and sometimes refuses, what does approval-mode catch that the stack did not?",
+	"designs": [
+		"experiments/gate-presets.json",
+		"experiments/live-oversight/lending-oversight-live.json"
+	],
+	"reads": ["catches", "false refusals", "latency"],
+	"informs": "Whether approvals are a control or a cost on each desk; adaptive approval’s threshold.",
+	"status": "partly-run",
+	"evidence": ["gate-presets", "lending-oversight-live"],
+	"note": "Ask first reads evidenced on the Playroom (WP171); the lending oversight design is the first live reading on a bank decision. gate-presets has no live level.",
+	"source": "docs/design-day2/112-REAL-ENOUGH-PLAN.md §9"
+}

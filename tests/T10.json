@@ -1,0 +1,13 @@
+{
+	"schemaVersion": 1,
+	"id": "T10",
+	"title": "Does the monitor see the drift before the register does?",
+	"question": "With the book’s incidences moved mid-day, how many cases pass before drift fires?",
+	"designs": ["experiments/live-pressure/lending-conditions-live.json"],
+	"reads": ["detection delay in cases", "false alarms"],
+	"informs": "The drift windows and thresholds per metric.",
+	"status": "not-run",
+	"evidence": [],
+	"note": "drift-day exists on the scripted tier; the conditions designs (temperature) are the first step towards reading a model’s drift. Queued.",
+	"source": "docs/design-day2/112-REAL-ENOUGH-PLAN.md §9"
+}

@@ -1,0 +1,13 @@
+{
+	"schemaVersion": 1,
+	"id": "T04",
+	"title": "Does a decision check beat a sequence check?",
+	"question": "Does a card that checks the decision itself catch what a card that checks the order of calls does not?",
+	"designs": [],
+	"reads": ["agreement under the fallible and live tiers"],
+	"informs": "Whether a bank should encode its rule twice: once to decide, once to check.",
+	"status": "not-run",
+	"evidence": [],
+	"note": "Needs the decision card (112 WP180), not built.",
+	"source": "docs/design-day2/112-REAL-ENOUGH-PLAN.md §9"
+}

@@ -1,0 +1,13 @@
+{
+	"schemaVersion": 1,
+	"id": "T12",
+	"title": "How much of the bank can one person run?",
+	"question": "Across every journey at the configuration T1 recommends, what is the human load per thousand cases?",
+	"designs": [],
+	"reads": ["touches", "minutes", "pounds per thousand cases"],
+	"informs": "The bottom-up half of the question on axiom-verity.com.",
+	"status": "not-run",
+	"evidence": [],
+	"note": "Last, and waits on T1 and the payments desk.",
+	"source": "docs/design-day2/112-REAL-ENOUGH-PLAN.md §9"
+}
