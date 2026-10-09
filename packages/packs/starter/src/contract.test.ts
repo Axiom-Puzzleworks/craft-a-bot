@@ -252,6 +252,26 @@ const fixture: PackConformanceFixture = {
 				}
 			]
 		},
+		// Plan 114 WP206: the prompt carries what the stage is scored against.
+		'governance/context-assembly': {
+			config: { mustContain: ['rule:'], verdict: 'stop-run' },
+			verdicts: [
+				// No composed prompt (a reflex tick): nothing to check.
+				{ verdict: 'allow', context: guardrailContext('pre-think') },
+				{
+					verdict: 'annotate',
+					context: guardrailContext('pre-think', {
+						messages: [{ role: 'user', content: 'case file\nrule: refer' }]
+					})
+				},
+				{
+					verdict: 'stop-run',
+					context: guardrailContext('pre-think', {
+						messages: [{ role: 'user', content: 'case file with no rule' }]
+					})
+				}
+			]
+		},
 		'governance/secret-scan': {
 			config: {},
 			verdicts: [

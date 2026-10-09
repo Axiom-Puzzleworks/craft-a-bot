@@ -8,6 +8,7 @@ import { provenanceComponents } from '../components/provenance.js';
 import { privilegeScopesComponent } from '../components/privilege.js';
 import { peerAuthComponent } from '../components/peer-auth.js';
 import { boundsComponents } from '../components/bounds.js';
+import { contextAssemblyComponents } from '../components/context-assembly.js';
 import { integrityComponents } from '../components/integrity.js';
 import { checkCatalogue, checkEntry } from './check.js';
 import { CATALOGUE_ENTRIES, GUARDRAIL_CATALOGUE } from './entries.js';
@@ -34,7 +35,8 @@ const PACK: PackManifest = {
 		privilegeScopesComponent as never,
 		peerAuthComponent as never,
 		...(boundsComponents as unknown as never[]),
-		...(integrityComponents as unknown as never[])
+		...(integrityComponents as unknown as never[]),
+		...(contextAssemblyComponents as unknown as never[])
 	]
 } as unknown as PackManifest;
 

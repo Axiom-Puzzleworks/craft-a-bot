@@ -434,6 +434,27 @@ export const SECOND_EDITION_ENTRIES: CatalogueEntry[] = [
 		},
 		bankingRelevance: 'supporting'
 	}),
+	entry({
+		id: 'context-assembly',
+		name: 'Context assembly',
+		summary:
+			'What a bot is told — the rule, the records, the stage goal — checked against what it is scored on, and the prompt it read recorded by digest.',
+		category: 'component-hardening',
+		subcategory: 'context-integrity',
+		points: ['pre-think'],
+		maturity: 'emerging',
+		threats: ['LLM07'],
+		frameworks: ['owasp:llm07'],
+		sources: [OWASP_LLM],
+		coverage: {
+			status: 'shipped',
+			componentIds: ['governance/context-assembly'],
+			implementedBy: [],
+			note: 'governance/context-assembly checks at pre-think that the composed prompt carries the texts a stage is scored against and records the prompt’s digest on every turn, as an annotate finding, or stops the run (plan 114 WP206). Born of the largest effect the live suites measured: the desk brief was never in the prompt, and agreement on one desk went from 53% to 100% the day the rule was put on the case file. It checks the prompt, not the model: a rule that is in the prompt and misread is the evaluators’ to catch.',
+			since: 'WP206'
+		},
+		bankingRelevance: 'core'
+	}),
 	// ---------------------------------------------------------------- evaluation and assurance
 	entry({
 		id: 'calibration-monitoring',
