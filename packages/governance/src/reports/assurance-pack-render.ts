@@ -70,6 +70,17 @@ function campaignLines(campaign: AssuranceCampaign): string[] {
 	return lines;
 }
 
+/** WP196: one line for a control's live column — the model, the effect, the price — or undefined when none was measured live. */
+function liveLine(row: AssurancePack['mitigants']['effects'][number]): string | undefined {
+	const top = row.live ? [...row.live.effects].sort((a, b) => b.n - a.n)[0] : undefined;
+	if (!row.live || !top) return undefined;
+	const pct = (value: number): string => `${Math.round(value * 100)}%`;
+	const price = top.price
+		? `; cells lost ${pct(top.price.lost.baseline)} → ${pct(top.price.lost.treatment)}, stopped ${pct(top.price.stopped.baseline)} → ${pct(top.price.stopped.treatment)}, tokens a case ${Math.round(top.price.tokensPerCase.baseline)} → ${Math.round(top.price.tokensPerCase.treatment)}`
+		: '';
+	return `\`${row.controlId}\` — live (${top.model}): ${row.live.status}, ${top.metricId} ${signed(top.delta)} (${signed(top.interval[0])} – ${signed(top.interval[1])}, n = ${top.n}${top.underpowered ? ', underpowered' : ''})${price}`;
+}
+
 /** The markdown rendering: sections in SS1/23's order, ids cited after every number. */
 export function renderAssurancePackMarkdown(pack: AssurancePack): string {
 	const out: string[] = [];
@@ -193,6 +204,15 @@ export function renderAssurancePackMarkdown(pack: AssurancePack): string {
 		out.push(
 			`| \`${row.controlId}\` | ${row.controlMapRow?.obligation ?? row.obligations.join(', ')} | ${h ? `${h.metricId}: ${signed(h.delta)} (experiment \`${h.experimentId}\`${h.tier ? `, ${h.tier} tier` : ''})` : '—'} | ${h ? `${signed(h.interval[0])} – ${signed(h.interval[1])}` : '—'} | ${h ? `n = ${h.n}${h.underpowered ? ', underpowered' : ''}` : '—'} | ${row.coverage.experiments} experiment(s)${row.coverage.workflows.length > 0 ? `, ${row.coverage.workflows.join(', ')}` : ''} | ${row.status}${h ? ` ${cite([...new Set(row.effects.flatMap((effect) => effect.runIds))].slice(0, 6))}` : ''} |`
 		);
+	}
+	const liveLines = pack.mitigants.effects.flatMap((row) => liveLine(row) ?? []);
+	if (liveLines.length > 0) {
+		out.push('');
+		out.push(
+			'The live tier, read apart from the rows above (one sample of each model as the brain, never a ranking; the price is what the control cost in cells and tokens):'
+		);
+		out.push('');
+		for (const line of liveLines) out.push(`- ${line}`);
 	}
 	out.push('');
 	out.push('### Coverage');
@@ -477,6 +497,13 @@ ${table(
 		];
 	})
 )}
+${(() => {
+	const lines = pack.mitigants.effects.flatMap((row) => liveLine(row) ?? []);
+	return lines.length === 0
+		? ''
+		: `<p class="note">The live tier, read apart from the rows above (one sample of each model as the brain, never a ranking; the price is what the control cost in cells and tokens):</p>
+<ul>${lines.map((line) => `<li>${escape(line)}</li>`).join('')}</ul>`;
+})()}
 <h3>Coverage</h3>
 <p class="note">The Guardrail Catalogue, edition ${escape(pack.mitigants.coverage.edition)} (${pack.mitigants.coverage.entries} entries; ${pack.mitigants.coverage.reviewed} reviewed, ${pack.mitigants.coverage.pending} pending review): ${pack.mitigants.coverage.byStatus.shipped} shipped, ${pack.mitigants.coverage.byStatus.connectable} connectable, ${pack.mitigants.coverage.byStatus.bespoke} bespoke, ${pack.mitigants.coverage.byStatus.blueprint} blueprint, ${pack.mitigants.coverage.byStatus['not-applicable']} not applicable. What this product does <strong>not</strong> claim:</p>
 <ul>

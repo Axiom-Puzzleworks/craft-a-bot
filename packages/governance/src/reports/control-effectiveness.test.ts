@@ -213,4 +213,81 @@ describe('the register over fallible tiers (WP116, `103-FALLIBLE-ACTORS.md` §6)
 		expect(row?.headline).toMatchObject({ tier: 'fallible', delta: 0.1 });
 		expect(row?.headline?.untestable).toBeUndefined();
 	});
+
+	describe('the live column (WP196)', () => {
+		const ref = 'fs-lending/control-map/affordability-first';
+		const live = effect({
+			controlIds: [ref],
+			tier: 'live',
+			delta: 0.06,
+			interval: [0.01, 0.11],
+			cost: {
+				tokensPerCase: { baseline: 8000, treatment: 12000 },
+				approvalsPerCase: { baseline: 0, treatment: 1 },
+				escalationRate: { baseline: 0, treatment: 0 },
+				bill: {
+					baseline: {
+						tokens: 8000,
+						modelPounds: 0.03,
+						humanSeconds: 0,
+						humanPounds: 0,
+						pounds: 0.03
+					},
+					treatment: {
+						tokens: 12000,
+						modelPounds: 0.05,
+						humanSeconds: 0,
+						humanPounds: 0,
+						pounds: 0.05
+					}
+				}
+			}
+		});
+		const liveResult = result('lending-stack-live', [live]);
+		const cells = [
+			...Array.from({ length: 10 }, () => ({ campaign: 'guard=none', outcome: 'SUCCESS' })),
+			...Array.from({ length: 8 }, () => ({ campaign: 'guard=policy-cards', outcome: 'SUCCESS' })),
+			{ campaign: 'guard=policy-cards', outcome: 'STOPPED_BY_GUARDRAIL' },
+			{ campaign: 'guard=policy-cards', outcome: 'OUT_OF_STEPS' }
+		];
+
+		it('reads apart from the tiers: the live effect never becomes the headline or status of the row', () => {
+			const [row] = controlEffectiveness([liveResult], maps, {
+				liveRuns: [{ resultId: liveResult.id, model: 'M' }]
+			});
+			expect(row?.status).toBe('untested');
+			expect(row?.headline).toBeUndefined();
+			expect(row?.live?.status).toBe('evidenced');
+			expect(row?.live?.effects[0]).toMatchObject({ model: 'M', n: 200, delta: 0.06 });
+		});
+
+		it('leaves the scripted verdict as it was when a live effect joins it', () => {
+			const scripted = result('lending-stack', [effect({ controlIds: [ref] })]);
+			const [alone] = controlEffectiveness([scripted], maps);
+			const [both] = controlEffectiveness([scripted, liveResult], maps);
+			expect({ ...both, live: undefined }).toEqual({ ...alone, live: undefined });
+			expect(both?.live).toBeDefined();
+		});
+
+		it('prices the control from the cells of the run: the lost and stopped shares, arm to arm, and the bill', () => {
+			const [row] = controlEffectiveness([liveResult], maps, {
+				liveRuns: [{ resultId: liveResult.id, model: 'M', cells }]
+			});
+			expect(row?.live?.effects[0]?.price).toEqual({
+				cells: { baseline: 10, treatment: 10 },
+				lost: { baseline: 0, treatment: 0.1 },
+				stopped: { baseline: 0, treatment: 0.1 },
+				tokensPerCase: { baseline: 8000, treatment: 12000 },
+				poundsPerCase: { baseline: 0.03, treatment: 0.05 }
+			});
+		});
+
+		it('reads untestable when every live effect on the primary metric sits at a bound', () => {
+			const bound = result('lending-stack-live', [
+				{ ...live, untestable: true, delta: 0, interval: [0, 0] }
+			]);
+			const [row] = controlEffectiveness([bound], maps);
+			expect(row?.live?.status).toBe('untestable');
+		});
+	});
 });

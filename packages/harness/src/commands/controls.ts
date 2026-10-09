@@ -19,7 +19,8 @@ import {
 	readingSourcesFrom,
 	renderControlInventoryMarkdown,
 	type ControlInventoryExport,
-	type InventoryCampaignReport
+	type InventoryCampaignReport,
+	type LiveRunSource
 } from '@craftabot/governance/reports';
 import { createRegistry } from '../config.js';
 
@@ -78,9 +79,12 @@ export async function controlsFor(options: ControlsOptions): Promise<ControlInve
 				storage.listBenchmarkReports()
 			])
 		: [[], [], [], []];
+	const evidenceDir = options.evidenceDir ?? join('docs', 'evidence');
+	// WP196: the live suites' recordings (`live/`, `live-35b/`), with their models and cells, read as the register's live column.
+	const live = await liveRecordings(evidenceDir);
 	const results = [
 		...storedResults,
-		...(await committedResults(options.evidenceDir ?? join('docs', 'evidence'))).filter(
+		...[...(await committedResults(evidenceDir)), ...live.results].filter(
 			(result) => !storedResults.some((each) => each.id === result.id)
 		)
 	];
@@ -95,7 +99,7 @@ export async function controlsFor(options: ControlsOptions): Promise<ControlInve
 		campaigns,
 		summaries,
 		campaignReports,
-		register: controlEffectiveness(results, registry.listControlMaps()),
+		register: controlEffectiveness(results, registry.listControlMaps(), { liveRuns: live.runs }),
 		benchmarks,
 		reviews: reviewsFromContent(records),
 		errorModels: sources.errorModels ?? [],
@@ -116,6 +120,54 @@ export async function committedResults(dir: string): Promise<ExperimentResult[]>
 			results.push(parseExperimentResult(JSON.parse(await readFile(file, 'utf8')) as unknown));
 	}
 	return results.sort((a, b) => a.experimentId.localeCompare(b.experimentId));
+}
+
+/** The directories under `docs/evidence/` that hold a live suite: each design's folder inside, with a `timings.json` naming the model. */
+export const LIVE_SUITE_DIRS = ['live', 'live-35b'] as const;
+
+/** Retired live designs (`scripts/live-check.mjs`'s `RETIRED`): their evidence stays on disk, but they are not the suite the register reads. */
+const RETIRED_LIVE_DESIGNS = new Set(['lending-stack-live-b']);
+
+/**
+ * **The live recordings** (WP196, `114-DECISIONS-UNDER-PRESSURE-PLAN.md`): each design of each live suite — its result, held to its
+ * digest, with the model and day from the suite's `timings.json` and the cells of the run. A design with no timing (a retired one)
+ * is left out: its evidence stays on disk as the record of what it was, but it is not the suite.
+ */
+export async function liveRecordings(
+	dir: string
+): Promise<{ results: ExperimentResult[]; runs: LiveRunSource[] }> {
+	const results: ExperimentResult[] = [];
+	const runs: LiveRunSource[] = [];
+	for (const suite of LIVE_SUITE_DIRS) {
+		const timingsFile = join(dir, suite, 'timings.json');
+		if (!existsSync(timingsFile)) continue;
+		const timings = JSON.parse(await readFile(timingsFile, 'utf8')) as Record<
+			string,
+			{ recordedOn?: string; model?: string; cartridge?: string; wallSeconds?: number }
+		>;
+		for (const [id, timing] of Object.entries(timings).sort(([a], [b]) => a.localeCompare(b))) {
+			const file = join(dir, suite, id, `${id}.experiment-result.json`);
+			if (!existsSync(file) || timing.model === undefined || RETIRED_LIVE_DESIGNS.has(id)) continue;
+			const result = parseExperimentResult(JSON.parse(await readFile(file, 'utf8')) as unknown);
+			const cellsFile = join(dir, suite, id, 'cells.json');
+			const cells = existsSync(cellsFile)
+				? (JSON.parse(await readFile(cellsFile, 'utf8')) as Array<{
+						campaign: string;
+						outcome: string;
+					}>)
+				: undefined;
+			results.push(result);
+			runs.push({
+				resultId: result.id,
+				model: timing.model,
+				...(timing.cartridge ? { cartridge: timing.cartridge } : {}),
+				...(timing.recordedOn ? { recordedOn: timing.recordedOn } : {}),
+				...(timing.wallSeconds !== undefined ? { wallSeconds: timing.wallSeconds } : {}),
+				...(cells ? { cells: cells.map(({ campaign, outcome }) => ({ campaign, outcome })) } : {})
+			});
+		}
+	}
+	return { results, runs };
 }
 
 export async function writeControls(

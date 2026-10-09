@@ -4,7 +4,7 @@ import { join, resolve } from 'node:path';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { main } from '../cli.js';
 import { defaultPacks } from '../config.js';
-import { committedResults, controlsFor } from './controls.js';
+import { committedResults, controlsFor, liveRecordings } from './controls.js';
 
 /**
  * `craftabot controls list | export` (WP134, `110-CONTROL-SUITE-PLAN.md`
@@ -63,6 +63,29 @@ describe('craftabot controls', () => {
 			expect(effect(`component:governance/${id}`)?.state, id).toBe('evidenced');
 		expect(file.summary.evidenced).toBeGreaterThan(0);
 	}, 30_000); // reads every committed result; 5 s is not enough under a full `npm test`
+
+	it('reads the live suites as a column beside the tiers, with the model and the price (WP196)', async () => {
+		const live = await liveRecordings(EVIDENCE);
+		// Both suites, every design with a timing: ten from each, the retired lending variant left out.
+		expect(live.results.length).toBe(live.runs.length);
+		expect(new Set(live.runs.map((run) => run.model)).size).toBe(2);
+		expect(live.results.some((result) => result.experimentId === 'lending-stack-live-b')).toBe(
+			false
+		);
+		const file = await controlsFor({
+			packs: defaultPacks(),
+			experimentsDir: EXPERIMENTS,
+			evidenceDir: EVIDENCE,
+			generatedAt: '2026-10-09T00:00:00.000Z'
+		});
+		const withLive = file.rows.filter((row) => row.effect.live !== undefined);
+		expect(withLive.length).toBeGreaterThan(0);
+		// A live figure never replaces the tiers' own verdict: the row's state is still the scripted/fallible one.
+		expect(withLive.every((row) => (row.effect.live?.model.length ?? 0) > 0)).toBe(true);
+		// The price reads from the run's cells: some control names the arms it was measured between.
+		const priced = withLive.find((row) => row.effect.live?.price !== undefined);
+		expect(priced?.effect.live?.price?.cells.treatment).toBeGreaterThan(0);
+	}, 30_000);
 
 	it('lists one line per kind, and exports the table as markdown and JSON', async () => {
 		const lines: string[] = [];
