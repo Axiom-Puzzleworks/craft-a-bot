@@ -116,7 +116,8 @@ import {
 	type FallibleOptions,
 	type NoiseRates,
 	type CaseInfo,
-	type ResolvedFault
+	type ResolvedFault,
+	type ResolvedHabit
 } from './brains.js';
 import { scoreRun } from './metrics.js';
 import {
@@ -2684,6 +2685,26 @@ export function resolveErrorModel(
 	});
 }
 
+/** An error model's habits with their rates read from the calibration table (plan 114 WP203); none when the model names none. */
+export function resolveHabits(
+	registry: Pick<PackRegistry, 'getErrorModel' | 'getCalibrationTable'>,
+	id: string
+): ResolvedHabit[] {
+	const model = registry.getErrorModel(id);
+	if (!model) throw new Error(`no error model '${id}' is installed`);
+	return (model.habits ?? []).map((habit) => {
+		const table = registry.getCalibrationTable(habit.rate.table);
+		if (!table)
+			throw new Error(`error model '${id}': no calibration table '${habit.rate.table}' is installed`);
+		const rate = calibrationRow(table, habit.rate.row).distribution[habit.rate.key];
+		if (rate === undefined || !(rate >= 0 && rate <= 1))
+			throw new Error(
+				`error model '${id}': ${habit.rate.table}/${habit.rate.row} has no rate '${habit.rate.key}' in [0, 1]`
+			);
+		return { kind: habit.kind, rate };
+	});
+}
+
 /** The fallible tier's options for one cell and card: the model's faults, and a seed mixed from the cell's seed, ordinal and the card. */
 function fallibleFor(
 	brain: CampaignBrain,
@@ -2698,6 +2719,9 @@ function fallibleFor(
 		seed: Number.parseInt(sha256Hex(`${seed}|${ordinal}|${goalCardId}`).slice(0, 8), 16),
 		errorModelId: brain.errorModel,
 		faults: resolveErrorModel(registry, brain.errorModel),
+		...(resolveHabits(registry, brain.errorModel).length > 0
+			? { habits: resolveHabits(registry, brain.errorModel) }
+			: {}),
 		...(caseInfo ? { caseInfo } : {})
 	};
 }

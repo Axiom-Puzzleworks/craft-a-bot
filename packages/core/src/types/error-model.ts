@@ -14,6 +14,22 @@ export interface ErrorModel {
 	name: string;
 	description: string;
 	faults: DecisionFaultSpec[];
+	/**
+	 * **Habits** (plan 114 WP203): how a model fails other than by deciding wrongly — the things the live suites showed real models do.
+	 * A habit is played by the scripted tier at the rate a calibration row gives (measured from the recordings, never assumed), so a
+	 * control for a model's habit can be measured on the mock before the Sparks. Absent, the model plants decision faults only.
+	 */
+	habits?: HabitFault[];
+}
+
+/**
+ * - `repeat`: the call just made is made again, identically (a model repeating a refused act, or a lookup it already has).
+ * - `no-call`: a reply in prose where the desk needs a tool call (the 35B's habit on the conversational desks).
+ */
+export interface HabitFault {
+	kind: 'repeat' | 'no-call';
+	/** P(the habit shows on a turn): a calibration row's `distribution[key]`. */
+	rate: CalibrationRef;
 }
 
 /**

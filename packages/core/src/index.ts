@@ -600,7 +600,8 @@ export type {
 	CalibrationRef,
 	DecisionFaultSpec,
 	ErrorModel,
-	FaultShape
+	FaultShape,
+	HabitFault
 } from './types/error-model.js';
 export type { ReviewerModel } from './types/workflow.js';
 export {

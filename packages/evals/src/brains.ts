@@ -192,6 +192,12 @@ export function shapedRate(
 		: { rate: fault.rate };
 }
 
+/** A habit with its rate read from the calibration table (plan 114 WP203). */
+export interface ResolvedHabit {
+	kind: 'repeat' | 'no-call';
+	rate: number;
+}
+
 export interface FallibleOptions {
 	/** The cell's seed, mixed with the card: the same seed plants the same faults. */
 	seed: number;
@@ -199,9 +205,19 @@ export interface FallibleOptions {
 	faults: readonly ResolvedFault[];
 	/** The case the cell works, for a shaped fault (WP170); absent, every fault is at its base rate. */
 	caseInfo?: CaseInfo | undefined;
+	/**
+	 * The model's habits (plan 114 WP203): on each turn, in order, with its own seeded stream (so the decision faults' draws do not move), a habit shows
+	 * at its rate — the last call made again, or a prose reply — and the plan does not advance on that turn. None: the tier is as it was.
+	 */
+	habits?: readonly ResolvedHabit[];
 }
 
 const SHRUG_TURN: MockTurn = { text: 'I am not sure what to do next.', toolCall: null };
+/** What a `no-call` habit says in place of a call: prose, as the 35B did (plan 114 WP203). */
+const PROSE_TURN: MockTurn = {
+	text: 'Of course — let me help you with that. Could you tell me a little more?',
+	toolCall: null
+};
 const bareOf = (name: string): string => name.slice(name.lastIndexOf('/') + 1);
 
 /**
@@ -218,10 +234,51 @@ const bareOf = (name: string): string => name.slice(name.lastIndexOf('/') + 1);
 export function scriptedFallible(plan: Plan, options: FallibleOptions): MockScript {
 	const base = obedient(plan);
 	const random = mulberry32(options.seed);
+	const habitRandom = mulberry32(options.seed ^ 0x9e3779b9);
 	const next = (request: ChatRequest, index: number): MockTurn =>
 		typeof base === 'function' ? base(request, index) : (base[index] ?? SHRUG_TURN);
+	// Habits hold the plan back: the turn a habit shows is one the plan did not take.
+	let shift = 0;
+	let last: MockTurn | undefined;
+	const habitTurn = (request: ChatRequest): MockTurn | undefined => {
+		for (const habit of options.habits ?? []) {
+			const roll = habitRandom();
+			if (roll >= habit.rate) continue;
+			const draw = { rate: habit.rate, roll };
+			if (habit.kind === 'repeat') {
+				if (!last?.toolCall) continue;
+				shift += 1;
+				return {
+					...last,
+					fault: {
+						field: 'habit',
+						chose: 'repeat',
+						shouldHave: bareOf(last.toolCall.name),
+						errorModel: options.errorModelId,
+						draw
+					}
+				};
+			}
+			shift += 1;
+			return {
+				text: PROSE_TURN.text,
+				toolCall: null,
+				fault: {
+					field: 'habit',
+					chose: 'no-call',
+					shouldHave: request.messages.length > 0 ? 'a tool call' : 'a tool call',
+					errorModel: options.errorModelId,
+					draw
+				}
+			};
+		}
+		return undefined;
+	};
 	return (request, index) => {
-		const planned = next(request, index);
+		const habit = habitTurn(request);
+		if (habit) return habit;
+		const planned = next(request, index - shift);
+		if (planned.toolCall) last = planned;
 		const call = planned.toolCall;
 		if (!call) return planned;
 		const bare = bareOf(call.name);

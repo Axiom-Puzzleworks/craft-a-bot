@@ -255,6 +255,8 @@ jobs:
         run: node scripts/live-check.mjs --suite oversight
       - name: Check the measured error rates are the ones the live results give (WP197)
         run: node scripts/measured-error-rates.mjs --check
+      - name: Check the measured habits are the ones the cassettes give (plan 114 WP203)
+        run: node scripts/measured-habits.mjs --check
 
       # WP123 (106-BENCHMARK.md §6): every guard over the seven adversarial corpora, the stand-ins unmeasured.
       - name: Run the reference benchmark

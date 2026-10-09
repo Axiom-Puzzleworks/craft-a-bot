@@ -933,9 +933,10 @@ export function createSession(deps: CreateSessionDeps): AgentSession {
 				source: 'brain'
 			});
 			// A fault the fallible tier planted (WP115): said beside the decision it corrupts.
-			if (response.fault && decision.kind === 'call') {
+			if (response.fault) {
 				emit('decision.fault', {
-					action: decision.call.name,
+					// A habit that is the absence of a call (plan 114 WP203) has no action to name.
+					action: decision.kind === 'call' ? decision.call.name : '(no call)',
 					field: response.fault.field,
 					chose: response.fault.chose,
 					shouldHave: response.fault.shouldHave,
