@@ -1,3 +1,5 @@
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 import {
 	mergeProviderEntries,
 	parseProviderCassette,
@@ -85,7 +87,9 @@ describe('the live column in the Worker (WP172)', () => {
 		};
 		const loaded = await loadCassettes(campaignOver(CASSETTE), '/workshop', served as typeof fetch);
 		expect(urls).toEqual([`/workshop/cassettes/${CASSETTE}`]);
-		expect(loaded[CASSETTE]?.entries.length).toBe(cassette.entries.length);
+		expect((loaded[CASSETTE] as typeof cassette | undefined)?.entries.length).toBe(
+			cassette.entries.length
+		);
 		await expect(
 			loadCassettes(
 				campaignOver(CASSETTE),
@@ -122,4 +126,22 @@ describe('the live column in the Worker (WP172)', () => {
 		const none = await runCampaignIn(worker, campaignOver(CASSETTE)).result;
 		expect(none.cells.every((cell) => cell.error !== undefined)).toBe(true);
 	}, 120_000);
+
+	it('loads a cell-scoped recording (version 2), which is what the live tier is committed as', async () => {
+		const recording = JSON.parse(
+			readFileSync(
+				resolve(
+					import.meta.dirname,
+					'../../../../../docs/evidence/live/complaints-stack-live/complaints-stack-live.provider-cassette.json'
+				),
+				'utf8'
+			)
+		);
+		const loaded = await loadCassettes(
+			campaignOver(CASSETTE),
+			'',
+			(async () => new Response(JSON.stringify(recording), { status: 200 })) as typeof fetch
+		);
+		expect(loaded[CASSETTE]?.kind).toBe('provider-recording');
+	});
 });

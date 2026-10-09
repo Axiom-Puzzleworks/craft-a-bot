@@ -185,7 +185,13 @@ export function createCampaignRunner(deps: CampaignRunnerDeps) {
 		enqueue(source: unknown): QueuedCampaign | string {
 			const parsed = campaignSchema.safeParse(source);
 			if (!parsed.success) return parsed.error.issues[0]?.message ?? 'invalid campaign';
-			if (parsed.data.brains.some((brain) => brain.tier === 'live')) {
+			// A live brain is replayed here only from a recording the edition serves (WP172, the live column in the Workshop): it needs the
+			// host's `cassettes` and a cassette named on every live brain; otherwise it is refused as it always was.
+			if (
+				parsed.data.brains.some(
+					(brain) => brain.tier === 'live' && (!deps.cassettes || brain.cassette === undefined)
+				)
+			) {
 				return 'a campaign with a live brain runs from the harness, not here';
 			}
 			const entry: QueuedCampaign = {

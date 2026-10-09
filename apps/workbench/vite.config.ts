@@ -3,6 +3,8 @@ import adapter from '@sveltejs/adapter-static';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
 import { fileURLToPath } from 'node:url';
+import { extname } from 'node:path';
+import { liveSiteAssets } from '../../scripts/live-site-assets.mjs';
 
 /**
  * The edition (WP69, `59-EDITIONS.md` §4.2): `CAB_EDITION` names one of the
@@ -20,6 +22,56 @@ if (CAB_EDITION !== undefined && CAB_EDITION !== 'full' && !EDITION_IDS.includes
 }
 const edition = CAB_EDITION !== undefined && CAB_EDITION !== 'full' ? CAB_EDITION : undefined;
 
+/**
+ * The live tier, served from the site (WP196's remainder, `114-…`; `scripts/live-site-assets.mjs`): the committed live results, their
+ * designs and the cassettes the Worker replays them from, emitted beside the app in every edition that has the Workshop (the
+ * Simulator has no Experiments page), and served the same way by the dev server. `CAB_LIVE_ASSETS=0` leaves them out of a build.
+ */
+const repoRoot = fileURLToPath(new URL('../../', import.meta.url));
+const serveLiveTier = edition !== 'simulator' && process.env['CAB_LIVE_ASSETS'] !== '0';
+const liveAssets = {
+	name: 'craftabot-live-assets',
+	generateBundle(this: {
+		emitFile: (file: { type: 'asset'; fileName: string; source: string | Uint8Array }) => void;
+	}) {
+		if (!serveLiveTier) return;
+		for (const file of liveSiteAssets(repoRoot))
+			this.emitFile({ type: 'asset', fileName: file.fileName, source: file.source });
+	},
+	configureServer(server: {
+		middlewares: {
+			use: (
+				handler: (
+					req: { url?: string },
+					res: {
+						setHeader: (k: string, v: string) => void;
+						end: (body: string | Uint8Array) => void;
+						statusCode: number;
+					},
+					next: () => void
+				) => void
+			) => void;
+		};
+	}) {
+		if (!serveLiveTier) return;
+		let files: Map<string, string | Uint8Array> | undefined;
+		server.middlewares.use((req, res, next) => {
+			const path = (req.url ?? '')
+				.split('?')[0]!
+				.replace(/^\/(simulator|workshop|playground)(?=\/)/, '');
+			if (!/^\/(cassettes|live)\//.test(path)) return next();
+			files ??= new Map(liveSiteAssets(repoRoot).map((file) => [file.fileName, file.source]));
+			const body = files.get(decodeURIComponent(path.slice(1)));
+			if (body === undefined) return next();
+			res.setHeader(
+				'content-type',
+				extname(path) === '.json' ? 'application/json' : 'application/octet-stream'
+			);
+			res.end(body);
+		});
+	}
+};
+
 export default defineConfig({
 	envPrefix: ['VITE_', 'CAB_'],
 	// Vite's own default envDir is wherever this file lives, not the monorepo
@@ -29,6 +81,7 @@ export default defineConfig({
 	// there is silently never read.
 	envDir: fileURLToPath(new URL('../../', import.meta.url)),
 	plugins: [
+		liveAssets,
 		sveltekit({
 			compilerOptions: {
 				// Force runes mode for the project, except for libraries. Can be removed in svelte 6.

@@ -1,4 +1,8 @@
-import { parseProviderCassette, type ProviderCassetteFile } from '@craftabot/core';
+import {
+	parseAnyProviderCassette,
+	type ProviderCassetteFile,
+	type ProviderRecordingFile
+} from '@craftabot/core';
 
 /**
  * **A live brain's cassette, served from the edition** (WP172, `112-REAL-ENOUGH-PLAN.md`
@@ -29,8 +33,8 @@ export async function loadCassettes(
 	campaign: unknown,
 	base: string,
 	fetcher: typeof fetch = fetch
-): Promise<Record<string, ProviderCassetteFile>> {
-	const loaded: Record<string, ProviderCassetteFile> = {};
+): Promise<Record<string, ProviderCassetteFile | ProviderRecordingFile>> {
+	const loaded: Record<string, ProviderCassetteFile | ProviderRecordingFile> = {};
 	for (const path of cassettePathsOf(campaign)) {
 		const url = `${base}/${CASSETTE_DIRECTORY}/${path}`;
 		const response = await fetcher(url);
@@ -39,7 +43,7 @@ export async function loadCassettes(
 				`the cassette ${path} is not served by this edition (${response.status} at ${url}); a live brain is replayed from its recording or not run`
 			);
 		try {
-			loaded[path] = parseProviderCassette(await response.json());
+			loaded[path] = parseAnyProviderCassette(await response.json()).file;
 		} catch (error) {
 			throw new Error(
 				`${path} is not a provider cassette: ${error instanceof Error ? error.message.split('\n')[0] : String(error)}`,
