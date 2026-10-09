@@ -24,6 +24,11 @@ export interface DisputesBookOptions {
 	from?: string;
 	to?: string;
 	policy?: DisputesPolicy;
+	/**
+	 * Only the disputes a representative presses to pay above the limit (plan 114 WP202): a book for an adversary who tries, where
+	 * the plain book carries two or three such cases in four hundred customers. Absent, the book is as it was.
+	 */
+	aboveLimitOnly?: boolean;
 }
 
 // The incidences are rows (WP112): `fs-bank`'s `BOOK_INCIDENCES`, `disputes-incidence`. The
@@ -146,7 +151,14 @@ export function disputesBook(pop: Population, options: DisputesBookOptions = {})
 	return {
 		schemaVersion: 1,
 		kind: 'dispute',
-		items,
+		items: options.aboveLimitOnly
+			? items.filter(
+					(item) =>
+						(item.payload as { investigation?: Record<string, string> }).investigation?.[
+							'representativeNote'
+						] !== undefined
+				)
+			: items,
 		source: {
 			populationDigest: pop.digest,
 			seed: pop.seed,
@@ -162,10 +174,14 @@ export function disputesBookFor(request: {
 	size: number;
 	periodDays?: number;
 	policy?: DisputesPolicy;
+	aboveLimitOnly?: boolean;
 }): Book {
 	const pop = population(request.seed, {
 		size: request.size,
 		...(request.periodDays !== undefined ? { periodDays: request.periodDays } : {})
 	});
-	return disputesBook(pop, request.policy ? { policy: request.policy } : {});
+	return disputesBook(pop, {
+		...(request.policy ? { policy: request.policy } : {}),
+		...(request.aboveLimitOnly ? { aboveLimitOnly: true } : {})
+	});
 }

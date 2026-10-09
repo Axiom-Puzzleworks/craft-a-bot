@@ -10,6 +10,8 @@ export interface LiveEntry {
 	reviewer?: string;
 	/** Plan 114 WP200: the book draws the grey zone. */
 	greyZone?: boolean;
+	/** Plan 114 WP202: the book filtered by the pack's own filter shape. */
+	sourceFilter?: Record<string, unknown>;
 	/** Plan 114 WP205: factors of the base held at one level each. */
 	pin?: Record<string, string>;
 	/** Plan 114 WP205: a build override as a factor, `none` leaving it unset. */

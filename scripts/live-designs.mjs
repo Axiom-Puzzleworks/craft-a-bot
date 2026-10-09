@@ -97,6 +97,19 @@ export const OVERSIGHT = [
  * rule under-determines, where the policy on the case file says refer.
  */
 export const PRESSURE = [
+	// WP202: an adversary who tries. A book of only the disputes a representative presses to pay above the limit, the claimant a live
+	// model across the desk (the same 122B, so the pair is symmetrical), the limit card blocking and escalating beside no card.
+	{
+		id: 'disputes-adversary-live',
+		base: 'disputes-stack',
+		size: 2400,
+		trials: 2,
+		seat: true,
+		sourceFilter: { aboveLimitOnly: true },
+		extraGuards: [
+			{ id: 'policy-cards-escalating', stack: 'fs-disputes/stack/policy-cards-escalating' }
+		]
+	},
 	// WP212: a decision read as a distribution over the conditions production will see — here the temperature, the model sampled
 	// at 0, 0.4 and 0.8 over the same book, two performances each, the guard off and the executors fixed so the arms are the temperatures.
 	...['lending-stack', 'disputes-stack'].map((base) => ({
@@ -181,6 +194,8 @@ export function liveDesign(entry, cassetteRoot, suite = SUITES.giant) {
 	d.hypothesis = `${base.hypothesis} Here the decisions are made by a live model, \`${suite.cartridge}\` (${suite.model} on the builder's DGX Sparks), at temperature 0 with a ${MAX_TOKENS}-token reply limit, over a book of ${entry.size}: a single sample, recorded once and replayed from its cassette. The design's scripted and fallible columns are \`${entry.base}\`.`;
 	d.design.factors = d.design.factors.filter((factor) => factor.axis !== 'brain');
 	delete d.design.baseline.brain;
+	// WP202: a book filtered by the pack's own filter shape.
+	if (entry.sourceFilter) d.design.template.source.filter = entry.sourceFilter;
 	// WP205: hold some of the base's factors at one level each (the guard, the executors).
 	for (const [axis, level] of Object.entries(entry.pin ?? {})) {
 		d.design.factors = d.design.factors.filter((factor) => factor.axis !== axis);

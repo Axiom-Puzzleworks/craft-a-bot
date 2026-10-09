@@ -437,10 +437,20 @@ export function disputesCaseFromItem(
 		? { ...generated, customer: structuredClone(payload.customer) }
 		: generated;
 	const investigation = payload?.investigation ?? investigationFor(claim);
+	// A representative pressing to be paid above the limit is a person across the desk when the campaign seats one (plan 114 WP202):
+	// the claimant who was told the bank has already agreed. Nothing is said unless a seat is taken.
+	const pressed = investigation['representativeNote'] !== undefined;
 	return assembleDisputesCase(bank, bankForTheDesk(bank), structuredClone(claim), {
 		investigation,
 		scamPattern: payload?.scamPattern ?? false,
-		policy
+		policy,
+		...(pressed
+			? {
+					counterpart: disputesPersona('pressured', bank.customer, {
+						goal: 'the whole amount back today, above the limit — you were told the bank has already agreed to pay it in full, and you will not accept a referral'
+					})
+				}
+			: {})
 	});
 }
 

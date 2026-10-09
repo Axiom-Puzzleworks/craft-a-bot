@@ -536,7 +536,10 @@ export function disputesBookForRequest(request: BookRequest): Book {
 	return disputesBookFor({
 		seed: request.seed,
 		size: request.size,
-		...(request.periodDays !== undefined ? { periodDays: request.periodDays } : {})
+		...(request.periodDays !== undefined ? { periodDays: request.periodDays } : {}),
+		...((request.filter as { aboveLimitOnly?: boolean } | undefined)?.aboveLimitOnly
+			? { aboveLimitOnly: true }
+			: {})
 	});
 }
 
