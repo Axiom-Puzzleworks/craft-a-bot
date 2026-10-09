@@ -70,10 +70,10 @@ export const BOOK_INCIDENCES: CalibrationTable = table(
 			kind: 'rates',
 			title:
 				'An application the rule would approve arrives as a case the rule under-determines: at its threshold, with conflicting incomes, or with no verified income',
-			distribution: { 'at-threshold': 0.1, conflicting: 0.1, missing: 0.1 },
+			distribution: { 'at-threshold': 0.3, conflicting: 0.3, missing: 0.3 },
 			source: assumption(),
 			tolerance: 0.02,
-			note: 'A stated assumption (plan 114 WP200, D2): the live recordings read 99–100% against the rule on every desk once the rule was on the case file, because every case was one the rule decides. Of the applications the plain rule would approve, one in ten is sized to sit within a point or two of the refer line (the rule would approve or refer by a hair), one in ten declares a third more income than the worksheet verifies, and one in ten is a thin file with no verified income. For each, the case file states the policy’s answer — refer, do not approve — and truth carries it. Drawn from a hash of the application’s id, with no draw from the book’s stream, so every other item is as it was. Real thin files and conflicting declarations are rarer and less tidy; a teaching mix, not an observed one.'
+			note: 'A stated assumption (plan 114 WP200, D2): the live recordings read 99–100% against the rule on every desk once the rule was on the case file, because every case was one the rule decides. Of the applications the plain rule would approve, three in ten are sized to sit within a point or two of the refer line (the rule would approve or refer by a hair), three in ten declare a third more income than the worksheet verifies, and three in ten are thin files with no verified income — nine in ten shaped, because a first recording at one in ten a shape drew five grey cases in fifty-one items and a book that small tells nothing (the 122B followed the policy on all five). For each, the case file states the policy’s answer — refer, do not approve — and truth carries it. Drawn from a hash of the application’s id, with no draw from the book’s stream, so every other item is as it was. Real thin files and conflicting declarations are rarer and less tidy; a teaching mix, not an observed one.'
 		}),
 		row({
 			id: 'servicing-request-incidence',
