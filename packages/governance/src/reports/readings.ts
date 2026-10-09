@@ -218,7 +218,15 @@ export function readingSubjects(sources: ReadingSources): ReadingSubject[] {
 							value: `${row.source.publisher}, ${row.source.title}, ${row.source.edition}, ${row.source.table} (read ${row.source.retrieved})`,
 							...(row.source.url ? { url: row.source.url } : {})
 						}
-					: { label: 'Assumption', value: `stated ${row.source.retrieved}` };
+					: row.source.kind === 'measurement'
+						? {
+								label: 'Measured',
+								value: `${row.source.model}, ${row.source.recording}, n = ${row.source.n}, 95% ${row.source.interval[0].toFixed(3)}–${row.source.interval[1].toFixed(3)} (recorded ${row.source.retrieved})`
+							}
+						: {
+								label: row.role === 'stress' ? 'Stress assumption' : 'Assumption',
+								value: `stated ${row.source.retrieved}`
+							};
 			subjects.push({
 				subject: { kind: 'calibration-row', id: `${table.id}#${row.id}` },
 				title: row.title,

@@ -34,6 +34,7 @@ export interface RowSpec {
 	source: CalibrationSource;
 	tolerance: number;
 	note?: string;
+	role?: CalibrationRow['role'];
 }
 
 export const row = (spec: RowSpec): CalibrationRow => ({
@@ -44,7 +45,8 @@ export const row = (spec: RowSpec): CalibrationRow => ({
 	source: spec.source,
 	...(spec.note !== undefined ? { note: spec.note } : {}),
 	tolerance: spec.tolerance,
-	review: 'pending'
+	review: 'pending',
+	...(spec.role !== undefined ? { role: spec.role } : {})
 });
 
 export const table = (

@@ -91,7 +91,8 @@ export function checkCalibration(
 		}
 		if (entries.length === 0)
 			issues.push({ check: 'calibration.categories', message: `${where}: no categories` });
-		if (entries.every(([, value]) => value === 0))
+		// A measured rate of zero is a finding (the model never missed), not a draw with nothing to draw.
+		if (row.source.kind !== 'measurement' && entries.every(([, value]) => value === 0))
 			issues.push({
 				check: 'calibration.positive',
 				message: `${where}: every weight is zero — nothing can be drawn`

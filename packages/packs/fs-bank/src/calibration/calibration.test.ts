@@ -9,6 +9,7 @@ import { CALIBRATION } from './table.js';
 import { DECK_WEIGHTS } from './deck-weights.js';
 import { BOOK_INCIDENCES, everyNth } from './book-incidences.js';
 import { ERROR_RATES } from './error-rates.js';
+import { ERROR_RATES_MEASURED } from './error-rates-measured.js';
 import { BILL_RATES } from './bill.js';
 import { COMPLICATIONS, drawComplications } from './complications.js';
 import { CASE_HANDLER_REVIEWER_ID, REVIEWER_RATES, bankReviewerModels } from './reviewer.js';
@@ -331,6 +332,27 @@ describe('the Phase AA books’ incidences (WP112)', () => {
 	it('sit outside the population’s table, so no population digest moves', () => {
 		const cited = new Set(CALIBRATION.rows.map((row) => row.id));
 		for (const row of BOOK_INCIDENCES.rows) expect(cited.has(row.id), row.id).toBe(false);
+	});
+});
+
+describe('the measured error rates (WP197)', () => {
+	it('pass checkCalibration, name their recording and model, and sit beside the stress rows they do not replace', () => {
+		expect(checkCalibration(ERROR_RATES_MEASURED)).toEqual([]);
+		expect(ERROR_RATES_MEASURED.rows.length).toBeGreaterThan(0);
+		const stress = new Set(ERROR_RATES.rows.filter((r) => r.role === 'stress').map((r) => r.id));
+		for (const row of ERROR_RATES_MEASURED.rows) {
+			expect(row.review).toBe('pending');
+			expect(row.source.kind).toBe('measurement');
+			if (row.source.kind !== 'measurement') continue;
+			expect(row.source.interval[0]).toBeLessThanOrEqual(row.distribution.wrong!);
+			expect(row.source.interval[1]).toBeGreaterThanOrEqual(row.distribution.wrong!);
+			// The assumed row it sits beside still exists and is marked as the stress level.
+			expect(stress.has(row.id.replace(/-measured-(giant|quick)$/, '')), row.id).toBe(true);
+		}
+	});
+
+	it('every assumed error rate is the stress level, none of them read as a model’s rate', () => {
+		expect(ERROR_RATES.rows.every((r) => r.role === 'stress')).toBe(true);
 	});
 });
 
