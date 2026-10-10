@@ -2,7 +2,7 @@
 
 > **keep-a-person-on-every-decision**
 
-Decision: the account-opening decision (approve, decline, refer). Model: `Qwen3.6-35B-A3B-NVFP4`. Rests on the dossier `onboarding-stack-live@Qwen3.6-35B-A3B-NVFP4` (not-shown, digest `36473e85fe570a06`). Digest `c7b5713da9a28338`.
+Decision: the account-opening decision (approve, decline, refer). Model: `Qwen3.6-35B-A3B-NVFP4`. Rests on the dossier `onboarding-stack-live@Qwen3.6-35B-A3B-NVFP4` (not-shown, digest `77aad3830ce6435e`). Digest `fdd58cd64335f995`.
 
 ## Because
 

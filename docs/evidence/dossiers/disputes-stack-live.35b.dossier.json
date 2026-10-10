@@ -5,7 +5,7 @@
 	"decisionKind": "the disputes decision (reimburse, decline, refer)",
 	"model": "Qwen3.6-35B-A3B-NVFP4",
 	"recordedOn": "2026-10-08",
-	"generatedAt": "2026-10-10T18:38:28.282Z",
+	"generatedAt": "2026-10-10T21:14:22.361Z",
 	"measures": [
 		{
 			"id": "accuracy",
@@ -141,5 +141,5 @@
 	],
 	"verdict": "not-shown",
 	"summary": "Nothing is on the wrong side of a threshold, but 7 of 8 measures are not shown: accuracy, reliability, robustness, faithfulness, fairness, oversight, harm.",
-	"digest": "719614078a5a4b2031f07422bb14fcaf637e88f762a9f751a43cfcbec9973f26"
+	"digest": "a49264cc9ef1255e9d4c1da69be096b96590c3dad16e3e9cd1c30f93efb2bea5"
 }

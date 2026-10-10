@@ -2,7 +2,7 @@
 
 > **keep-a-person-on-every-decision**
 
-Decision: the complaint root cause named. Model: `Qwen3.5-122B-A10B-NVFP4`. Rests on the dossier `complaints-stack-live@Qwen3.5-122B-A10B-NVFP4` (not-shown, digest `43026ee53a77380f`). Digest `c2795918056d958d`.
+Decision: the complaint root cause named. Model: `Qwen3.5-122B-A10B-NVFP4`. Rests on the dossier `complaints-stack-live@Qwen3.5-122B-A10B-NVFP4` (not-shown, digest `ef329e9982057871`). Digest `3c7070f411826e6b`.
 
 ## Because
 

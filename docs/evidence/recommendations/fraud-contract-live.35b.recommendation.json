@@ -26,10 +26,10 @@
 	],
 	"dossier": {
 		"id": "fraud-contract-live@Qwen3.6-35B-A3B-NVFP4",
-		"digest": "d748c569cdbff9dbd326a2534950c36ebeaea5550ba4deb293d4045497ee4056",
+		"digest": "be2f4fc9ea2a92efadc001f04cfd3d747c4c72fbee6c30328a2d6d57814d14e1",
 		"verdict": "not-shown"
 	},
 	"caveat": "About this synthetic bank and one sample of one model at temperature 0; the thresholds are assumptions a bank sets for itself. It transfers as method and shape, never as magnitude.",
-	"generatedAt": "2026-10-10T18:38:28.282Z",
-	"digest": "9d8d83dcf619647053912aa6bbdc5d1c4085fb4f10b461973e3d7b192b4b4dc7"
+	"generatedAt": "2026-10-10T21:14:22.361Z",
+	"digest": "d3b6935289d1afe02417be14e359baac01be8f667f760b8bcf9ff3a48c4b768b"
 }

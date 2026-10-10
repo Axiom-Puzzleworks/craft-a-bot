@@ -2,7 +2,7 @@
 
 > **keep-a-person-on-every-decision**
 
-Decision: the forbearance plan offered. Model: `Qwen3.5-122B-A10B-NVFP4`. Rests on the dossier `collections-stack-live@Qwen3.5-122B-A10B-NVFP4` (not-shown, digest `df2c23369fe3178c`). Digest `74d35fcc641981a8`.
+Decision: the forbearance plan offered. Model: `Qwen3.5-122B-A10B-NVFP4`. Rests on the dossier `collections-stack-live@Qwen3.5-122B-A10B-NVFP4` (not-shown, digest `63f62b1d5aaa5446`). Digest `995b97623da0a8b3`.
 
 ## Because
 

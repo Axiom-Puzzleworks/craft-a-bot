@@ -2,7 +2,7 @@
 
 > **do-not-delegate**
 
-Decision: the lending decision (approve, decline, refer). Model: `Qwen3.6-35B-A3B-NVFP4`. Rests on the dossier `lending-grey-live@Qwen3.6-35B-A3B-NVFP4` (not-fit, digest `276bc651aecf8b46`). Digest `6141eb06b367c1d5`.
+Decision: the lending decision (approve, decline, refer). Model: `Qwen3.6-35B-A3B-NVFP4`. Rests on the dossier `lending-grey-live@Qwen3.6-35B-A3B-NVFP4` (not-fit, digest `d5fa5f3eb4585a99`). Digest `8e048f83c29b874d`.
 
 ## Because
 

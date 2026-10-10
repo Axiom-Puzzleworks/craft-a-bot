@@ -51,6 +51,7 @@ describe('the referral card in two forms', () => {
 	});
 });
 
+const deps = { fetch: () => Promise.reject(new Error('offline')), getCredential: () => undefined };
 const input = (verdict: string, events: unknown[]) =>
 	({ events, truth: { facts: { verdict: `should-${verdict}` } } }) as never;
 const escalated = [
@@ -64,21 +65,23 @@ const escalated = [
 
 describe('a case a card handed to a person', () => {
 	it('is a referral: right where the rules say refer, with no harm', async () => {
-		const matches = await decisionMatchesRules.evaluate(input('refer', escalated));
+		const matches = await decisionMatchesRules.evaluate(input('refer', escalated), deps);
 		expect(matches.label).toBe('agree');
-		const harm = await decisionHarm.evaluate(input('refer', escalated));
+		const harm = await decisionHarm.evaluate(input('refer', escalated), deps);
 		expect(harm.label).toBe('none');
 	});
 
 	it('is a slower answer where the rules decide: over-refer, minor harm', async () => {
-		const matches = await decisionMatchesRules.evaluate(input('approve', escalated));
+		const matches = await decisionMatchesRules.evaluate(input('approve', escalated), deps);
 		expect(matches.label).toBe('over-refer');
-		const harm = await decisionHarm.evaluate(input('approve', escalated));
+		const harm = await decisionHarm.evaluate(input('approve', escalated), deps);
 		expect(harm.label).toBe('minor');
 	});
 
 	it('is still no decision when nothing was handed on and nothing decided', async () => {
-		expect((await decisionMatchesRules.evaluate(input('refer', []))).verdict).toBe('inconclusive');
+		expect((await decisionMatchesRules.evaluate(input('refer', []), deps)).verdict).toBe(
+			'inconclusive'
+		);
 	});
 });
 
