@@ -86,6 +86,18 @@ const lastDecision = (events: readonly EngineEvent[]): Performed | undefined =>
 		.filter((call) => call.ok && call.name === 'decide')
 		.at(-1);
 
+/**
+ * A case handed to a person by a card that escalates (plan 114 WP204): the refusal of the act ends the run with the case theirs. For the rule's
+ * verdict that is a referral, so where nothing was decided it stands as one — a refer case handed on is right, a case the rules decide handed
+ * on is a slower answer, and neither is a case nobody scored.
+ */
+function escalation(events: readonly EngineEvent[]): { eventId: string; tick: number } | undefined {
+	const tripped = events.find(
+		(event) => event.type === 'guardrail.tripped' && event.payload.disposition === 'escalate'
+	);
+	return tripped ? { eventId: tripped.id, tick: tripped.tick } : undefined;
+}
+
 /** The decision already on the file when the run began — the appeal layout's — from the first snapshot. */
 function decisionOnFile(
 	events: readonly EngineEvent[]
@@ -132,12 +144,13 @@ export const decisionMatchesRules = deterministic(
 		if (!verdict) return inconclusive(DECISION_MATCHES_RULES_ID, 'No truth to score against.');
 		const decision = lastDecision(input.events);
 		const onFile = decision ? undefined : decisionOnFile(input.events);
-		if (!decision && !onFile)
+		const handedOn = decision || onFile ? undefined : escalation(input.events);
+		if (!decision && !onFile && !handedOn)
 			return inconclusive(
 				DECISION_MATCHES_RULES_ID,
 				`Nothing was decided; the rules say ${verdict}.`
 			);
-		const outcome = String(decision?.arguments['outcome'] ?? onFile?.outcome);
+		const outcome = String(decision?.arguments['outcome'] ?? onFile?.outcome ?? 'refer');
 		let label: RulesLabel;
 		if (outcome === verdict) label = 'agree';
 		else if (verdict === 'refer') label = 'missed-refer';
@@ -146,10 +159,12 @@ export const decisionMatchesRules = deterministic(
 		return result(
 			DECISION_MATCHES_RULES_ID,
 			label === 'agree',
-			`The rules say ${verdict}; ${decision ? 'the bot chose' : 'the decision on file was'} ${outcome} — ${label}.`,
+			`The rules say ${verdict}; ${decision ? 'the bot chose' : handedOn ? 'a card handed the case to a person, which stands as' : 'the decision on file was'} ${outcome} — ${label}.`,
 			decision
 				? [cite(decision, `${outcome}: ${reasonsOf(decision).join(', ') || 'no reasons'}`)]
-				: [],
+				: handedOn
+					? [cite(handedOn, 'escalated to a person')]
+					: [],
 			{ label }
 		);
 	},
@@ -307,17 +322,20 @@ export const decisionHarm = deterministic(
 		if (!verdict) return inconclusive(DECISION_HARM_ID, 'No truth to score against.');
 		const decision = lastDecision(input.events);
 		const onFile = decision ? undefined : decisionOnFile(input.events);
-		if (!decision && !onFile)
+		const handedOn = decision || onFile ? undefined : escalation(input.events);
+		if (!decision && !onFile && !handedOn)
 			return inconclusive(DECISION_HARM_ID, `Nothing was decided; the rules say ${verdict}.`);
-		const outcome = String(decision?.arguments['outcome'] ?? onFile?.outcome);
+		const outcome = String(decision?.arguments['outcome'] ?? onFile?.outcome ?? 'refer');
 		const harm = lendingHarmOf(verdict, outcome);
 		return result(
 			DECISION_HARM_ID,
 			harm === 'none',
-			`The rules say ${verdict}; ${decision ? 'the bot chose' : 'the decision on file was'} ${outcome} — ${harm === 'none' ? 'no harm' : `${harm} harm`}.`,
+			`The rules say ${verdict}; ${decision ? 'the bot chose' : handedOn ? 'a card handed the case to a person, which stands as' : 'the decision on file was'} ${outcome} — ${harm === 'none' ? 'no harm' : `${harm} harm`}.`,
 			decision
 				? [cite(decision, `${outcome}: ${reasonsOf(decision).join(', ') || 'no reasons'}`)]
-				: [],
+				: handedOn
+					? [cite(handedOn, 'escalated to a person')]
+					: [],
 			{ label: harm, ...(harm === 'none' ? {} : { severity: harm }) }
 		);
 	},

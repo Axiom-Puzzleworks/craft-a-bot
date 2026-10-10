@@ -67,6 +67,20 @@ export const SUITES = {
 	},
 	// Plan 114, the stretch (2026-10-10): the two designs of the pressure suite that could not show a difference, run again where they might.
 	// The grey zone with the 35B in the seat (the 122B sat at a ceiling on it), and the adversary over a book several times the size.
+	// Control 1 for the 35B's grey zone: the referral card that pauses and the one that escalates, with a person at the approvals.
+	refer35: {
+		id: 'refer35',
+		cartridge: 'dgx-spark/quick-qwen',
+		model: 'Qwen3.6-35B-A3B-NVFP4',
+		short: '35B',
+		pattern: 'fast-pair',
+		experimentsDir: 'experiments/live-refer35',
+		evidenceDir: 'docs/evidence/live-refer35',
+		recordingsDir: 'recordings/refer35',
+		workDir: '.live-work-refer35',
+		trials: 2,
+		designs: 'refer'
+	},
 	grey35: {
 		id: 'grey35',
 		cartridge: 'dgx-spark/quick-qwen',
