@@ -2,6 +2,8 @@ import { defineConfig } from 'vitest/config';
 
 export default defineConfig({
 	test: {
+		/** The campaign tests run whole campaigns; a shared CI runner takes several times as long as a laptop. */
+		testTimeout: 60_000,
 		coverage: {
 			provider: 'v8',
 			include: ['src/**/*.ts'],

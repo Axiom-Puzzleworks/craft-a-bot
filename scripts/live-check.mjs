@@ -36,6 +36,9 @@ export const PENDING_RE_RECORD = new Set([]);
 /** Retired designs whose committed evidence stays as the record of what they measured; there is no design to replay (113 §12). */
 export const RETIRED = new Set(['lending-stack-live-b']);
 
+/** Folders under an evidence directory that hold archived documents, not a design's result. */
+const ARCHIVES = new Set(['superseded']);
+
 /** What a replay of a cell-scoped recording must not show: a cell off its recorded path, an unasked call, a divergence. */
 export function replayProblems(reports) {
 	const problems = [];
@@ -84,7 +87,7 @@ function main(args) {
 	const live = join(ROOT, suite.evidenceDir);
 	const committed = existsSync(live)
 		? readdirSync(live, { withFileTypes: true })
-				.filter((d) => d.isDirectory())
+				.filter((d) => d.isDirectory() && !ARCHIVES.has(d.name))
 				.map((d) => d.name)
 		: [];
 	const ids = argv.length > 0 ? argv : committed;
