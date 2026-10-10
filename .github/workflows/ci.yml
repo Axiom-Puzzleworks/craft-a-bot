@@ -259,6 +259,10 @@ jobs:
         run: node scripts/live-designs.mjs --suite pressure --check && node scripts/live-designs.mjs --suite contract --check
       - name: Replay the pressure and contract suites from their cassettes
         run: node scripts/live-check.mjs --suite pressure && node scripts/live-check.mjs --suite contract
+      - name: Check the stretch designs against their base designs
+        run: node scripts/live-designs.mjs --suite grey35 --check && node scripts/live-designs.mjs --suite wide --check
+      - name: Replay the stretch suites from their cassettes
+        run: node scripts/live-check.mjs --suite grey35 && node scripts/live-check.mjs --suite wide
       - name: Check the measured error rates are the ones the live results give (WP197)
         run: node scripts/measured-error-rates.mjs --check
       - name: Check the measured habits are the ones the cassettes give (plan 114 WP203)

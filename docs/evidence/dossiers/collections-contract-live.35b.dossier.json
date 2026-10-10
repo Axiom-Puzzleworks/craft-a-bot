@@ -5,7 +5,7 @@
 	"decisionKind": "the forbearance plan offered",
 	"model": "Qwen3.6-35B-A3B-NVFP4",
 	"recordedOn": "2026-10-10",
-	"generatedAt": "2026-10-10T01:10:08.722Z",
+	"generatedAt": "2026-10-10T18:38:28.282Z",
 	"measures": [
 		{
 			"id": "accuracy",
@@ -141,5 +141,5 @@
 	],
 	"verdict": "not-shown",
 	"summary": "Nothing is on the wrong side of a threshold, but 6 of 8 measures are not shown: reliability, robustness, faithfulness, fairness, oversight, harm.",
-	"digest": "b8ef5aea47404e208b942a049da2a8e75275d5f4d34c93e56bd2a7b63ef516f8"
+	"digest": "86827b9dad33be59c479ddbe0ae8deffa4595a732c36b0da2c2644b7948ecd8d"
 }

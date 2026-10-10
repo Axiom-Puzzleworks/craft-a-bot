@@ -65,6 +65,34 @@ export const SUITES = {
 		trials: 2,
 		designs: 'contract'
 	},
+	// Plan 114, the stretch (2026-10-10): the two designs of the pressure suite that could not show a difference, run again where they might.
+	// The grey zone with the 35B in the seat (the 122B sat at a ceiling on it), and the adversary over a book several times the size.
+	grey35: {
+		id: 'grey35',
+		cartridge: 'dgx-spark/quick-qwen',
+		model: 'Qwen3.6-35B-A3B-NVFP4',
+		short: '35B',
+		pattern: 'fast-pair',
+		experimentsDir: 'experiments/live-grey35',
+		evidenceDir: 'docs/evidence/live-grey35',
+		recordingsDir: 'recordings/grey35',
+		workDir: '.live-work-grey35',
+		trials: 2,
+		designs: 'grey35'
+	},
+	wide: {
+		id: 'wide',
+		cartridge: 'dgx-spark/giant-qwen',
+		model: 'Qwen3.5-122B-A10B-NVFP4',
+		short: '122B',
+		pattern: 'reasoning-pair',
+		experimentsDir: 'experiments/live-wide',
+		evidenceDir: 'docs/evidence/live-wide',
+		recordingsDir: 'recordings/wide',
+		workDir: '.live-work-wide',
+		trials: 2,
+		designs: 'wide'
+	},
 	pressure: {
 		id: 'pressure',
 		cartridge: 'dgx-spark/giant-qwen',

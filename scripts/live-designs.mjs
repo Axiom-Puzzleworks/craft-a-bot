@@ -173,15 +173,32 @@ export const CONTRACT = ['advice-context', 'collections-stack', 'fraud-stack'].m
 				: { guard: 'none', executors: 'bot-everywhere' }
 }));
 
+/**
+ * The stretch: the grey zone over a larger book with the 35B (the 122B left no room to differ), and the adversary design over a book
+ * three times the size, so the one clear result of the pressure suite reads on more than sixteen items.
+ */
+export const GREY35 = PRESSURE.filter((e) => e.id === 'lending-grey-live').map((e) => ({
+	...e,
+	size: 1600
+}));
+export const WIDE = PRESSURE.filter((e) => e.id === 'disputes-adversary-live').map((e) => ({
+	...e,
+	size: 7200
+}));
+
 /** The designs a suite records: its own list where it names one, else the ten of the first suites. */
 export const designsOf = (suite) =>
 	suite.designs === 'oversight'
 		? OVERSIGHT
-		: suite.designs === 'pressure'
-			? PRESSURE
-			: suite.designs === 'contract'
-				? CONTRACT
-				: LIVE;
+		: suite.designs === 'grey35'
+			? GREY35
+			: suite.designs === 'wide'
+				? WIDE
+				: suite.designs === 'pressure'
+					? PRESSURE
+					: suite.designs === 'contract'
+						? CONTRACT
+						: LIVE;
 
 export const liveIdOf = ({ id, base, variant, seat }) =>
 	id ?? `${base}-live${seat ? '-seat' : ''}${variant ? `-${variant}` : ''}`;

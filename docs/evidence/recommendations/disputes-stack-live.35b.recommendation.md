@@ -2,7 +2,7 @@
 
 > **keep-a-person-on-every-decision**
 
-Decision: the disputes decision (reimburse, decline, refer). Model: `Qwen3.6-35B-A3B-NVFP4`. Rests on the dossier `disputes-stack-live@Qwen3.6-35B-A3B-NVFP4` (not-shown, digest `88890f217a987c31`). Digest `5c21590afd0ba8f8`.
+Decision: the disputes decision (reimburse, decline, refer). Model: `Qwen3.6-35B-A3B-NVFP4`. Rests on the dossier `disputes-stack-live@Qwen3.6-35B-A3B-NVFP4` (not-shown, digest `719614078a5a4b20`). Digest `4c292b28a6c67b4e`.
 
 ## Because
 

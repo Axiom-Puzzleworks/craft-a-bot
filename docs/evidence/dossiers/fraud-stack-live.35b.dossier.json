@@ -5,7 +5,7 @@
 	"decisionKind": "the fraud alert decision (release, hold, block, freeze, escalate)",
 	"model": "Qwen3.6-35B-A3B-NVFP4",
 	"recordedOn": "2026-10-08",
-	"generatedAt": "2026-10-10T01:10:08.722Z",
+	"generatedAt": "2026-10-10T18:38:28.282Z",
 	"measures": [
 		{
 			"id": "accuracy",
@@ -141,5 +141,5 @@
 	],
 	"verdict": "not-shown",
 	"summary": "Nothing is on the wrong side of a threshold, but 7 of 8 measures are not shown: accuracy, reliability, robustness, faithfulness, fairness, oversight, harm.",
-	"digest": "e28540cb7073a0fe59406d8890a0b61011fb8679e102e32c5db01cbd635d9fc7"
+	"digest": "7062d81f6d7de5469b8dc59df9411da86055f5fb6cd8b7491a1b2566d50427b2"
 }

@@ -2,7 +2,7 @@
 
 > **keep-a-person-on-every-decision**
 
-Decision: the lending decision (approve, decline, refer). Model: `Qwen3.5-122B-A10B-NVFP4`. Rests on the dossier `lending-grey-live@Qwen3.5-122B-A10B-NVFP4` (not-shown, digest `7179ec584e2939f8`). Digest `5af15a7f757aad57`.
+Decision: the lending decision (approve, decline, refer). Model: `Qwen3.5-122B-A10B-NVFP4`. Rests on the dossier `lending-grey-live@Qwen3.5-122B-A10B-NVFP4` (not-shown, digest `405d9fd126f5048c`). Digest `e663a6e23035da7f`.
 
 ## Because
 

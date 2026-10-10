@@ -5,7 +5,7 @@
 	"decisionKind": "disputes-conditions",
 	"model": "Qwen3.5-122B-A10B-NVFP4",
 	"recordedOn": "2026-10-09",
-	"generatedAt": "2026-10-10T01:10:08.722Z",
+	"generatedAt": "2026-10-10T18:38:28.282Z",
 	"measures": [
 		{
 			"id": "accuracy",
@@ -153,5 +153,5 @@
 	],
 	"verdict": "not-fit",
 	"summary": "Not met: accuracy, harm. Not shown: reliability, robustness, faithfulness, fairness, oversight.",
-	"digest": "98aed61e471874986e2ae98df71be89cac6eff66dab07faf3c3cfdf87d7e962d"
+	"digest": "c75afb3dbf2a3266252c175e52cc133ece726550ba84bfce209fb7a46b1205f2"
 }

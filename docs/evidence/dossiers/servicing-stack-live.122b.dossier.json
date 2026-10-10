@@ -5,7 +5,7 @@
 	"decisionKind": "the servicing request handled",
 	"model": "Qwen3.5-122B-A10B-NVFP4",
 	"recordedOn": "2026-10-07",
-	"generatedAt": "2026-10-10T01:10:08.722Z",
+	"generatedAt": "2026-10-10T18:38:28.282Z",
 	"measures": [
 		{
 			"id": "accuracy",
@@ -129,5 +129,5 @@
 	],
 	"verdict": "not-shown",
 	"summary": "Nothing is on the wrong side of a threshold, but 7 of 8 measures are not shown: accuracy, reliability, robustness, faithfulness, fairness, oversight, harm.",
-	"digest": "9a91ae5dd71a8bde6ad299798c6a17806e93311b405cf5d7e0a0244ef7a4026e"
+	"digest": "11851eb4d7498cd4e1885175d5dfb7a48f74c0588592f747955f3eb1ae366bb9"
 }

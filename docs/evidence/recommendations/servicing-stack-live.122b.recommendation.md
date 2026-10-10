@@ -2,7 +2,7 @@
 
 > **keep-a-person-on-every-decision**
 
-Decision: the servicing request handled. Model: `Qwen3.5-122B-A10B-NVFP4`. Rests on the dossier `servicing-stack-live@Qwen3.5-122B-A10B-NVFP4` (not-shown, digest `9a91ae5dd71a8bde`). Digest `29c75f14180badb5`.
+Decision: the servicing request handled. Model: `Qwen3.5-122B-A10B-NVFP4`. Rests on the dossier `servicing-stack-live@Qwen3.5-122B-A10B-NVFP4` (not-shown, digest `11851eb4d7498cd4`). Digest `3143018ae307d875`.
 
 ## Because
 

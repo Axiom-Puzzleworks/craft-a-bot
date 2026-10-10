@@ -22,6 +22,7 @@ Written by `craftabot recommend` from the decision dossiers (plan 114 WP213); do
 | [fraud-stack-live](fraud-stack-live.35b.recommendation.md) | 35b | **keep-a-person-on-every-decision** | not-shown |
 | [lending-conditions-live](lending-conditions-live.122b.recommendation.md) | 122b | **keep-a-person-on-every-decision** | not-shown |
 | [lending-grey-live](lending-grey-live.122b.recommendation.md) | 122b | **keep-a-person-on-every-decision** | not-shown |
+| [lending-grey-live](lending-grey-live.35b.recommendation.md) | 35b | **do-not-delegate** | not-fit |
 | [lending-stack-live](lending-stack-live.122b.recommendation.md) | 122b | **keep-a-person-on-every-decision** | not-shown |
 | [lending-stack-live](lending-stack-live.35b.recommendation.md) | 35b | **keep-a-person-on-every-decision** | not-shown |
 | [onboarding-stack-live](onboarding-stack-live.122b.recommendation.md) | 122b | **keep-a-person-on-every-decision** | not-shown |

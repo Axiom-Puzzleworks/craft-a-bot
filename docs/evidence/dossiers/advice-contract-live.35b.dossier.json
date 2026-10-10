@@ -5,7 +5,7 @@
 	"decisionKind": "the product recommended",
 	"model": "Qwen3.6-35B-A3B-NVFP4",
 	"recordedOn": "2026-10-10",
-	"generatedAt": "2026-10-10T01:10:08.722Z",
+	"generatedAt": "2026-10-10T18:38:28.282Z",
 	"measures": [
 		{
 			"id": "accuracy",
@@ -141,5 +141,5 @@
 	],
 	"verdict": "not-fit",
 	"summary": "Not met: cost. Not shown: accuracy, reliability, robustness, faithfulness, fairness, oversight, harm.",
-	"digest": "8217e07f07e9bd921f79b6deb3e283f2757cc0d965428629fe6f364470026a23"
+	"digest": "5b25e23ad643478fc16bad1d3c32f0f1fd2a5b8ade714216c9193e74a4f12ee8"
 }
