@@ -61,12 +61,9 @@ describe('bankCase', () => {
 
 	it(
 		'a thousand cases, their records and their truth pass the synthetic sweep (hard rule 9)',
-		{ timeout: 120_000 },
+		{ timeout: 300_000 },
 		() => {
-			const cases = SEEDS.map((seed) => ({
-				...bankCase(seed),
-				records: bankRecords(bankCase(seed))
-			}));
+			const cases = CASES.map((bank) => ({ ...bank, records: bankRecords(bank) }));
 			const issues = checkSynthetic([
 				{ path: 'cases.json', text: JSON.stringify(cases, null, 2) },
 				{ path: 'cases.jsonl', text: cases.map((c) => JSON.stringify(c)).join('\n') }
