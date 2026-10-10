@@ -2,7 +2,7 @@
 
 > **do-not-delegate**
 
-Decision: the product recommended. Model: `Qwen3.6-35B-A3B-NVFP4`. Rests on the dossier `advice-contract-live@Qwen3.6-35B-A3B-NVFP4` (not-fit, digest `8217e07f07e9bd92`). Digest `bcdf085f204796a2`.
+Decision: the product recommended. Model: `Qwen3.6-35B-A3B-NVFP4`. Rests on the dossier `advice-contract-live@Qwen3.6-35B-A3B-NVFP4` (not-fit, digest `5b25e23ad643478f`). Digest `1505462da15432b8`.
 
 ## Because
 

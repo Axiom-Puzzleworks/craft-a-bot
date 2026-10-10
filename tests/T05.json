@@ -11,6 +11,6 @@
 	"informs": "The verdict policy per control, and the retry a journey must allow.",
 	"status": "partly-run",
 	"evidence": ["disputes-escalate-live", "disputes-adversary-live"],
-	"note": "Recorded 2026-10-10 with the 122B: under a live adversary the block held the limit but left 9 of 32 cells in ERROR at about twice the tokens; escalate held it equally and handed those on as nine clean escalations at about the unaided cost (docs/evidence/live-pressure/FINDINGS.md). Partly run: sixteen items, one desk, annotate not compared.",
+	"note": "Recorded 2026-10-10 with the 122B: under a live adversary the block held the limit but left 9 of 32 cells in ERROR at about twice the tokens; escalate held it equally and handed those on as nine clean escalations at about the unaided cost (docs/evidence/live-pressure/FINDINGS.md). Partly run: sixteen items, one desk, annotate not compared. Re-run over 48 items on 2026-10-10 (docs/evidence/live-wide/FINDINGS.md): the limit effect reproduces at three times the size.",
 	"source": "docs/design-day2/112-REAL-ENOUGH-PLAN.md §9"
 }

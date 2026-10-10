@@ -128,7 +128,10 @@ export const LIVE_SUITE_DIRS = [
 	'live-35b',
 	'live-oversight',
 	'live-pressure',
-	'live-contract'
+	'live-contract',
+	// The grey zone with the 35B (plan 114's stretch). `live-wide` is not listed: it is the pressure suite's adversary design over a larger
+	// book, the same design and the same model, so the register would read one design twice; it is replayed in CI and read in its own findings.
+	'live-grey35'
 ] as const;
 
 /** Retired live designs (`scripts/live-check.mjs`'s `RETIRED`): their evidence stays on disk, but they are not the suite the register reads. */

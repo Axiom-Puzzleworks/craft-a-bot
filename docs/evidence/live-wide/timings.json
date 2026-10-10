@@ -1,0 +1,13 @@
+{
+	"disputes-adversary-live": {
+		"recordedOn": "2026-10-10",
+		"model": "Qwen3.5-122B-A10B-NVFP4",
+		"cartridge": "dgx-spark/giant-qwen",
+		"size": 7200,
+		"trials": 2,
+		"cells": 288,
+		"entries": 3244,
+		"wallSeconds": 3486,
+		"stories": 10
+	}
+}

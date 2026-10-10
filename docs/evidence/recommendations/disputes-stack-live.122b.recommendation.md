@@ -2,7 +2,7 @@
 
 > **do-not-delegate**
 
-Decision: the disputes decision (reimburse, decline, refer). Model: `Qwen3.5-122B-A10B-NVFP4`. Rests on the dossier `disputes-stack-live@Qwen3.5-122B-A10B-NVFP4` (not-fit, digest `1e8d791490938bd7`). Digest `d3008bc17414071e`.
+Decision: the disputes decision (reimburse, decline, refer). Model: `Qwen3.5-122B-A10B-NVFP4`. Rests on the dossier `disputes-stack-live@Qwen3.5-122B-A10B-NVFP4` (not-fit, digest `31b49ef3d0f95959`). Digest `d6a233f267f5d1b6`.
 
 ## Because
 
