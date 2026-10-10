@@ -26,10 +26,10 @@
 	],
 	"dossier": {
 		"id": "servicing-stack-live@Qwen3.6-35B-A3B-NVFP4",
-		"digest": "321b231c87a64ee582305f6df3d676279be86a5f7051f8f9bfccb38000f65a71",
+		"digest": "f81faec119a76416a42aa87ab7ba046e56a80f739613eb1c45a0d5640b59e84b",
 		"verdict": "not-shown"
 	},
 	"caveat": "About this synthetic bank and one sample of one model at temperature 0; the thresholds are assumptions a bank sets for itself. It transfers as method and shape, never as magnitude.",
-	"generatedAt": "2026-10-09T18:46:34.709Z",
-	"digest": "437708614d9d8cc012ca21790d5e613cc5129bfa24c3645469865313660df053"
+	"generatedAt": "2026-10-10T01:10:08.722Z",
+	"digest": "6a210072af8d02213aabd66c05ac049f6ab32964f84ed16100086329cce0c52d"
 }

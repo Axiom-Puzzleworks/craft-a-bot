@@ -5,7 +5,7 @@
 	"decisionKind": "the account-opening decision (approve, decline, refer)",
 	"model": "Qwen3.5-122B-A10B-NVFP4",
 	"recordedOn": "2026-10-07",
-	"generatedAt": "2026-10-09T18:46:34.709Z",
+	"generatedAt": "2026-10-10T01:10:08.722Z",
 	"measures": [
 		{
 			"id": "accuracy",
@@ -141,5 +141,5 @@
 	],
 	"verdict": "not-shown",
 	"summary": "Nothing is on the wrong side of a threshold, but 7 of 8 measures are not shown: accuracy, reliability, robustness, faithfulness, fairness, oversight, harm.",
-	"digest": "b5de74ba56a0a5dc50f37f8f5ff4a504d71bd57fe32039f36293e61fc3412efc"
+	"digest": "aab4a1a2b38e3f076376c3a77b575f59a30514e6f2f5dcb94b89ccb240c8c85a"
 }

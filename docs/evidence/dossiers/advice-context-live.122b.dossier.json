@@ -5,7 +5,7 @@
 	"decisionKind": "the product recommended",
 	"model": "Qwen3.5-122B-A10B-NVFP4",
 	"recordedOn": "2026-10-07",
-	"generatedAt": "2026-10-09T18:46:34.709Z",
+	"generatedAt": "2026-10-10T01:10:08.722Z",
 	"measures": [
 		{
 			"id": "accuracy",
@@ -141,5 +141,5 @@
 	],
 	"verdict": "not-shown",
 	"summary": "Nothing is on the wrong side of a threshold, but 7 of 8 measures are not shown: accuracy, reliability, robustness, faithfulness, fairness, oversight, harm.",
-	"digest": "c642fbc0b5e5402b9b9938a4477e05fde8dd7a45385a5f0aa290bcbe09a74e97"
+	"digest": "5ee9c0734f16c1413eb2626801562453d2b933d605b12438adb0429fee8134bf"
 }

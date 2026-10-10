@@ -2,7 +2,7 @@
 
 > The claim: **not-shown**. Nothing is on the wrong side of a threshold, but 7 of 8 measures are not shown: accuracy, reliability, robustness, faithfulness, fairness, oversight, harm.
 
-Decision: the complaint root cause named. Model: `Qwen3.6-35B-A3B-NVFP4`, recorded 2026-10-08. Folded 2026-10-09T18:46:34.709Z; digest `c34aa9ed29e9c057`. One sample of one model on a synthetic bank, never a statement about the model in general; the thresholds are assumptions a bank sets for itself and a reader reviews.
+Decision: the complaint root cause named. Model: `Qwen3.6-35B-A3B-NVFP4`, recorded 2026-10-08. Folded 2026-10-10T01:10:08.722Z; digest `e0f72a46c89f4175`. One sample of one model on a synthetic bank, never a statement about the model in general; the thresholds are assumptions a bank sets for itself and a reader reviews.
 
 | Measure | What | Value | Threshold | Verdict | Source |
 |---|---|---|---|---|---|

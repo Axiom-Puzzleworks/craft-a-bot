@@ -8,6 +8,6 @@
 	"informs": "The drift windows and thresholds per metric.",
 	"status": "not-run",
 	"evidence": [],
-	"note": "drift-day exists on the scripted tier; the conditions designs (temperature) are the first step towards reading a model’s drift. Queued.",
+	"note": "drift-day exists on the scripted tier. The conditions designs were recorded 2026-10-10 (temperature 0, 0.4, 0.8: no change in any decision, docs/evidence/live-pressure/FINDINGS.md §3), so a model that does not move with sampling gives drift nothing to detect there; drift of the model itself over time is not yet read. Not run.",
 	"source": "docs/design-day2/112-REAL-ENOUGH-PLAN.md §9"
 }

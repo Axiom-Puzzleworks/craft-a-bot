@@ -1,0 +1,35 @@
+{
+	"advice-contract-live": {
+		"recordedOn": "2026-10-10",
+		"model": "Qwen3.6-35B-A3B-NVFP4",
+		"cartridge": "dgx-spark/quick-qwen",
+		"size": 600,
+		"trials": 2,
+		"cells": 132,
+		"entries": 2065,
+		"wallSeconds": 1289,
+		"stories": 13
+	},
+	"collections-contract-live": {
+		"recordedOn": "2026-10-10",
+		"model": "Qwen3.6-35B-A3B-NVFP4",
+		"cartridge": "dgx-spark/quick-qwen",
+		"size": 300,
+		"trials": 2,
+		"cells": 222,
+		"entries": 2461,
+		"wallSeconds": 717,
+		"stories": 9
+	},
+	"fraud-contract-live": {
+		"recordedOn": "2026-10-10",
+		"model": "Qwen3.6-35B-A3B-NVFP4",
+		"cartridge": "dgx-spark/quick-qwen",
+		"size": 6,
+		"trials": 2,
+		"cells": 162,
+		"entries": 1377,
+		"wallSeconds": 405,
+		"stories": 10
+	}
+}

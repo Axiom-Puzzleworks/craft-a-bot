@@ -5,7 +5,7 @@
 	"decisionKind": "the complaint root cause named",
 	"model": "Qwen3.6-35B-A3B-NVFP4",
 	"recordedOn": "2026-10-08",
-	"generatedAt": "2026-10-09T18:46:34.709Z",
+	"generatedAt": "2026-10-10T01:10:08.722Z",
 	"measures": [
 		{
 			"id": "accuracy",
@@ -141,5 +141,5 @@
 	],
 	"verdict": "not-shown",
 	"summary": "Nothing is on the wrong side of a threshold, but 7 of 8 measures are not shown: accuracy, reliability, robustness, faithfulness, fairness, oversight, harm.",
-	"digest": "c34aa9ed29e9c057f00440d9b798dfb040812b51de2396054f4f40069b3c5dc1"
+	"digest": "e0f72a46c89f4175da5eb72b742b707f2f8d1ae018871c65ccaae11f084b5ac1"
 }

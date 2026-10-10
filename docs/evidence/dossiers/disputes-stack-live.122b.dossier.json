@@ -5,7 +5,7 @@
 	"decisionKind": "the disputes decision (reimburse, decline, refer)",
 	"model": "Qwen3.5-122B-A10B-NVFP4",
 	"recordedOn": "2026-10-07",
-	"generatedAt": "2026-10-09T18:46:34.709Z",
+	"generatedAt": "2026-10-10T01:10:08.722Z",
 	"measures": [
 		{
 			"id": "accuracy",
@@ -141,5 +141,5 @@
 	],
 	"verdict": "not-fit",
 	"summary": "Not met: accuracy, reliability. Not shown: robustness, faithfulness, fairness, oversight, harm.",
-	"digest": "0e423cc3fd24d742e3b00b0b4b5c7c63c513d6678e438044ebc62b73ecab4e61"
+	"digest": "1e8d791490938bd783ac598015c2aaa12307b4dad2bed151528b6e031304930b"
 }

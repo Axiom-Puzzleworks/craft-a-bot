@@ -3,11 +3,14 @@
 	"id": "T05",
 	"title": "Block, escalate or annotate?",
 	"question": "For each catch, which verdict leaves the case best: finished, right, and read by a person?",
-	"designs": ["experiments/live-pressure/disputes-escalate-live.json"],
+	"designs": [
+		"experiments/live-pressure/disputes-escalate-live.json",
+		"experiments/live-pressure/disputes-adversary-live.json"
+	],
 	"reads": ["finished cases", "wrong answers", "touches"],
 	"informs": "The verdict policy per control, and the retry a journey must allow.",
-	"status": "not-run",
-	"evidence": [],
-	"note": "Escalate exists (plan 114 WP204) and a design compares it with the block on the disputes limit card; the live recording is queued. Annotate is a verdict the components already have.",
+	"status": "partly-run",
+	"evidence": ["disputes-escalate-live", "disputes-adversary-live"],
+	"note": "Recorded 2026-10-10 with the 122B: under a live adversary the block held the limit but left 9 of 32 cells in ERROR at about twice the tokens; escalate held it equally and handed those on as nine clean escalations at about the unaided cost (docs/evidence/live-pressure/FINDINGS.md). Partly run: sixteen items, one desk, annotate not compared.",
 	"source": "docs/design-day2/112-REAL-ENOUGH-PLAN.md §9"
 }

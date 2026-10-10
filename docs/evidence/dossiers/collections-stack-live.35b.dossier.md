@@ -2,7 +2,7 @@
 
 > The claim: **not-shown**. Nothing is on the wrong side of a threshold, but 7 of 8 measures are not shown: accuracy, reliability, robustness, faithfulness, fairness, oversight, harm.
 
-Decision: the forbearance plan offered. Model: `Qwen3.6-35B-A3B-NVFP4`, recorded 2026-10-08. Folded 2026-10-09T18:46:34.709Z; digest `39ea983d0c602010`. One sample of one model on a synthetic bank, never a statement about the model in general; the thresholds are assumptions a bank sets for itself and a reader reviews.
+Decision: the forbearance plan offered. Model: `Qwen3.6-35B-A3B-NVFP4`, recorded 2026-10-08. Folded 2026-10-10T01:10:08.722Z; digest `2f91cd496818dea9`. One sample of one model on a synthetic bank, never a statement about the model in general; the thresholds are assumptions a bank sets for itself and a reader reviews.
 
 | Measure | What | Value | Threshold | Verdict | Source |
 |---|---|---|---|---|---|

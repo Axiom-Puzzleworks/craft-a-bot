@@ -5,7 +5,7 @@
 	"decisionKind": "the lending decision (approve, decline, refer)",
 	"model": "Qwen3.6-35B-A3B-NVFP4",
 	"recordedOn": "2026-10-08",
-	"generatedAt": "2026-10-09T18:46:34.709Z",
+	"generatedAt": "2026-10-10T01:10:08.722Z",
 	"measures": [
 		{
 			"id": "accuracy",
@@ -141,5 +141,5 @@
 	],
 	"verdict": "not-shown",
 	"summary": "Nothing is on the wrong side of a threshold, but 6 of 8 measures are not shown: accuracy, robustness, faithfulness, fairness, oversight, harm.",
-	"digest": "ac903e05a562c929bde0416eff9d2a8a1116328b63ec132ecdec1336653421c9"
+	"digest": "5ffc2d593176879a3b80656a10704264269403845f30c762afb3e4ae544e6d43"
 }

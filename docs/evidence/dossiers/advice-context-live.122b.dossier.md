@@ -2,7 +2,7 @@
 
 > The claim: **not-shown**. Nothing is on the wrong side of a threshold, but 7 of 8 measures are not shown: accuracy, reliability, robustness, faithfulness, fairness, oversight, harm.
 
-Decision: the product recommended. Model: `Qwen3.5-122B-A10B-NVFP4`, recorded 2026-10-07. Folded 2026-10-09T18:46:34.709Z; digest `c642fbc0b5e5402b`. One sample of one model on a synthetic bank, never a statement about the model in general; the thresholds are assumptions a bank sets for itself and a reader reviews.
+Decision: the product recommended. Model: `Qwen3.5-122B-A10B-NVFP4`, recorded 2026-10-07. Folded 2026-10-10T01:10:08.722Z; digest `5ee9c0734f16c141`. One sample of one model on a synthetic bank, never a statement about the model in general; the thresholds are assumptions a bank sets for itself and a reader reviews.
 
 | Measure | What | Value | Threshold | Verdict | Source |
 |---|---|---|---|---|---|
