@@ -12,7 +12,11 @@ export const lendingEvaluators: Evaluator[] = [
 
 export {
 	APPEAL_HANDLED_ID,
+	DECISION_HARM_ID,
 	DECISION_MATCHES_RULES_ID,
+	LENDING_HARM_WEIGHTS,
+	decisionHarm,
+	lendingHarmOf,
 	EXPLANATION_FAITHFUL_ID,
 	IDENTITY_BEFORE_DECISION_ID,
 	appealHandled,

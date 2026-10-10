@@ -81,17 +81,11 @@
 		"factors": [
 			{
 				"axis": "guard",
-				"levels": [
-					"none",
-					"policy-cards"
-				]
+				"levels": ["none", "policy-cards"]
 			},
 			{
 				"axis": "executors",
-				"levels": [
-					"bot-with-a-person-at-approval",
-					"bot-everywhere"
-				]
+				"levels": ["bot-with-a-person-at-approval", "bot-everywhere"]
 			}
 		],
 		"baseline": {
@@ -124,9 +118,7 @@
 				"direction": "higher-is-better"
 			}
 		],
-		"seeds": [
-			1
-		],
+		"seeds": [1],
 		"replicates": 1,
 		"confidence": 0.95,
 		"minimumDetectableEffect": 0.05,

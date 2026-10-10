@@ -96,6 +96,8 @@ export interface AgentSession {
 }
 
 export interface SessionOptions {
+	/** What a prose reply means (plan 114 WP205); absent, a prose reply is a wasted turn. See `ReplyContract`. */
+	replyContract?: 'say' | 'retry-with-nudge' | 'fail';
 	/**
 	 * Provider faults on cue (WP72, `61-LAST-DECKS.md` §4.1): the
 	 * `provider-fault` injections a scenario carries, delivered here rather

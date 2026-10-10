@@ -80,3 +80,11 @@ node scripts/experiment-shape.mjs docs/evidence campaign-out
 ```
 
 The same design, the same seeds, the same population digest give the same effects; a different machine gives the same numbers and a different wall time.
+
+## `reply-contract` (plan 114 WP203 + WP205, 2026-10-10)
+
+What a desk does with a reply that has no tool call, against the habits the live suites measured. The scripted tier plays the 35B's measured habit on the advice desk (answering in prose on 71% of calls, `fs-bank/habit-rates`) and the 122B's (repeating the call it just made), at full size (3,000 customers, 92 items a campaign). **Under the 35B's habits the journey succeeds in 55.4% of cases (the live suite lost about 40% of the same desk's cells); with `retry-with-nudge` — one re-prompt in the same turn naming the tools — it succeeds in 95.7%, +40.2 points (interval +28.6 to +50.7).** The `say` contract changes nothing on this tier: a scripted bot plays its plan whatever it is told, so what `say` is for (the words become the customer's line, the conversation goes on) needs a live model, and the `contract` suite on the 35B is the design that has one (`experiments/live-contract/`). The 122B's habits and the habit-free bot read 100% either way. A mechanism demonstration on the mock, never a measurement of the 35B.
+
+## The pressure suites and what they are for (plan 114, 2026-10-10)
+
+`live-oversight/` (a person who says no at a lending and a complaints decision), `live-pressure/` (the grey zone, an adversary who tries, the way out of a block, the conditions the decision runs under) and `live-contract/` (the reply contract on the 35B) are the 122B's and the 35B's recordings of the designs plan 114 added, each in its own folder with its own `timings.json`; `dossiers/` and `recommendations/` are folded from every live result by `craftabot dossier` and `craftabot recommend` and checked in CI. Read the dossiers first: they say, measure by measure, what is shown and what is not.

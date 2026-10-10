@@ -43,6 +43,18 @@ export interface RuleVerdict {
 
 export type Judge = (application: LoanApplicationRecord, bureau: BureauFile) => RuleVerdict;
 
+/**
+ * **A grey-zone hook** (plan 114 WP200): given a row the book has drawn and its plain verdict, either leave it alone or return it made
+ * a case the rule under-determines — the application changed to fit, the verdict the desk's policy for that shape gives, and the shape's
+ * name. The bank cannot import the desk's rule, so the desk hands this in as it hands in the judge.
+ */
+export type GreyHook = (row: {
+	id: string;
+	application: LoanApplicationRecord;
+	bureau: BureauFile;
+	verdict: RuleVerdict;
+}) => { application: LoanApplicationRecord; verdict: RuleVerdict; shape: string } | undefined;
+
 export interface LoanApplication {
 	id: string;
 	customerId: string;
@@ -53,6 +65,8 @@ export interface LoanApplication {
 	cohort: CohortBlock;
 	verdict: RuleVerdict;
 	performance: PerformanceLabel;
+	/** The grey shape the row was given (WP200), when it was. */
+	shape?: string;
 }
 
 export interface BookFilter {
@@ -89,7 +103,12 @@ const bookSeed = (entry: PopulationCustomer, salt: number): number =>
  * The loan book: who applied in the period, what they asked for, what the
  * judge said, and whether the loan would have performed (§4).
  */
-export function loanBook(pop: Population, judge: Judge, filter: BookFilter = {}): LoanBook {
+export function loanBook(
+	pop: Population,
+	judge: Judge,
+	filter: BookFilter = {},
+	grey?: GreyHook
+): LoanBook {
 	const table = pop.options.calibration;
 	const incidence = rateOf(calibrationRow(table, 'application-incidence'), 'applies');
 	const amounts = calibrationRow(table, 'loan-amount');
@@ -105,7 +124,7 @@ export function loanBook(pop: Population, judge: Judge, filter: BookFilter = {})
 		const income = entry.bureau.affordability.monthlyIncome;
 		// "Customers round up": the declared income sits above the verified one by a stated noise.
 		const roundUp = random() < rateOf(noise, 'roundsUp') ? 1 + rateOf(noise, 'by') : 1;
-		const application: LoanApplicationRecord = {
+		let application: LoanApplicationRecord = {
 			amount: Number(weightedRow(random, amounts)),
 			termMonths: Number(weightedRow(random, terms)),
 			purpose: weightedRow(random, purposes),
@@ -113,16 +132,24 @@ export function loanBook(pop: Population, judge: Judge, filter: BookFilter = {})
 			declaredMonthlyOutgoings:
 				entry.bureau.affordability.monthlyCommitments + Math.round(income * 0.3)
 		};
-		const verdict = judge(application, entry.bureau);
+		let verdict = judge(application, entry.bureau);
+		const id = `loan-${entry.seed.toString(16).padStart(8, '0')}`;
+		// Drawn after the plain verdict and before the performance label, with no draw of its own from the stream: a book with no hook is as it was.
+		const shaped = grey?.({ id, application, bureau: entry.bureau, verdict });
+		if (shaped) {
+			application = shaped.application;
+			verdict = shaped.verdict;
+		}
 		const performance = performanceLabel(random, verdict, entry.bureau);
 		rows.push({
-			id: `loan-${entry.seed.toString(16).padStart(8, '0')}`,
+			id,
 			customerId: entry.customer.id,
 			date,
 			application,
 			cohort: entry.customer.cohort,
 			verdict,
-			performance
+			performance,
+			...(shaped ? { shape: shaped.shape } : {})
 		});
 	}
 	const kept = rows
@@ -193,6 +220,7 @@ export function applicationItem(row: LoanApplication, applicant?: PopulationCust
 		arrivedAt: isoDateTime(row.date, 9, 0),
 		payload: {
 			application: row.application,
+			...(row.shape ? { shape: row.shape } : {}),
 			...(applicant
 				? {
 						applicant: {
@@ -229,6 +257,7 @@ export function applicationItem(row: LoanApplication, applicant?: PopulationCust
 			facts: {
 				verdict: `should-${row.verdict.verdict}`,
 				shouldRefer: row.verdict.verdict === 'refer',
+				...(row.shape ? { greyShape: `grey-${row.shape}` } : {}),
 				ratioPercent: row.verdict.ratioPercent,
 				defaultedWithin12m: row.performance.defaultedWithin12m,
 				hazard: row.performance.hazard

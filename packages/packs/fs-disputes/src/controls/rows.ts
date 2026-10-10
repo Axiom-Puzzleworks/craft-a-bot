@@ -19,7 +19,8 @@ export const DISPUTES_CONTROL_ROWS: readonly ControlMapRow[] = [
 			{ kind: 'policy-card', id: 'fs-disputes/policy/within-the-limit' },
 			{ kind: 'evaluator', id: 'fs-disputes/classified-before-decision' },
 			{ kind: 'evaluator', id: 'fs-disputes/reimbursed-within-limit' },
-			{ kind: 'evaluator', id: 'fs-disputes/decision-matches-rules' }
+			{ kind: 'evaluator', id: 'fs-disputes/decision-matches-rules' },
+			{ kind: 'evaluator', id: 'fs-disputes/decision-harm' }
 		],
 		status: 'unreviewed',
 		tags: ['psr:app-reimbursement']

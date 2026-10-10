@@ -59,7 +59,16 @@ const LAYOUT_NAMES: Record<LendingCaseKind, string> = {
 /** The policy a create-time or configured `config` names (WP78): `config.knobs`, the defaults without. */
 export const knobsOf = (config: Record<string, unknown> | undefined): LendingPolicy =>
 	lendingPolicyFrom(config?.['knobs']);
-const policyOf = (state: LendingDeskState): LendingPolicy => knobsOf(state.config);
+/** The policy in force for this case: the campaign's knobs, under the grey-zone knobs the case itself turns on (WP200). */
+export const casePolicyOf = (state: {
+	config?: Record<string, unknown> | undefined;
+	extra: { lending: { grey?: { knobs: Record<string, unknown> } } };
+}): LendingPolicy =>
+	lendingPolicyFrom({
+		...((state.config?.['knobs'] as Record<string, unknown> | undefined) ?? {}),
+		...(state.extra.lending.grey?.knobs ?? {})
+	});
+const policyOf = (state: LendingDeskState): LendingPolicy => casePolicyOf(state);
 
 /**
  * The work-item layout (WP80, `64-…` §6.2.3 `intake`): the case built from
@@ -199,6 +208,27 @@ export const lendingDeskSpec: DeskWorldSpec<LendingExtra> = {
 			description: 'When a payslip must be on the desk before a decision.',
 			default: 'never',
 			values: ['never', 'refer', 'always']
+		},
+		{
+			id: 'greyBandPoints',
+			name: 'Grey band',
+			description:
+				'Within this many points of the refer ratio the arithmetic does not decide: refer (plan 114 WP200). 0: off.',
+			default: 0
+		},
+		{
+			id: 'conflictTolerancePercent',
+			name: 'Income conflict',
+			description:
+				'Refer when the declared and the verified income differ by more than this per cent (plan 114 WP200). 0: off.',
+			default: 0
+		},
+		{
+			id: 'incomeMustBeVerified',
+			name: 'Income must be verified',
+			description:
+				'Refer when the worksheet cannot verify the income, rather than decide on the declared figure (plan 114 WP200).',
+			default: false
 		}
 	],
 	context: (level, generated, spec) => bankContextRecords(generated.extra, level, spec),
@@ -241,6 +271,9 @@ export const lendingDeskSpec: DeskWorldSpec<LendingExtra> = {
 				const worksheet = ctx.reveal(WORKSHEET_RECORD);
 				state.extra.lending.assessed = true;
 				const ratio = Number(worksheet?.fields['repayment_to_disposable_percent'] ?? 0);
+				// A thin file (WP200): the worksheet has nothing to verify, and says so.
+				if (Number.isNaN(ratio))
+					return { ok: true, narration: lendingStrings.narration.assessedNoIncome };
 				return { ok: true, narration: lendingStrings.narration.assessed(ratio) };
 			}
 		},

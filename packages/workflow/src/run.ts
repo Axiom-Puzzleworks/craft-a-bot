@@ -474,6 +474,15 @@ export async function runWorkflow(
 			outcome = 'stopped';
 			break;
 		}
+		// An agent stage a guardrail escalated (plan 114 WP204) has no output to carry on with: the case is a person's, and the journey ends.
+		if (
+			record.status === 'escalated' &&
+			record.executor.kind === 'agent' &&
+			latestOutput === null
+		) {
+			outcome = 'escalated';
+			break;
+		}
 		// A stage-out `stop-run` ends the journey after the stage's record is complete (§10).
 		if (record.guards.verdicts?.some((verdict) => verdict.verdict === 'stop-run')) {
 			outcome = 'stopped';
@@ -856,6 +865,10 @@ export async function runWorkflow(
 			...(options.egress && !options.session?.egress ? { egress: options.egress } : {}),
 			...(executor.maxTicks !== undefined
 				? { budgets: { ...(options.session?.budgets ?? {}), maxTicks: executor.maxTicks } }
+				: {}),
+			// Plan 114 WP205: what a prose reply means at this journey's agent stages.
+			...(config.replyContract !== undefined && !options.session?.replyContract
+				? { replyContract: config.replyContract }
 				: {})
 		};
 		const agentSpec = { ...options.spec, goalCardId } as AnyAgentSpec;
@@ -986,16 +999,26 @@ export async function runWorkflow(
 		}
 		runIds.push(session.runId);
 		const read = result === 'SUCCESS' ? readOutput(stage, undefined) : undefined;
+		// A guardrail that escalated (plan 114 WP204) handed the case to a person: the stage is escalated, not blocked.
+		const escalatedToPerson = tripped.some((entry) => entry.disposition === 'escalate');
 		const status: StageRecord['status'] =
-			result === 'STOPPED_BY_GUARDRAIL' ? 'blocked' : read && 'output' in read ? 'ok' : 'error';
+			result === 'STOPPED_BY_GUARDRAIL'
+				? escalatedToPerson
+					? 'escalated'
+					: 'blocked'
+				: read && 'output' in read
+					? 'ok'
+					: 'error';
 		const finding =
 			status === 'ok'
 				? undefined
-				: status === 'blocked'
-					? 'a guardrail stopped the run'
-					: read && 'finding' in read
-						? read.finding
-						: `the run ended ${result}`;
+				: status === 'escalated'
+					? 'a guardrail escalated the case to a person'
+					: status === 'blocked'
+						? 'a guardrail stopped the run'
+						: read && 'finding' in read
+							? read.finding
+							: `the run ended ${result}`;
 		const record = await finishStage(
 			base,
 			started,

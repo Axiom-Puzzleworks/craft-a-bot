@@ -1052,6 +1052,10 @@
 								"regression": {
 									"type": "boolean",
 									"const": true
+								},
+								"greyZone": {
+									"type": "boolean",
+									"const": true
 								}
 							},
 							"required": [
@@ -1556,6 +1560,14 @@
 											"reviewer": {
 												"type": "string",
 												"minLength": 1
+											},
+											"replyContract": {
+												"type": "string",
+												"enum": [
+													"say",
+													"retry-with-nudge",
+													"fail"
+												]
 											}
 										}
 									}
@@ -1940,7 +1952,8 @@
 									"context",
 									"executors",
 									"knob",
-									"brain"
+									"brain",
+									"override"
 								]
 							},
 							"levels": {
@@ -1952,6 +1965,10 @@
 								}
 							},
 							"knob": {
+								"type": "string",
+								"minLength": 1
+							},
+							"override": {
 								"type": "string",
 								"minLength": 1
 							},
@@ -1994,7 +2011,8 @@
 							"context",
 							"executors",
 							"knob",
-							"brain"
+							"brain",
+							"override"
 						]
 					},
 					"additionalProperties": {
@@ -2135,6 +2153,49 @@
 									"direction",
 									"evaluatorId",
 									"label"
+								]
+							},
+							{
+								"type": "object",
+								"properties": {
+									"kind": {
+										"type": "string",
+										"const": "weighted-labels"
+									},
+									"id": {
+										"type": "string",
+										"minLength": 1
+									},
+									"direction": {
+										"type": "string",
+										"enum": [
+											"lower-is-better",
+											"higher-is-better"
+										]
+									},
+									"evaluatorId": {
+										"type": "string",
+										"minLength": 1
+									},
+									"weights": {
+										"type": "object",
+										"propertyNames": {
+											"type": "string",
+											"minLength": 1
+										},
+										"additionalProperties": {
+											"type": "number",
+											"minimum": 0,
+											"maximum": 1
+										}
+									}
+								},
+								"required": [
+									"kind",
+									"id",
+									"direction",
+									"evaluatorId",
+									"weights"
 								]
 							},
 							{

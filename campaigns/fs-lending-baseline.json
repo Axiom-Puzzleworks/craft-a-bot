@@ -510,6 +510,9 @@
 			"id": "fs-lending/decision-matches-rules"
 		},
 		{
+			"id": "fs-lending/decision-harm"
+		},
+		{
 			"id": "fs-lending/explanation-faithful"
 		},
 		{

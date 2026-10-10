@@ -181,7 +181,20 @@ export interface WorkflowConfig {
 	 * answered as it always was — the oracle — and nothing new is written.
 	 */
 	reviewer?: string;
+	/**
+	 * What a reply with no tool call means at an agent stage (plan 114 WP205, G182): the contract between the desk and a model that
+	 * sometimes answers in prose. Absent, a prose reply is a wasted turn, as it always was.
+	 */
+	replyContract?: ReplyContract;
 }
+
+/**
+ * - `say`: the words are the customer's line — the session makes them a call of the world's `say` action, where it has one.
+ * - `retry-with-nudge`: one re-prompt that names the tools, in the same turn, before the turn is given up.
+ * - `fail`: a prose reply ends the run in error; for a desk where speaking is never right.
+ */
+export type ReplyContract = 'say' | 'retry-with-nudge' | 'fail';
+export const REPLY_CONTRACTS: readonly ReplyContract[] = ['say', 'retry-with-nudge', 'fail'];
 
 /**
  * **A reviewer model** (WP115, `103-…` §6): how a person at a `human` stage
@@ -262,4 +275,6 @@ export interface BookRequest {
 	corpus?: Corpus;
 	/** The knobs the book's verdicts are judged under; the defaults without. */
 	knobs?: Record<string, number | string | boolean>;
+	/** Draw the grey zone (plan 114 WP200): some items the rule under-determines. Off by default, so no existing book moves. */
+	greyZone?: boolean;
 }

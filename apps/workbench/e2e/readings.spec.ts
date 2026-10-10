@@ -14,8 +14,10 @@ test('the reading desk by keyboard: accept, amend, reject, and the readout moves
 	const readout = page.getByTestId('readings-error-model-value');
 	await expect(readout).toHaveText(/^0of/);
 	const items = page.locator('[data-testid^="reading-error-model-"]');
-	// Three error models, and since WP154 five more — one per desk.
-	await expect(items).toHaveCount(8);
+	// The error models the packs ship: the desks' own, and (plan 114 WP203) one habit model a desk and model. The count is whatever the packs ship.
+	await expect(items.first()).toBeVisible();
+	const total = await items.count();
+	expect(total).toBeGreaterThan(8);
 
 	// Accept the first: the status says so, and the readout moves.
 	const first = items.nth(0);
@@ -24,7 +26,7 @@ test('the reading desk by keyboard: accept, amend, reject, and the readout moves
 	await expect(page.getByTestId('readings-count')).toContainText(': accepted.');
 	await expect(readout).toHaveText(/^1of/);
 	// Under the default filter (open) an accepted reading leaves the list.
-	await expect(items).toHaveCount(7);
+	await expect(items).toHaveCount(total - 1);
 
 	// Amend the next: a field and a value, typed; Enter records it.
 	const second = items.nth(0);
@@ -46,12 +48,12 @@ test('the reading desk by keyboard: accept, amend, reject, and the readout moves
 	await page.keyboard.press('Enter');
 	await expect(last.getByTestId('reading-word')).toContainText('rejected by');
 	await expect(readout).toHaveText(/^2of/);
-	await expect(items).toHaveCount(6);
+	await expect(items).toHaveCount(total - 2);
 
 	// The state filter goes into the URL, and a reload keeps every reading.
 	await page.getByTestId('readings-state').selectOption('all');
 	await expect(page).toHaveURL(/kind=error-model&state=all/);
-	await expect(items).toHaveCount(8);
+	await expect(items).toHaveCount(total);
 	await page.reload();
 	await expect(page.getByTestId('readings-state')).toHaveValue('all');
 	await expect(page.getByTestId('readings-error-model-value')).toHaveText(/^2of/);

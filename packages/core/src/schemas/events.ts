@@ -447,7 +447,7 @@ const guardrailTrippedEvent = eventSchema(
 		guardrailId: z.string(),
 		hook: guardrailHookSchema,
 		reason: z.string(),
-		disposition: z.enum(['block-action', 'stop-run']).optional(),
+		disposition: z.enum(['block-action', 'stop-run', 'escalate']).optional(),
 		/** Copied from the verdict: `could-not-check` when a hosted guard failed closed rather than caught something. */
 		cause: z.enum(['could-not-check']).optional(),
 		policyCardId: policyCardIdField,

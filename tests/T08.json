@@ -1,0 +1,13 @@
+{
+	"schemaVersion": 1,
+	"id": "T08",
+	"title": "What does delegation cost in trust?",
+	"question": "When a delegate is forged, exceeds its scope, or is believed too readily, which control holds and what does each add?",
+	"designs": [],
+	"reads": ["forgeries stopped", "scope breaches", "genuine delegations completed", "tokens"],
+	"informs": "The identity and authority model for agent-to-agent calls.",
+	"status": "not-run",
+	"evidence": [],
+	"note": "No bank journey has two agents (Phase BD).",
+	"source": "docs/design-day2/112-REAL-ENOUGH-PLAN.md §9"
+}

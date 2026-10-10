@@ -12,9 +12,12 @@ import {
 	BOOK_INCIDENCES,
 	CALIBRATION,
 	DECK_WEIGHTS,
+	DOSSIER_THRESHOLDS,
 	ERROR_RATES,
 	ERROR_RATES_MEASURED,
+	HABIT_RATES,
 	REVIEWER_RATES,
+	bankHabitModels,
 	bankReviewerModels
 } from './calibration/index.js';
 
@@ -51,12 +54,16 @@ const manifest: PackManifest = {
 		BOOK_INCIDENCES,
 		ERROR_RATES,
 		ERROR_RATES_MEASURED,
+		HABIT_RATES,
+		DOSSIER_THRESHOLDS,
 		REVIEWER_RATES,
 		BILL_RATES,
 		COMPLICATIONS
 	],
 	// WP115: the person at a review stage, as a model over REVIEWER_RATES.
 	reviewerModels: bankReviewerModels,
+	// Plan 114 WP203: how a live model fails other than by deciding wrongly, as models the scripted tier plays.
+	errorModels: bankHabitModels,
 	// WP122 (`106-BENCHMARK.md` §3): the guard question set's keyword baseline, frozen before any adversarial row.
 	// WP143: the policy-conditioned classifier over the bank's written rulebook, beside the keyword baseline.
 	readers: [ATTACK_WORDS_READER, POLICY_CONDITIONED_READER, VULNERABILITY_READER],
@@ -71,6 +78,13 @@ const manifest: PackManifest = {
 export default manifest;
 
 export * from './model.js';
+export {
+	HARM_WEIGHTS,
+	decisionHarmEvaluator,
+	harmOf,
+	type HarmLabel,
+	type HarmWords
+} from './harm.js';
 export { bankCase, type BankCaseOptions } from './generate/case.js';
 export {
 	BILL_RATES,
@@ -82,10 +96,14 @@ export {
 	PERSON_AT_APPROVAL_REVIEWER_ID,
 	DECK_WEIGHTS,
 	ERROR_RATES,
+	DOSSIER_THRESHOLDS,
 	ERROR_RATES_MEASURED,
+	HABIT_RATES,
 	REVIEWER_RATES,
+	bankHabitModels,
 	bankReviewerModels,
 	everyNth,
+	greyShapeOf,
 	impliedMarginal,
 	perDrawRate
 } from './calibration/index.js';

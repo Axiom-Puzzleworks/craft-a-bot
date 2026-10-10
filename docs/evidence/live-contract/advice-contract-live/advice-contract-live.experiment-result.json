@@ -1,0 +1,2503 @@
+{
+	"schemaVersion": 1,
+	"id": "advice-contract-live@2026-10-10T00:59:13.123Z",
+	"experimentId": "advice-contract-live",
+	"title": "The relational context on the advice-request register — with the 35B on the DGX Sparks as the brain",
+	"hypothesis": "The relational context lowers unsuitable recommendations and raises data-minimisation findings against the case file alone. Here the decisions are made by a live model, `dgx-spark/quick-qwen` (Qwen3.6-35B-A3B-NVFP4 on the builder's DGX Sparks), at temperature 0 with a 2048-token reply limit, over a book of 600: a single sample, recorded once and replayed from its cassette. The design's scripted and fallible columns are `advice-context`. The factor is `replyContract`: what a reply with no tool call means at the journey's agent stages (plan 114 WP205); `none` is the desk as it was.",
+	"controls": [
+		"fs-advice/control-map/suitability",
+		"fs-advice/control-map/minimisation-and-purpose"
+	],
+	"obligations": [
+		"fca:cobs-9:suitability",
+		"ukgdpr:data-minimisation"
+	],
+	"ranAt": "2026-10-10T00:59:13.123Z",
+	"workflowIds": [
+		"fs-advice/advice"
+	],
+	"campaignIds": [
+		"advice-contract-live--context=case-file--override=none",
+		"advice-contract-live--context=case-file--override=say",
+		"advice-contract-live--context=case-file--override=retry-with-nudge",
+		"advice-contract-live--context=relational--override=none",
+		"advice-contract-live--context=relational--override=say",
+		"advice-contract-live--context=relational--override=retry-with-nudge"
+	],
+	"effects": [
+		{
+			"experimentId": "advice-contract-live",
+			"metricId": "suitable",
+			"controlIds": [
+				"fs-advice/control-map/suitability",
+				"fs-advice/control-map/minimisation-and-purpose"
+			],
+			"factor": {
+				"axis": "context",
+				"baseline": "case-file",
+				"treatment": "relational"
+			},
+			"baseline": {
+				"value": 1,
+				"n": 11,
+				"interval": [
+					0.7411670327226446,
+					1
+				]
+			},
+			"treatment": {
+				"value": 1,
+				"n": 11,
+				"interval": [
+					0.7411670327226446,
+					1
+				]
+			},
+			"delta": 0,
+			"interval": [
+				0,
+				0
+			],
+			"method": "difference of rates over items (2 trials each, the item the unit), Welch interval at 95%",
+			"underpowered": true,
+			"tier": "live",
+			"untestable": true,
+			"slices": [
+				{
+					"where": {
+						"ageBand": "18-24"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 1,
+						"treatment": 1
+					}
+				},
+				{
+					"where": {
+						"ageBand": "25-34"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 1,
+						"treatment": 1
+					}
+				},
+				{
+					"where": {
+						"ageBand": "35-44"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 3,
+						"treatment": 3
+					}
+				},
+				{
+					"where": {
+						"ageBand": "55-64"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 2,
+						"treatment": 2
+					}
+				},
+				{
+					"where": {
+						"ageBand": "65-74"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 2,
+						"treatment": 2
+					}
+				},
+				{
+					"where": {
+						"ageBand": "75+"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 2,
+						"treatment": 2
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "15-25k"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 4,
+						"treatment": 4
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "25-40k"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 3,
+						"treatment": 3
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "40-60k"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 1,
+						"treatment": 1
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "under-15k"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 3,
+						"treatment": 3
+					}
+				},
+				{
+					"where": {
+						"proxy": "none"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 11,
+						"treatment": 11
+					}
+				}
+			],
+			"cost": {
+				"tokensPerCase": {
+					"baseline": 75349.90909090909,
+					"treatment": 95224.36363636363
+				},
+				"approvalsPerCase": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"escalationRate": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"bill": {
+					"baseline": {
+						"tokens": 75349.90909090909,
+						"modelPounds": 0.30139963636363637,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0.30139963636363637
+					},
+					"treatment": {
+						"tokens": 95224.36363636363,
+						"modelPounds": 0.38089745454545454,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0.38089745454545454
+					}
+				},
+				"touchesPerCase": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"breachRate": {
+					"baseline": 0.5454545454545454,
+					"treatment": 0.3181818181818182
+				}
+			},
+			"reliability": {
+				"k": 2,
+				"baseline": {
+					"value": 1,
+					"interval": [
+						0.7411670327226446,
+						1
+					],
+					"method": "Wilson interval over 11 items"
+				},
+				"treatment": {
+					"value": 1,
+					"interval": [
+						0.7411670327226446,
+						1
+					],
+					"method": "Wilson interval over 11 items"
+				}
+			},
+			"runIds": [
+				"00000000-0000-4000-8000-000000000452",
+				"00000000-0000-4000-8000-0000000186a1",
+				"00000000-0000-4000-8000-000000031074",
+				"00000000-0000-4000-8000-0000000495c8",
+				"00000000-0000-4000-8000-000000061df7",
+				"00000000-0000-4000-8000-00000007a121",
+				"00000000-0000-4000-8000-000000092cbd",
+				"00000000-0000-4000-8000-0000000ab0c4",
+				"00000000-0000-4000-8000-0000000c387b",
+				"00000000-0000-4000-8000-0000000dbba1",
+				"00000000-0000-4000-8000-0000000f47bd",
+				"00000000-0000-4000-8000-00000010ca96",
+				"00000000-0000-4000-8000-000000124f81",
+				"00000000-0000-4000-8000-00000013d621",
+				"00000000-0000-4000-8000-000000155cc1",
+				"00000000-0000-4000-8000-00000016e361",
+				"00000000-0000-4000-8000-000000186d11",
+				"00000000-0000-4000-8000-00000019f356",
+				"00000000-0000-4000-8000-0000001b7c05",
+				"00000000-0000-4000-8000-0000001cfde1",
+				"00000000-0000-4000-8000-0000001e8481",
+				"00000000-0000-4000-8000-000000200b21",
+				"00000000-0000-4000-8000-000000000001",
+				"00000000-0000-4000-8000-0000000186a1",
+				"00000000-0000-4000-8000-000000030d41",
+				"00000000-0000-4000-8000-000000049970",
+				"00000000-0000-4000-8000-000000061f13",
+				"00000000-0000-4000-8000-00000007a398",
+				"00000000-0000-4000-8000-0000000927c1",
+				"00000000-0000-4000-8000-0000000ab206",
+				"00000000-0000-4000-8000-0000000c389d",
+				"00000000-0000-4000-8000-0000000dbba1",
+				"00000000-0000-4000-8000-0000000f4241",
+				"00000000-0000-4000-8000-00000010c8e1",
+				"00000000-0000-4000-8000-000000124f81",
+				"00000000-0000-4000-8000-00000013db58",
+				"00000000-0000-4000-8000-000000155cc1",
+				"00000000-0000-4000-8000-00000016e361",
+				"00000000-0000-4000-8000-000000186a01",
+				"00000000-0000-4000-8000-00000019f571",
+				"00000000-0000-4000-8000-0000001b7741",
+				"00000000-0000-4000-8000-0000001cfde1",
+				"00000000-0000-4000-8000-0000001e8481",
+				"00000000-0000-4000-8000-000000200b21"
+			],
+			"reportIds": [
+				"9a386bf1-77ed-4c1d-8625-84ed9a9038bb",
+				"dbe40597-b47d-4465-837f-0b859ee0e48f"
+			]
+		},
+		{
+			"experimentId": "advice-contract-live",
+			"metricId": "minimised",
+			"controlIds": [
+				"fs-advice/control-map/suitability",
+				"fs-advice/control-map/minimisation-and-purpose"
+			],
+			"factor": {
+				"axis": "context",
+				"baseline": "case-file",
+				"treatment": "relational"
+			},
+			"baseline": {
+				"value": 1,
+				"n": 11,
+				"interval": [
+					0.7411670327226446,
+					1
+				]
+			},
+			"treatment": {
+				"value": 1,
+				"n": 11,
+				"interval": [
+					0.7411670327226446,
+					1
+				]
+			},
+			"delta": 0,
+			"interval": [
+				0,
+				0
+			],
+			"method": "difference of rates over items (2 trials each, the item the unit), Welch interval at 95%",
+			"underpowered": true,
+			"tier": "live",
+			"untestable": true,
+			"slices": [
+				{
+					"where": {
+						"ageBand": "18-24"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 1,
+						"treatment": 1
+					}
+				},
+				{
+					"where": {
+						"ageBand": "25-34"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 1,
+						"treatment": 1
+					}
+				},
+				{
+					"where": {
+						"ageBand": "35-44"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 3,
+						"treatment": 3
+					}
+				},
+				{
+					"where": {
+						"ageBand": "55-64"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 2,
+						"treatment": 2
+					}
+				},
+				{
+					"where": {
+						"ageBand": "65-74"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 2,
+						"treatment": 2
+					}
+				},
+				{
+					"where": {
+						"ageBand": "75+"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 2,
+						"treatment": 2
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "15-25k"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 4,
+						"treatment": 4
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "25-40k"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 3,
+						"treatment": 3
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "40-60k"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 1,
+						"treatment": 1
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "under-15k"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 3,
+						"treatment": 3
+					}
+				},
+				{
+					"where": {
+						"proxy": "none"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 11,
+						"treatment": 11
+					}
+				}
+			],
+			"cost": {
+				"tokensPerCase": {
+					"baseline": 75349.90909090909,
+					"treatment": 95224.36363636363
+				},
+				"approvalsPerCase": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"escalationRate": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"bill": {
+					"baseline": {
+						"tokens": 75349.90909090909,
+						"modelPounds": 0.30139963636363637,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0.30139963636363637
+					},
+					"treatment": {
+						"tokens": 95224.36363636363,
+						"modelPounds": 0.38089745454545454,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0.38089745454545454
+					}
+				},
+				"touchesPerCase": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"breachRate": {
+					"baseline": 0.5454545454545454,
+					"treatment": 0.3181818181818182
+				}
+			},
+			"reliability": {
+				"k": 2,
+				"baseline": {
+					"value": 1,
+					"interval": [
+						0.7411670327226446,
+						1
+					],
+					"method": "Wilson interval over 11 items"
+				},
+				"treatment": {
+					"value": 1,
+					"interval": [
+						0.7411670327226446,
+						1
+					],
+					"method": "Wilson interval over 11 items"
+				}
+			},
+			"runIds": [
+				"00000000-0000-4000-8000-000000000452",
+				"00000000-0000-4000-8000-0000000186a1",
+				"00000000-0000-4000-8000-000000031074",
+				"00000000-0000-4000-8000-0000000495c8",
+				"00000000-0000-4000-8000-000000061df7",
+				"00000000-0000-4000-8000-00000007a121",
+				"00000000-0000-4000-8000-000000092cbd",
+				"00000000-0000-4000-8000-0000000ab0c4",
+				"00000000-0000-4000-8000-0000000c387b",
+				"00000000-0000-4000-8000-0000000dbba1",
+				"00000000-0000-4000-8000-0000000f47bd",
+				"00000000-0000-4000-8000-00000010ca96",
+				"00000000-0000-4000-8000-000000124f81",
+				"00000000-0000-4000-8000-00000013d621",
+				"00000000-0000-4000-8000-000000155cc1",
+				"00000000-0000-4000-8000-00000016e361",
+				"00000000-0000-4000-8000-000000186d11",
+				"00000000-0000-4000-8000-00000019f356",
+				"00000000-0000-4000-8000-0000001b7c05",
+				"00000000-0000-4000-8000-0000001cfde1",
+				"00000000-0000-4000-8000-0000001e8481",
+				"00000000-0000-4000-8000-000000200b21",
+				"00000000-0000-4000-8000-000000000001",
+				"00000000-0000-4000-8000-0000000186a1",
+				"00000000-0000-4000-8000-000000030d41",
+				"00000000-0000-4000-8000-000000049970",
+				"00000000-0000-4000-8000-000000061f13",
+				"00000000-0000-4000-8000-00000007a398",
+				"00000000-0000-4000-8000-0000000927c1",
+				"00000000-0000-4000-8000-0000000ab206",
+				"00000000-0000-4000-8000-0000000c389d",
+				"00000000-0000-4000-8000-0000000dbba1",
+				"00000000-0000-4000-8000-0000000f4241",
+				"00000000-0000-4000-8000-00000010c8e1",
+				"00000000-0000-4000-8000-000000124f81",
+				"00000000-0000-4000-8000-00000013db58",
+				"00000000-0000-4000-8000-000000155cc1",
+				"00000000-0000-4000-8000-00000016e361",
+				"00000000-0000-4000-8000-000000186a01",
+				"00000000-0000-4000-8000-00000019f571",
+				"00000000-0000-4000-8000-0000001b7741",
+				"00000000-0000-4000-8000-0000001cfde1",
+				"00000000-0000-4000-8000-0000001e8481",
+				"00000000-0000-4000-8000-000000200b21"
+			],
+			"reportIds": [
+				"9a386bf1-77ed-4c1d-8625-84ed9a9038bb",
+				"dbe40597-b47d-4465-837f-0b859ee0e48f"
+			]
+		},
+		{
+			"experimentId": "advice-contract-live",
+			"metricId": "suitable",
+			"controlIds": [
+				"fs-advice/control-map/suitability",
+				"fs-advice/control-map/minimisation-and-purpose"
+			],
+			"factor": {
+				"axis": "override",
+				"baseline": "none",
+				"treatment": "say"
+			},
+			"baseline": {
+				"value": 1,
+				"n": 11,
+				"interval": [
+					0.7411670327226446,
+					1
+				]
+			},
+			"treatment": {
+				"value": 0.9545454545454546,
+				"n": 11,
+				"interval": [
+					0.8636363636363636,
+					1
+				]
+			},
+			"delta": -0.045454545454545414,
+			"interval": [
+				-0.14673358418007282,
+				0.055824493270982004
+			],
+			"p": 1,
+			"method": "difference of rates over items (2 trials each, the item the unit), Welch interval at 95%; sign test over 1 differing of 11 paired items",
+			"underpowered": true,
+			"tier": "live",
+			"slices": [
+				{
+					"where": {
+						"ageBand": "18-24"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 1,
+						"treatment": 1
+					}
+				},
+				{
+					"where": {
+						"ageBand": "25-34"
+					},
+					"delta": -0.5,
+					"interval": [
+						-0.5,
+						-0.5
+					],
+					"n": {
+						"baseline": 1,
+						"treatment": 1
+					}
+				},
+				{
+					"where": {
+						"ageBand": "35-44"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 3,
+						"treatment": 3
+					}
+				},
+				{
+					"where": {
+						"ageBand": "55-64"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 2,
+						"treatment": 2
+					}
+				},
+				{
+					"where": {
+						"ageBand": "65-74"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 2,
+						"treatment": 2
+					}
+				},
+				{
+					"where": {
+						"ageBand": "75+"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 2,
+						"treatment": 2
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "15-25k"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 4,
+						"treatment": 4
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "25-40k"
+					},
+					"delta": -0.16666666666666663,
+					"interval": [
+						-0.8837754549604521,
+						0.5504421216271188
+					],
+					"n": {
+						"baseline": 3,
+						"treatment": 3
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "40-60k"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 1,
+						"treatment": 1
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "under-15k"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 3,
+						"treatment": 3
+					}
+				},
+				{
+					"where": {
+						"proxy": "none"
+					},
+					"delta": -0.045454545454545414,
+					"interval": [
+						-0.14673358418007282,
+						0.055824493270982004
+					],
+					"n": {
+						"baseline": 11,
+						"treatment": 11
+					}
+				}
+			],
+			"cost": {
+				"tokensPerCase": {
+					"baseline": 75349.90909090909,
+					"treatment": 86850.63636363637
+				},
+				"approvalsPerCase": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"escalationRate": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"bill": {
+					"baseline": {
+						"tokens": 75349.90909090909,
+						"modelPounds": 0.30139963636363637,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0.30139963636363637
+					},
+					"treatment": {
+						"tokens": 86850.63636363637,
+						"modelPounds": 0.34740254545454546,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0.34740254545454546
+					}
+				},
+				"touchesPerCase": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"breachRate": {
+					"baseline": 0.5454545454545454,
+					"treatment": 0.6363636363636364
+				}
+			},
+			"reliability": {
+				"k": 2,
+				"baseline": {
+					"value": 1,
+					"interval": [
+						0.7411670327226446,
+						1
+					],
+					"method": "Wilson interval over 11 items"
+				},
+				"treatment": {
+					"value": 0.9090909090909091,
+					"interval": [
+						0.6226415632768665,
+						0.9837678271325698
+					],
+					"method": "Wilson interval over 11 items"
+				}
+			},
+			"runIds": [
+				"00000000-0000-4000-8000-000000000452",
+				"00000000-0000-4000-8000-0000000186a1",
+				"00000000-0000-4000-8000-000000031074",
+				"00000000-0000-4000-8000-0000000495c8",
+				"00000000-0000-4000-8000-000000061df7",
+				"00000000-0000-4000-8000-00000007a121",
+				"00000000-0000-4000-8000-000000092cbd",
+				"00000000-0000-4000-8000-0000000ab0c4",
+				"00000000-0000-4000-8000-0000000c387b",
+				"00000000-0000-4000-8000-0000000dbba1",
+				"00000000-0000-4000-8000-0000000f47bd",
+				"00000000-0000-4000-8000-00000010ca96",
+				"00000000-0000-4000-8000-000000124f81",
+				"00000000-0000-4000-8000-00000013d621",
+				"00000000-0000-4000-8000-000000155cc1",
+				"00000000-0000-4000-8000-00000016e361",
+				"00000000-0000-4000-8000-000000186d11",
+				"00000000-0000-4000-8000-00000019f356",
+				"00000000-0000-4000-8000-0000001b7c05",
+				"00000000-0000-4000-8000-0000001cfde1",
+				"00000000-0000-4000-8000-0000001e8481",
+				"00000000-0000-4000-8000-000000200b21",
+				"00000000-0000-4000-8000-000000000975",
+				"00000000-0000-4000-8000-000000018c26",
+				"00000000-0000-4000-8000-000000031193",
+				"00000000-0000-4000-8000-000000049575",
+				"00000000-0000-4000-8000-000000061a81",
+				"00000000-0000-4000-8000-00000007a121",
+				"00000000-0000-4000-8000-000000092cbf",
+				"00000000-0000-4000-8000-0000000ab3ec",
+				"00000000-0000-4000-8000-0000000c3501",
+				"00000000-0000-4000-8000-0000000dc04d",
+				"00000000-0000-4000-8000-0000000f44c2",
+				"00000000-0000-4000-8000-00000010ca9b",
+				"00000000-0000-4000-8000-000000124f81",
+				"00000000-0000-4000-8000-00000013d826",
+				"00000000-0000-4000-8000-000000155eda",
+				"00000000-0000-4000-8000-00000016e756",
+				"00000000-0000-4000-8000-000000186fe7",
+				"00000000-0000-4000-8000-00000019f647",
+				"00000000-0000-4000-8000-0000001b7741",
+				"00000000-0000-4000-8000-0000001cfde1",
+				"00000000-0000-4000-8000-0000001e8481",
+				"00000000-0000-4000-8000-000000200e46"
+			],
+			"reportIds": [
+				"9a386bf1-77ed-4c1d-8625-84ed9a9038bb",
+				"3c9952a7-c1ff-4ecc-90f3-58aa9bf7d796"
+			]
+		},
+		{
+			"experimentId": "advice-contract-live",
+			"metricId": "minimised",
+			"controlIds": [
+				"fs-advice/control-map/suitability",
+				"fs-advice/control-map/minimisation-and-purpose"
+			],
+			"factor": {
+				"axis": "override",
+				"baseline": "none",
+				"treatment": "say"
+			},
+			"baseline": {
+				"value": 1,
+				"n": 11,
+				"interval": [
+					0.7411670327226446,
+					1
+				]
+			},
+			"treatment": {
+				"value": 1,
+				"n": 11,
+				"interval": [
+					0.7411670327226446,
+					1
+				]
+			},
+			"delta": 0,
+			"interval": [
+				0,
+				0
+			],
+			"p": 1,
+			"method": "difference of rates over items (2 trials each, the item the unit), Welch interval at 95%; sign test over 0 differing of 11 paired items",
+			"underpowered": true,
+			"tier": "live",
+			"untestable": true,
+			"slices": [
+				{
+					"where": {
+						"ageBand": "18-24"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 1,
+						"treatment": 1
+					}
+				},
+				{
+					"where": {
+						"ageBand": "25-34"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 1,
+						"treatment": 1
+					}
+				},
+				{
+					"where": {
+						"ageBand": "35-44"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 3,
+						"treatment": 3
+					}
+				},
+				{
+					"where": {
+						"ageBand": "55-64"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 2,
+						"treatment": 2
+					}
+				},
+				{
+					"where": {
+						"ageBand": "65-74"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 2,
+						"treatment": 2
+					}
+				},
+				{
+					"where": {
+						"ageBand": "75+"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 2,
+						"treatment": 2
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "15-25k"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 4,
+						"treatment": 4
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "25-40k"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 3,
+						"treatment": 3
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "40-60k"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 1,
+						"treatment": 1
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "under-15k"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 3,
+						"treatment": 3
+					}
+				},
+				{
+					"where": {
+						"proxy": "none"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 11,
+						"treatment": 11
+					}
+				}
+			],
+			"cost": {
+				"tokensPerCase": {
+					"baseline": 75349.90909090909,
+					"treatment": 86850.63636363637
+				},
+				"approvalsPerCase": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"escalationRate": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"bill": {
+					"baseline": {
+						"tokens": 75349.90909090909,
+						"modelPounds": 0.30139963636363637,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0.30139963636363637
+					},
+					"treatment": {
+						"tokens": 86850.63636363637,
+						"modelPounds": 0.34740254545454546,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0.34740254545454546
+					}
+				},
+				"touchesPerCase": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"breachRate": {
+					"baseline": 0.5454545454545454,
+					"treatment": 0.6363636363636364
+				}
+			},
+			"reliability": {
+				"k": 2,
+				"baseline": {
+					"value": 1,
+					"interval": [
+						0.7411670327226446,
+						1
+					],
+					"method": "Wilson interval over 11 items"
+				},
+				"treatment": {
+					"value": 1,
+					"interval": [
+						0.7411670327226446,
+						1
+					],
+					"method": "Wilson interval over 11 items"
+				}
+			},
+			"runIds": [
+				"00000000-0000-4000-8000-000000000452",
+				"00000000-0000-4000-8000-0000000186a1",
+				"00000000-0000-4000-8000-000000031074",
+				"00000000-0000-4000-8000-0000000495c8",
+				"00000000-0000-4000-8000-000000061df7",
+				"00000000-0000-4000-8000-00000007a121",
+				"00000000-0000-4000-8000-000000092cbd",
+				"00000000-0000-4000-8000-0000000ab0c4",
+				"00000000-0000-4000-8000-0000000c387b",
+				"00000000-0000-4000-8000-0000000dbba1",
+				"00000000-0000-4000-8000-0000000f47bd",
+				"00000000-0000-4000-8000-00000010ca96",
+				"00000000-0000-4000-8000-000000124f81",
+				"00000000-0000-4000-8000-00000013d621",
+				"00000000-0000-4000-8000-000000155cc1",
+				"00000000-0000-4000-8000-00000016e361",
+				"00000000-0000-4000-8000-000000186d11",
+				"00000000-0000-4000-8000-00000019f356",
+				"00000000-0000-4000-8000-0000001b7c05",
+				"00000000-0000-4000-8000-0000001cfde1",
+				"00000000-0000-4000-8000-0000001e8481",
+				"00000000-0000-4000-8000-000000200b21",
+				"00000000-0000-4000-8000-000000000975",
+				"00000000-0000-4000-8000-000000018c26",
+				"00000000-0000-4000-8000-000000031193",
+				"00000000-0000-4000-8000-000000049575",
+				"00000000-0000-4000-8000-000000061a81",
+				"00000000-0000-4000-8000-00000007a121",
+				"00000000-0000-4000-8000-000000092cbf",
+				"00000000-0000-4000-8000-0000000ab3ec",
+				"00000000-0000-4000-8000-0000000c3501",
+				"00000000-0000-4000-8000-0000000dc04d",
+				"00000000-0000-4000-8000-0000000f44c2",
+				"00000000-0000-4000-8000-00000010ca9b",
+				"00000000-0000-4000-8000-000000124f81",
+				"00000000-0000-4000-8000-00000013d826",
+				"00000000-0000-4000-8000-000000155eda",
+				"00000000-0000-4000-8000-00000016e756",
+				"00000000-0000-4000-8000-000000186fe7",
+				"00000000-0000-4000-8000-00000019f647",
+				"00000000-0000-4000-8000-0000001b7741",
+				"00000000-0000-4000-8000-0000001cfde1",
+				"00000000-0000-4000-8000-0000001e8481",
+				"00000000-0000-4000-8000-000000200e46"
+			],
+			"reportIds": [
+				"9a386bf1-77ed-4c1d-8625-84ed9a9038bb",
+				"3c9952a7-c1ff-4ecc-90f3-58aa9bf7d796"
+			]
+		},
+		{
+			"experimentId": "advice-contract-live",
+			"metricId": "suitable",
+			"controlIds": [
+				"fs-advice/control-map/suitability",
+				"fs-advice/control-map/minimisation-and-purpose"
+			],
+			"factor": {
+				"axis": "override",
+				"baseline": "none",
+				"treatment": "retry-with-nudge"
+			},
+			"baseline": {
+				"value": 1,
+				"n": 11,
+				"interval": [
+					0.7411670327226446,
+					1
+				]
+			},
+			"treatment": {
+				"value": 1,
+				"n": 11,
+				"interval": [
+					0.7411670327226446,
+					1
+				]
+			},
+			"delta": 0,
+			"interval": [
+				0,
+				0
+			],
+			"p": 1,
+			"method": "difference of rates over items (2 trials each, the item the unit), Welch interval at 95%; sign test over 0 differing of 11 paired items",
+			"underpowered": true,
+			"tier": "live",
+			"untestable": true,
+			"slices": [
+				{
+					"where": {
+						"ageBand": "18-24"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 1,
+						"treatment": 1
+					}
+				},
+				{
+					"where": {
+						"ageBand": "25-34"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 1,
+						"treatment": 1
+					}
+				},
+				{
+					"where": {
+						"ageBand": "35-44"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 3,
+						"treatment": 3
+					}
+				},
+				{
+					"where": {
+						"ageBand": "55-64"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 2,
+						"treatment": 2
+					}
+				},
+				{
+					"where": {
+						"ageBand": "65-74"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 2,
+						"treatment": 2
+					}
+				},
+				{
+					"where": {
+						"ageBand": "75+"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 2,
+						"treatment": 2
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "15-25k"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 4,
+						"treatment": 4
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "25-40k"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 3,
+						"treatment": 3
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "40-60k"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 1,
+						"treatment": 1
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "under-15k"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 3,
+						"treatment": 3
+					}
+				},
+				{
+					"where": {
+						"proxy": "none"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 11,
+						"treatment": 11
+					}
+				}
+			],
+			"cost": {
+				"tokensPerCase": {
+					"baseline": 75349.90909090909,
+					"treatment": 49013.77272727273
+				},
+				"approvalsPerCase": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"escalationRate": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"bill": {
+					"baseline": {
+						"tokens": 75349.90909090909,
+						"modelPounds": 0.30139963636363637,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0.30139963636363637
+					},
+					"treatment": {
+						"tokens": 49013.77272727273,
+						"modelPounds": 0.19605509090909093,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0.19605509090909093
+					}
+				},
+				"touchesPerCase": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"breachRate": {
+					"baseline": 0.5454545454545454,
+					"treatment": 1
+				}
+			},
+			"reliability": {
+				"k": 2,
+				"baseline": {
+					"value": 1,
+					"interval": [
+						0.7411670327226446,
+						1
+					],
+					"method": "Wilson interval over 11 items"
+				},
+				"treatment": {
+					"value": 1,
+					"interval": [
+						0.7411670327226446,
+						1
+					],
+					"method": "Wilson interval over 11 items"
+				}
+			},
+			"runIds": [
+				"00000000-0000-4000-8000-000000000452",
+				"00000000-0000-4000-8000-0000000186a1",
+				"00000000-0000-4000-8000-000000031074",
+				"00000000-0000-4000-8000-0000000495c8",
+				"00000000-0000-4000-8000-000000061df7",
+				"00000000-0000-4000-8000-00000007a121",
+				"00000000-0000-4000-8000-000000092cbd",
+				"00000000-0000-4000-8000-0000000ab0c4",
+				"00000000-0000-4000-8000-0000000c387b",
+				"00000000-0000-4000-8000-0000000dbba1",
+				"00000000-0000-4000-8000-0000000f47bd",
+				"00000000-0000-4000-8000-00000010ca96",
+				"00000000-0000-4000-8000-000000124f81",
+				"00000000-0000-4000-8000-00000013d621",
+				"00000000-0000-4000-8000-000000155cc1",
+				"00000000-0000-4000-8000-00000016e361",
+				"00000000-0000-4000-8000-000000186d11",
+				"00000000-0000-4000-8000-00000019f356",
+				"00000000-0000-4000-8000-0000001b7c05",
+				"00000000-0000-4000-8000-0000001cfde1",
+				"00000000-0000-4000-8000-0000001e8481",
+				"00000000-0000-4000-8000-000000200b21",
+				"00000000-0000-4000-8000-0000000001f0",
+				"00000000-0000-4000-8000-0000000188e3",
+				"00000000-0000-4000-8000-000000030edb",
+				"00000000-0000-4000-8000-0000000495e6",
+				"00000000-0000-4000-8000-000000061c38",
+				"00000000-0000-4000-8000-00000007a227",
+				"00000000-0000-4000-8000-0000000929c4",
+				"00000000-0000-4000-8000-0000000ab088",
+				"00000000-0000-4000-8000-0000000c36a1",
+				"00000000-0000-4000-8000-0000000dbd7b",
+				"00000000-0000-4000-8000-0000000f4436",
+				"00000000-0000-4000-8000-00000010cab6",
+				"00000000-0000-4000-8000-000000125117",
+				"00000000-0000-4000-8000-00000013d842",
+				"00000000-0000-4000-8000-000000155f02",
+				"00000000-0000-4000-8000-00000016e48e",
+				"00000000-0000-4000-8000-000000186be9",
+				"00000000-0000-4000-8000-00000019f229",
+				"00000000-0000-4000-8000-0000001b7c57",
+				"00000000-0000-4000-8000-0000001cffc2",
+				"00000000-0000-4000-8000-0000001e867e",
+				"00000000-0000-4000-8000-000000200d5c"
+			],
+			"reportIds": [
+				"9a386bf1-77ed-4c1d-8625-84ed9a9038bb",
+				"4370c0aa-f57c-4bbb-a6e8-a8e42ca9d92c"
+			]
+		},
+		{
+			"experimentId": "advice-contract-live",
+			"metricId": "minimised",
+			"controlIds": [
+				"fs-advice/control-map/suitability",
+				"fs-advice/control-map/minimisation-and-purpose"
+			],
+			"factor": {
+				"axis": "override",
+				"baseline": "none",
+				"treatment": "retry-with-nudge"
+			},
+			"baseline": {
+				"value": 1,
+				"n": 11,
+				"interval": [
+					0.7411670327226446,
+					1
+				]
+			},
+			"treatment": {
+				"value": 1,
+				"n": 11,
+				"interval": [
+					0.7411670327226446,
+					1
+				]
+			},
+			"delta": 0,
+			"interval": [
+				0,
+				0
+			],
+			"p": 1,
+			"method": "difference of rates over items (2 trials each, the item the unit), Welch interval at 95%; sign test over 0 differing of 11 paired items",
+			"underpowered": true,
+			"tier": "live",
+			"untestable": true,
+			"slices": [
+				{
+					"where": {
+						"ageBand": "18-24"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 1,
+						"treatment": 1
+					}
+				},
+				{
+					"where": {
+						"ageBand": "25-34"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 1,
+						"treatment": 1
+					}
+				},
+				{
+					"where": {
+						"ageBand": "35-44"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 3,
+						"treatment": 3
+					}
+				},
+				{
+					"where": {
+						"ageBand": "55-64"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 2,
+						"treatment": 2
+					}
+				},
+				{
+					"where": {
+						"ageBand": "65-74"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 2,
+						"treatment": 2
+					}
+				},
+				{
+					"where": {
+						"ageBand": "75+"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 2,
+						"treatment": 2
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "15-25k"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 4,
+						"treatment": 4
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "25-40k"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 3,
+						"treatment": 3
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "40-60k"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 1,
+						"treatment": 1
+					}
+				},
+				{
+					"where": {
+						"incomeBand": "under-15k"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 3,
+						"treatment": 3
+					}
+				},
+				{
+					"where": {
+						"proxy": "none"
+					},
+					"delta": 0,
+					"interval": [
+						0,
+						0
+					],
+					"n": {
+						"baseline": 11,
+						"treatment": 11
+					}
+				}
+			],
+			"cost": {
+				"tokensPerCase": {
+					"baseline": 75349.90909090909,
+					"treatment": 49013.77272727273
+				},
+				"approvalsPerCase": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"escalationRate": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"bill": {
+					"baseline": {
+						"tokens": 75349.90909090909,
+						"modelPounds": 0.30139963636363637,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0.30139963636363637
+					},
+					"treatment": {
+						"tokens": 49013.77272727273,
+						"modelPounds": 0.19605509090909093,
+						"humanSeconds": 0,
+						"humanPounds": 0,
+						"pounds": 0.19605509090909093
+					}
+				},
+				"touchesPerCase": {
+					"baseline": 0,
+					"treatment": 0
+				},
+				"breachRate": {
+					"baseline": 0.5454545454545454,
+					"treatment": 1
+				}
+			},
+			"reliability": {
+				"k": 2,
+				"baseline": {
+					"value": 1,
+					"interval": [
+						0.7411670327226446,
+						1
+					],
+					"method": "Wilson interval over 11 items"
+				},
+				"treatment": {
+					"value": 1,
+					"interval": [
+						0.7411670327226446,
+						1
+					],
+					"method": "Wilson interval over 11 items"
+				}
+			},
+			"runIds": [
+				"00000000-0000-4000-8000-000000000452",
+				"00000000-0000-4000-8000-0000000186a1",
+				"00000000-0000-4000-8000-000000031074",
+				"00000000-0000-4000-8000-0000000495c8",
+				"00000000-0000-4000-8000-000000061df7",
+				"00000000-0000-4000-8000-00000007a121",
+				"00000000-0000-4000-8000-000000092cbd",
+				"00000000-0000-4000-8000-0000000ab0c4",
+				"00000000-0000-4000-8000-0000000c387b",
+				"00000000-0000-4000-8000-0000000dbba1",
+				"00000000-0000-4000-8000-0000000f47bd",
+				"00000000-0000-4000-8000-00000010ca96",
+				"00000000-0000-4000-8000-000000124f81",
+				"00000000-0000-4000-8000-00000013d621",
+				"00000000-0000-4000-8000-000000155cc1",
+				"00000000-0000-4000-8000-00000016e361",
+				"00000000-0000-4000-8000-000000186d11",
+				"00000000-0000-4000-8000-00000019f356",
+				"00000000-0000-4000-8000-0000001b7c05",
+				"00000000-0000-4000-8000-0000001cfde1",
+				"00000000-0000-4000-8000-0000001e8481",
+				"00000000-0000-4000-8000-000000200b21",
+				"00000000-0000-4000-8000-0000000001f0",
+				"00000000-0000-4000-8000-0000000188e3",
+				"00000000-0000-4000-8000-000000030edb",
+				"00000000-0000-4000-8000-0000000495e6",
+				"00000000-0000-4000-8000-000000061c38",
+				"00000000-0000-4000-8000-00000007a227",
+				"00000000-0000-4000-8000-0000000929c4",
+				"00000000-0000-4000-8000-0000000ab088",
+				"00000000-0000-4000-8000-0000000c36a1",
+				"00000000-0000-4000-8000-0000000dbd7b",
+				"00000000-0000-4000-8000-0000000f4436",
+				"00000000-0000-4000-8000-00000010cab6",
+				"00000000-0000-4000-8000-000000125117",
+				"00000000-0000-4000-8000-00000013d842",
+				"00000000-0000-4000-8000-000000155f02",
+				"00000000-0000-4000-8000-00000016e48e",
+				"00000000-0000-4000-8000-000000186be9",
+				"00000000-0000-4000-8000-00000019f229",
+				"00000000-0000-4000-8000-0000001b7c57",
+				"00000000-0000-4000-8000-0000001cffc2",
+				"00000000-0000-4000-8000-0000001e867e",
+				"00000000-0000-4000-8000-000000200d5c"
+			],
+			"reportIds": [
+				"9a386bf1-77ed-4c1d-8625-84ed9a9038bb",
+				"4370c0aa-f57c-4bbb-a6e8-a8e42ca9d92c"
+			]
+		}
+	],
+	"reliability": [
+		{
+			"campaignId": "advice-contract-live--context=case-file--override=none",
+			"trials": 2,
+			"k": 2,
+			"items": 11,
+			"skipped": 0,
+			"metrics": [
+				{
+					"metricId": "suitable",
+					"pass1": {
+						"value": 1,
+						"interval": [
+							0.7411670327226446,
+							1
+						],
+						"method": "Wilson interval over 11 items"
+					},
+					"passAtK": {
+						"value": 1,
+						"interval": [
+							0.7411670327226446,
+							1
+						],
+						"method": "Wilson interval over 11 items"
+					},
+					"passHatK": {
+						"value": 1,
+						"interval": [
+							0.7411670327226446,
+							1
+						],
+						"method": "Wilson interval over 11 items"
+					},
+					"consistency": {
+						"value": 1,
+						"interval": [
+							0.7411670327226446,
+							1
+						],
+						"method": "Wilson interval over 11 items"
+					}
+				},
+				{
+					"metricId": "minimised",
+					"pass1": {
+						"value": 1,
+						"interval": [
+							0.7411670327226446,
+							1
+						],
+						"method": "Wilson interval over 11 items"
+					},
+					"passAtK": {
+						"value": 1,
+						"interval": [
+							0.7411670327226446,
+							1
+						],
+						"method": "Wilson interval over 11 items"
+					},
+					"passHatK": {
+						"value": 1,
+						"interval": [
+							0.7411670327226446,
+							1
+						],
+						"method": "Wilson interval over 11 items"
+					},
+					"consistency": {
+						"value": 1,
+						"interval": [
+							0.7411670327226446,
+							1
+						],
+						"method": "Wilson interval over 11 items"
+					}
+				}
+			],
+			"firstTick": {
+				"pairs": 11,
+				"sameCall": {
+					"value": 0.9090909090909091,
+					"interval": [
+						0.6226415632768665,
+						0.9837678271325698
+					],
+					"method": "Wilson interval over 11 items"
+				},
+				"sameWords": {
+					"value": 0.09090909090909091,
+					"interval": [
+						0.016232172867430145,
+						0.3773584367231335
+					],
+					"method": "Wilson interval over 11 items"
+				}
+			},
+			"divergence": {
+				"identicalPaths": {
+					"value": 0.2727272727272727,
+					"interval": [
+						0.09746059282183817,
+						0.5656453013951416
+					],
+					"method": "Wilson interval over 11 items"
+				},
+				"medianFirstDivergence": 2.5,
+				"meanPathDistance": 9.090909090909092
+			}
+		},
+		{
+			"campaignId": "advice-contract-live--context=case-file--override=say",
+			"trials": 2,
+			"k": 2,
+			"items": 11,
+			"skipped": 0,
+			"metrics": [
+				{
+					"metricId": "suitable",
+					"pass1": {
+						"value": 0.9545454545454546,
+						"interval": [
+							0.8636363636363636,
+							1
+						],
+						"method": "percentile bootstrap over 11 items, 2000 resamples"
+					},
+					"passAtK": {
+						"value": 1,
+						"interval": [
+							0.7411670327226446,
+							1
+						],
+						"method": "Wilson interval over 11 items"
+					},
+					"passHatK": {
+						"value": 0.9090909090909091,
+						"interval": [
+							0.6226415632768665,
+							0.9837678271325698
+						],
+						"method": "Wilson interval over 11 items"
+					},
+					"consistency": {
+						"value": 0.9090909090909091,
+						"interval": [
+							0.6226415632768665,
+							0.9837678271325698
+						],
+						"method": "Wilson interval over 11 items"
+					}
+				},
+				{
+					"metricId": "minimised",
+					"pass1": {
+						"value": 1,
+						"interval": [
+							0.7411670327226446,
+							1
+						],
+						"method": "Wilson interval over 11 items"
+					},
+					"passAtK": {
+						"value": 1,
+						"interval": [
+							0.7411670327226446,
+							1
+						],
+						"method": "Wilson interval over 11 items"
+					},
+					"passHatK": {
+						"value": 1,
+						"interval": [
+							0.7411670327226446,
+							1
+						],
+						"method": "Wilson interval over 11 items"
+					},
+					"consistency": {
+						"value": 1,
+						"interval": [
+							0.7411670327226446,
+							1
+						],
+						"method": "Wilson interval over 11 items"
+					}
+				}
+			],
+			"firstTick": {
+				"pairs": 11,
+				"sameCall": {
+					"value": 0,
+					"interval": [
+						0,
+						0.25883296727735555
+					],
+					"method": "Wilson interval over 11 items"
+				},
+				"sameWords": {
+					"value": 0,
+					"interval": [
+						0,
+						0.25883296727735555
+					],
+					"method": "Wilson interval over 11 items"
+				}
+			},
+			"divergence": {
+				"identicalPaths": {
+					"value": 0,
+					"interval": [
+						0,
+						0.25883296727735555
+					],
+					"method": "Wilson interval over 11 items"
+				},
+				"medianFirstDivergence": 0,
+				"meanPathDistance": 19.181818181818183
+			}
+		},
+		{
+			"campaignId": "advice-contract-live--context=case-file--override=retry-with-nudge",
+			"trials": 2,
+			"k": 2,
+			"items": 11,
+			"skipped": 0,
+			"metrics": [
+				{
+					"metricId": "suitable",
+					"pass1": {
+						"value": 1,
+						"interval": [
+							0.7411670327226446,
+							1
+						],
+						"method": "Wilson interval over 11 items"
+					},
+					"passAtK": {
+						"value": 1,
+						"interval": [
+							0.7411670327226446,
+							1
+						],
+						"method": "Wilson interval over 11 items"
+					},
+					"passHatK": {
+						"value": 1,
+						"interval": [
+							0.7411670327226446,
+							1
+						],
+						"method": "Wilson interval over 11 items"
+					},
+					"consistency": {
+						"value": 1,
+						"interval": [
+							0.7411670327226446,
+							1
+						],
+						"method": "Wilson interval over 11 items"
+					}
+				},
+				{
+					"metricId": "minimised",
+					"pass1": {
+						"value": 1,
+						"interval": [
+							0.7411670327226446,
+							1
+						],
+						"method": "Wilson interval over 11 items"
+					},
+					"passAtK": {
+						"value": 1,
+						"interval": [
+							0.7411670327226446,
+							1
+						],
+						"method": "Wilson interval over 11 items"
+					},
+					"passHatK": {
+						"value": 1,
+						"interval": [
+							0.7411670327226446,
+							1
+						],
+						"method": "Wilson interval over 11 items"
+					},
+					"consistency": {
+						"value": 1,
+						"interval": [
+							0.7411670327226446,
+							1
+						],
+						"method": "Wilson interval over 11 items"
+					}
+				}
+			],
+			"firstTick": {
+				"pairs": 11,
+				"sameCall": {
+					"value": 0.7272727272727273,
+					"interval": [
+						0.43435469860485837,
+						0.9025394071781618
+					],
+					"method": "Wilson interval over 11 items"
+				},
+				"sameWords": {
+					"value": 0.7272727272727273,
+					"interval": [
+						0.43435469860485837,
+						0.9025394071781618
+					],
+					"method": "Wilson interval over 11 items"
+				}
+			},
+			"divergence": {
+				"identicalPaths": {
+					"value": 0,
+					"interval": [
+						0,
+						0.25883296727735555
+					],
+					"method": "Wilson interval over 11 items"
+				},
+				"medianFirstDivergence": 1,
+				"meanPathDistance": 7.7272727272727275
+			}
+		},
+		{
+			"campaignId": "advice-contract-live--context=relational--override=none",
+			"trials": 2,
+			"k": 2,
+			"items": 11,
+			"skipped": 0,
+			"metrics": [
+				{
+					"metricId": "suitable",
+					"pass1": {
+						"value": 1,
+						"interval": [
+							0.7411670327226446,
+							1
+						],
+						"method": "Wilson interval over 11 items"
+					},
+					"passAtK": {
+						"value": 1,
+						"interval": [
+							0.7411670327226446,
+							1
+						],
+						"method": "Wilson interval over 11 items"
+					},
+					"passHatK": {
+						"value": 1,
+						"interval": [
+							0.7411670327226446,
+							1
+						],
+						"method": "Wilson interval over 11 items"
+					},
+					"consistency": {
+						"value": 1,
+						"interval": [
+							0.7411670327226446,
+							1
+						],
+						"method": "Wilson interval over 11 items"
+					}
+				},
+				{
+					"metricId": "minimised",
+					"pass1": {
+						"value": 1,
+						"interval": [
+							0.7411670327226446,
+							1
+						],
+						"method": "Wilson interval over 11 items"
+					},
+					"passAtK": {
+						"value": 1,
+						"interval": [
+							0.7411670327226446,
+							1
+						],
+						"method": "Wilson interval over 11 items"
+					},
+					"passHatK": {
+						"value": 1,
+						"interval": [
+							0.7411670327226446,
+							1
+						],
+						"method": "Wilson interval over 11 items"
+					},
+					"consistency": {
+						"value": 1,
+						"interval": [
+							0.7411670327226446,
+							1
+						],
+						"method": "Wilson interval over 11 items"
+					}
+				}
+			],
+			"firstTick": {
+				"pairs": 11,
+				"sameCall": {
+					"value": 1,
+					"interval": [
+						0.7411670327226446,
+						1
+					],
+					"method": "Wilson interval over 11 items"
+				},
+				"sameWords": {
+					"value": 0,
+					"interval": [
+						0,
+						0.25883296727735555
+					],
+					"method": "Wilson interval over 11 items"
+				}
+			},
+			"divergence": {
+				"identicalPaths": {
+					"value": 0.45454545454545453,
+					"interval": [
+						0.21271271608679787,
+						0.719908462756598
+					],
+					"method": "Wilson interval over 11 items"
+				},
+				"medianFirstDivergence": 6.5,
+				"meanPathDistance": 6.090909090909091
+			}
+		},
+		{
+			"campaignId": "advice-contract-live--context=relational--override=say",
+			"trials": 2,
+			"k": 2,
+			"items": 11,
+			"skipped": 0,
+			"metrics": [
+				{
+					"metricId": "suitable",
+					"pass1": {
+						"value": 1,
+						"interval": [
+							0.7411670327226446,
+							1
+						],
+						"method": "Wilson interval over 11 items"
+					},
+					"passAtK": {
+						"value": 1,
+						"interval": [
+							0.7411670327226446,
+							1
+						],
+						"method": "Wilson interval over 11 items"
+					},
+					"passHatK": {
+						"value": 1,
+						"interval": [
+							0.7411670327226446,
+							1
+						],
+						"method": "Wilson interval over 11 items"
+					},
+					"consistency": {
+						"value": 1,
+						"interval": [
+							0.7411670327226446,
+							1
+						],
+						"method": "Wilson interval over 11 items"
+					}
+				},
+				{
+					"metricId": "minimised",
+					"pass1": {
+						"value": 1,
+						"interval": [
+							0.7411670327226446,
+							1
+						],
+						"method": "Wilson interval over 11 items"
+					},
+					"passAtK": {
+						"value": 1,
+						"interval": [
+							0.7411670327226446,
+							1
+						],
+						"method": "Wilson interval over 11 items"
+					},
+					"passHatK": {
+						"value": 1,
+						"interval": [
+							0.7411670327226446,
+							1
+						],
+						"method": "Wilson interval over 11 items"
+					},
+					"consistency": {
+						"value": 1,
+						"interval": [
+							0.7411670327226446,
+							1
+						],
+						"method": "Wilson interval over 11 items"
+					}
+				}
+			],
+			"firstTick": {
+				"pairs": 11,
+				"sameCall": {
+					"value": 0,
+					"interval": [
+						0,
+						0.25883296727735555
+					],
+					"method": "Wilson interval over 11 items"
+				},
+				"sameWords": {
+					"value": 0,
+					"interval": [
+						0,
+						0.25883296727735555
+					],
+					"method": "Wilson interval over 11 items"
+				}
+			},
+			"divergence": {
+				"identicalPaths": {
+					"value": 0,
+					"interval": [
+						0,
+						0.25883296727735555
+					],
+					"method": "Wilson interval over 11 items"
+				},
+				"medianFirstDivergence": 0,
+				"meanPathDistance": 15.545454545454545
+			}
+		},
+		{
+			"campaignId": "advice-contract-live--context=relational--override=retry-with-nudge",
+			"trials": 2,
+			"k": 2,
+			"items": 11,
+			"skipped": 0,
+			"metrics": [
+				{
+					"metricId": "suitable",
+					"pass1": {
+						"value": 1,
+						"interval": [
+							0.7411670327226446,
+							1
+						],
+						"method": "Wilson interval over 11 items"
+					},
+					"passAtK": {
+						"value": 1,
+						"interval": [
+							0.7411670327226446,
+							1
+						],
+						"method": "Wilson interval over 11 items"
+					},
+					"passHatK": {
+						"value": 1,
+						"interval": [
+							0.7411670327226446,
+							1
+						],
+						"method": "Wilson interval over 11 items"
+					},
+					"consistency": {
+						"value": 1,
+						"interval": [
+							0.7411670327226446,
+							1
+						],
+						"method": "Wilson interval over 11 items"
+					}
+				},
+				{
+					"metricId": "minimised",
+					"pass1": {
+						"value": 1,
+						"interval": [
+							0.7411670327226446,
+							1
+						],
+						"method": "Wilson interval over 11 items"
+					},
+					"passAtK": {
+						"value": 1,
+						"interval": [
+							0.7411670327226446,
+							1
+						],
+						"method": "Wilson interval over 11 items"
+					},
+					"passHatK": {
+						"value": 1,
+						"interval": [
+							0.7411670327226446,
+							1
+						],
+						"method": "Wilson interval over 11 items"
+					},
+					"consistency": {
+						"value": 1,
+						"interval": [
+							0.7411670327226446,
+							1
+						],
+						"method": "Wilson interval over 11 items"
+					}
+				}
+			],
+			"firstTick": {
+				"pairs": 11,
+				"sameCall": {
+					"value": 0.9090909090909091,
+					"interval": [
+						0.6226415632768665,
+						0.9837678271325698
+					],
+					"method": "Wilson interval over 11 items"
+				},
+				"sameWords": {
+					"value": 0.9090909090909091,
+					"interval": [
+						0.6226415632768665,
+						0.9837678271325698
+					],
+					"method": "Wilson interval over 11 items"
+				}
+			},
+			"divergence": {
+				"identicalPaths": {
+					"value": 0,
+					"interval": [
+						0,
+						0.25883296727735555
+					],
+					"method": "Wilson interval over 11 items"
+				},
+				"medianFirstDivergence": 1,
+				"meanPathDistance": 6.7272727272727275
+			}
+		}
+	],
+	"verdict": "inconclusive",
+	"note": "minimum detectable difference of rates at the achieved n (11 on the smaller side, 80% power): 4.5 points against the 5.0 the design meant to see; one or more effects are underpowered (fewer than 30 cells on a side, or fewer than 5 events either way)",
+	"digest": "299359293f52acbab496cc07ba71d7882de815f9b2f9366bacc2326ba5bfc11a"
+}

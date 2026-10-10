@@ -76,6 +76,14 @@ export {
 	provenanceComponents
 } from './provenance.js';
 export {
+	CONTEXT_ASSEMBLY_COMPONENT_ID,
+	contextAssemblyComponent,
+	contextAssemblyComponents,
+	contextAssemblySchema,
+	contextCheck,
+	promptBody
+} from './context-assembly.js';
+export {
 	PROMPT_INTEGRITY_COMPONENT_ID,
 	SECRET_SCAN_COMPONENT_ID,
 	SECRET_SHAPES,

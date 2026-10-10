@@ -4,7 +4,9 @@ import { INCIDENT_CARD_ID } from '../decks/goal-cards.js';
 import type { ChatRequest } from '@craftabot/core';
 import {
 	REASON_CODES,
+	lendingPolicySchema,
 	verdictFromFigures,
+	type LendingPolicy,
 	type ReasonCode,
 	type RuleFigures
 } from '../world/rules.js';
@@ -192,7 +194,10 @@ export const ADVERSARY_PLANS: Record<string, Plan> = {
  */
 const stageCard = (stageId: string): string => `${LENDING_WORKFLOW_ID}/stage/${stageId}`;
 
-const FIGURE_PATTERNS: Record<keyof RuleFigures, RegExp> = {
+const FIGURE_PATTERNS: Record<
+	Exclude<keyof RuleFigures, 'declaredIncome' | 'verifiedIncome' | 'incomeVerified'>,
+	RegExp
+> = {
 	scoreBand: /score_band ([a-z-]+)/,
 	defaults: /defaults (\d+)/,
 	arrearsMonths: /arrears_months (\d+)/,
@@ -209,16 +214,47 @@ export function figuresInPrompt(request: ChatRequest): RuleFigures {
 		defaults: Number(find(FIGURE_PATTERNS.defaults) ?? 0),
 		arrearsMonths: Number(find(FIGURE_PATTERNS.arrearsMonths) ?? 0),
 		searchesLast12m: Number(find(FIGURE_PATTERNS.searchesLast12m) ?? 0),
-		ratioPercent: Number(find(FIGURE_PATTERNS.ratioPercent) ?? 999)
+		ratioPercent: Number(find(FIGURE_PATTERNS.ratioPercent) ?? 999),
+		// The grey zone (WP200): the incomes the application and the worksheet show, and whether the worksheet could verify one.
+		...(find(/declared_monthly_income (\d+)/) !== undefined
+			? { declaredIncome: Number(find(/declared_monthly_income (\d+)/)) }
+			: {}),
+		...(find(/verified_monthly_income (\d+)/) !== undefined
+			? { verifiedIncome: Number(find(/verified_monthly_income (\d+)/)) }
+			: {}),
+		...(/repayment_to_disposable_percent not on file/.test(text) ? { incomeVerified: false } : {})
 	};
 }
 
+/**
+ * The policy the prompt's rule states (WP200): the scripted-optimal bot reads the rule on the case file as a person would, so a grey
+ * clause in it turns the matching knob. A prompt with no such clause is the default policy, as it always was.
+ */
+export function policyInPrompt(request: ChatRequest): LendingPolicy {
+	const text = request.messages.map((message) => message.content).join('\n');
+	const band = text.match(/within (\d+) points of \d+% the arithmetic does not decide/)?.[1];
+	const conflict = text.match(/differ by more than (\d+)%, do not decide/)?.[1];
+	return lendingPolicySchema.parse({
+		...(band ? { greyBandPoints: Number(band) } : {}),
+		...(conflict ? { conflictTolerancePercent: Number(conflict) } : {}),
+		...(/cannot verify the income, do not decide on the declared figure/.test(text)
+			? { incomeMustBeVerified: true }
+			: {})
+	});
+}
+
 const decideFromPrompt = (request: ChatRequest) => {
-	const { verdict, reasons } = verdictFromFigures(figuresInPrompt(request));
+	const { verdict, reasons } = verdictFromFigures(
+		figuresInPrompt(request),
+		policyInPrompt(request)
+	);
 	return { outcome: verdict, reasons };
 };
 const explainFromPrompt = (request: ChatRequest) => {
-	const { verdict, reasons } = verdictFromFigures(figuresInPrompt(request));
+	const { verdict, reasons } = verdictFromFigures(
+		figuresInPrompt(request),
+		policyInPrompt(request)
+	);
 	return {
 		reasons,
 		text: `Your application is ${verdict === 'approve' ? 'approved' : verdict === 'decline' ? 'declined' : 'referred to an underwriter'}: ${reasons.map((reason) => REASON_CODES[reason].plain).join('; ')}.`

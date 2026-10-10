@@ -600,9 +600,11 @@ export type {
 	CalibrationRef,
 	DecisionFaultSpec,
 	ErrorModel,
-	FaultShape
+	FaultShape,
+	HabitFault
 } from './types/error-model.js';
-export type { ReviewerModel } from './types/workflow.js';
+export type { ReplyContract, ReviewerModel } from './types/workflow.js';
+export { REPLY_CONTRACTS } from './types/workflow.js';
 export {
 	reviewerAnswerSchema,
 	reviewerDrewSchema,
@@ -830,6 +832,28 @@ export {
 	type GuardrailComponent,
 	type PointKind
 } from './types/guardrail-component.js';
+export {
+	RECOMMENDATION_POSTURES,
+	parseRecommendation,
+	recommendationDigest,
+	recommendationPostureSchema,
+	recommendationSchema,
+	type Recommendation,
+	type RecommendationPosture
+} from './schemas/recommendation.js';
+export {
+	DOSSIER_MEASURES,
+	decisionDossierDigest,
+	decisionDossierSchema,
+	dossierMeasureIdSchema,
+	dossierMeasureSchema,
+	dossierVerdictSchema,
+	parseDecisionDossier,
+	type DecisionDossier,
+	type DossierMeasure,
+	type DossierMeasureId,
+	type DossierVerdict
+} from './schemas/dossier.js';
 export {
 	billSchema,
 	byNewestExperimentResult,

@@ -1,0 +1,13 @@
+{
+	"schemaVersion": 1,
+	"id": "T06",
+	"title": "Can an agent be trusted to send money?",
+	"question": "At what autonomy level does the payments desk send every genuine payment and no scam payment, with which conversation in front of it?",
+	"designs": [],
+	"reads": ["scam payments sent", "genuine held", "questions asked", "the bill"],
+	"informs": "The design of an agentic payment journey.",
+	"status": "not-run",
+	"evidence": [],
+	"note": "There is no payments desk (Phase BD).",
+	"source": "docs/design-day2/112-REAL-ENOUGH-PLAN.md §9"
+}

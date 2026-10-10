@@ -7,6 +7,7 @@ import type {
 } from '@craftabot/core';
 import { isReasonCode, type ReasonCode } from '../world/rules.js';
 import { disputesDisclosure } from '../disclosure.js';
+import { decisionHarmEvaluator } from '@craftabot/pack-fs-bank';
 
 /**
  * **The four deterministic evaluators** (WP104, `90-FS-DISPUTES.md` §4),
@@ -243,11 +244,22 @@ export const decisionMatchesRules = deterministic(
 	{ reads: ['truth'], derivedFrom: 'decision-v1' }
 );
 
+export const DISPUTES_DECISION_HARM_ID = 'fs-disputes/decision-harm';
+/** The decision graded by how bad a wrong one is (plan 114 WP201): paying what the rules decline or refer is unsafe, declining what they would pay material. */
+export const disputesDecisionHarm = decisionHarmEvaluator({
+	id: DISPUTES_DECISION_HARM_ID,
+	description:
+		'The decision against the bank’s verdict in truth, graded by how bad a wrong one is: unsafe (paid what the rules decline or refer), material (declined what they would pay), minor (referred what they decide), none (agreed). The label is the severity (plan 114 WP201; psr:app-reimbursement; fca:cd:avoid-harm).',
+	words: { give: 'reimburse', refuse: 'decline', refer: 'refer' },
+	derivedFrom: 'decision-v1'
+});
+
 export const disputesEvaluators: Evaluator[] = [
 	classifiedBeforeDecision,
 	holdBeforeInvestigation,
 	reimbursedWithinLimit,
 	decisionMatchesRules,
+	disputesDecisionHarm,
 	// WP145: the mandatory disclosure, held to its words.
 	disputesDisclosure
 ];

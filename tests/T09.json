@@ -1,0 +1,13 @@
+{
+	"schemaVersion": 1,
+	"id": "T09",
+	"title": "Is the bias in the model or in the control?",
+	"question": "Under a cohort-skewed error, do the parity gates catch what the fairness metrics show, and does any control reduce it without reducing agreement?",
+	"designs": ["experiments/lending-fairness.json"],
+	"reads": ["parity", "counterfactual flips", "agreement"],
+	"informs": "Whether fairness is a property of the model, the control, or the book.",
+	"status": "partly-run",
+	"evidence": ["lending-fairness"],
+	"note": "Run on the scripted and fallible tiers with a cohort-shaped error on lending only; no live design measures parity (the dossiers say so).",
+	"source": "docs/design-day2/112-REAL-ENOUGH-PLAN.md §9"
+}

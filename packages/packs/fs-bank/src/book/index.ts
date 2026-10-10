@@ -19,6 +19,7 @@ export {
 	type AlertBookOptions,
 	type AlertItemPayload,
 	type BookFilter,
+	type GreyHook,
 	type Judge,
 	type LoanApplication,
 	type LoanApplicationRecord,

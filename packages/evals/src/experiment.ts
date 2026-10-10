@@ -66,6 +66,8 @@ export const experimentFactorSchema = z
 		levels: z.array(z.string().min(1)).min(2),
 		/** The knob's name, for a `knob` axis. */
 		knob: z.string().min(1).optional(),
+		/** The build override's name, for an `override` axis (plan 114 WP205, WP212): `replyContract`, `maxTokens`, `temperature`. */
+		override: z.string().min(1).optional(),
 		/**
 		 * The controls a level tests (WP150, `110-CONTROL-SUITE-PLAN.md` §10):
 		 * joined to that level's effects only, so a design that runs several
@@ -81,6 +83,9 @@ export const experimentFactorSchema = z
 	})
 	.refine((factor) => factor.axis !== 'knob' || factor.knob !== undefined, {
 		message: 'a knob factor names its knob'
+	})
+	.refine((factor) => factor.axis !== 'override' || factor.override !== undefined, {
+		message: 'an override factor names its override'
 	})
 	.refine(
 		(factor) => Object.keys(factor.controls ?? {}).every((level) => factor.levels.includes(level)),
@@ -116,6 +121,17 @@ export const experimentMetricSchema = z.discriminatedUnion('kind', [
 		...metricBase,
 		evaluatorId: z.string().min(1),
 		label: z.string().min(1)
+	}),
+	/**
+	 * A **harm index** (plan 114 WP201): the mean over cells of a weight per label of a labelled evaluator, so a wrong approval can
+	 * count for more than a needless referral. Each weight is in [0, 1]; a label with none weighs nothing; a cell the evaluator did not
+	 * label is not counted.
+	 */
+	z.object({
+		kind: z.literal('weighted-labels'),
+		...metricBase,
+		evaluatorId: z.string().min(1),
+		weights: z.record(z.string().min(1), z.number().min(0).max(1))
 	}),
 	/** The mean of a world's per-case metric (`caseMetrics[name]`). */
 	z.object({ kind: z.literal('case-metric'), ...metricBase, name: z.string().min(1) }),
@@ -271,6 +287,21 @@ export function campaignFor(experiment: Experiment, combination: LevelCombinatio
 					overrides: { ...(build.overrides ?? {}), configuration: level }
 				}));
 				break;
+			case 'override': {
+				const name = factor.override ?? '';
+				// The level `none` leaves the override unset: the way a design names "as it was" as its baseline.
+				builds = builds.map((build) => {
+					const rest = { ...(build.overrides ?? {}) } as Record<string, unknown>;
+					delete rest[name];
+					return {
+						...build,
+						overrides: (level === 'none'
+							? rest
+							: { ...rest, [name]: knobValueOf(level) }) as typeof build.overrides
+					};
+				});
+				break;
+			}
 			case 'knob': {
 				const knob = factor.knob ?? '';
 				builds = builds.map((build) => ({
@@ -394,6 +425,10 @@ const escalationRateOf = (cell: CampaignCell): number | undefined => {
 /** A number per cell for a mean metric, or `undefined` when the cell carries none. */
 function valueOf(metric: ExperimentMetric, cell: CampaignCell): number | undefined {
 	switch (metric.kind) {
+		case 'weighted-labels': {
+			const label = cell.labels[metric.evaluatorId];
+			return label === undefined ? undefined : (metric.weights[label] ?? 0);
+		}
 		case 'case-metric':
 			return cell.caseMetrics[metric.name];
 		case 'cost':
@@ -695,6 +730,7 @@ function differenceOf(
 		case 'label-rate':
 			return rateDifference(metric, baseline, treatment, confidence);
 		case 'case-metric':
+		case 'weighted-labels':
 		case 'cost':
 			return meanDifference(metric, baseline, treatment, confidence);
 		case 'fairness':

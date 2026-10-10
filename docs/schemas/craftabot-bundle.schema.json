@@ -2638,7 +2638,8 @@
 																	"type": "string",
 																	"enum": [
 																		"block-action",
-																		"stop-run"
+																		"stop-run",
+																		"escalate"
 																	]
 																},
 																"cause": {
@@ -2788,7 +2789,8 @@
 													"type": "string",
 													"enum": [
 														"block-action",
-														"stop-run"
+														"stop-run",
+														"escalate"
 													]
 												},
 												"cause": {
@@ -3983,7 +3985,8 @@
 																			"stop-run",
 																			"pause",
 																			"redact",
-																			"annotate"
+																			"annotate",
+																			"escalate"
 																		]
 																	},
 																	"componentId": {
@@ -4344,6 +4347,14 @@
 										},
 										"label": {
 											"type": "string"
+										},
+										"severity": {
+											"type": "string",
+											"enum": [
+												"minor",
+												"material",
+												"unsafe"
+											]
 										},
 										"explanation": {
 											"type": "string"
@@ -6697,7 +6708,8 @@
 																"type": "string",
 																"enum": [
 																	"block-action",
-																	"stop-run"
+																	"stop-run",
+																	"escalate"
 																]
 															},
 															"cause": {
@@ -6847,7 +6859,8 @@
 												"type": "string",
 												"enum": [
 													"block-action",
-													"stop-run"
+													"stop-run",
+													"escalate"
 												]
 											},
 											"cause": {
@@ -8042,7 +8055,8 @@
 																		"stop-run",
 																		"pause",
 																		"redact",
-																		"annotate"
+																		"annotate",
+																		"escalate"
 																	]
 																},
 																"componentId": {
@@ -8415,6 +8429,14 @@
 							},
 							"label": {
 								"type": "string"
+							},
+							"severity": {
+								"type": "string",
+								"enum": [
+									"minor",
+									"material",
+									"unsafe"
+								]
 							},
 							"explanation": {
 								"type": "string"

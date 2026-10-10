@@ -225,3 +225,17 @@ export {
 	type ReadingSubject,
 	type ReadingsExport
 } from './readings.js';
+
+/** The decision dossier (plan 114 WP214): eight measures against thresholds a bank would set, folded from committed results. */
+export {
+	DEFAULT_DOSSIER_THRESHOLDS,
+	ROBUSTNESS_METRICS,
+	decisionDossier,
+	renderDossierMarkdown,
+	verdictFor,
+	type DossierInput,
+	type DossierThresholds
+} from './dossier.js';
+
+/** The recommendation (plan 114 WP213): a dossier read into one of four postures. */
+export { recommendationFrom, renderRecommendationMarkdown } from './recommendation.js';

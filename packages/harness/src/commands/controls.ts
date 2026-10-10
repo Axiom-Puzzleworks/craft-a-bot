@@ -123,7 +123,13 @@ export async function committedResults(dir: string): Promise<ExperimentResult[]>
 }
 
 /** The directories under `docs/evidence/` that hold a live suite: each design's folder inside, with a `timings.json` naming the model. */
-export const LIVE_SUITE_DIRS = ['live', 'live-35b', 'live-oversight'] as const;
+export const LIVE_SUITE_DIRS = [
+	'live',
+	'live-35b',
+	'live-oversight',
+	'live-pressure',
+	'live-contract'
+] as const;
 
 /** Retired live designs (`scripts/live-check.mjs`'s `RETIRED`): their evidence stays on disk, but they are not the suite the register reads. */
 const RETIRED_LIVE_DESIGNS = new Set(['lending-stack-live-b']);

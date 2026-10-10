@@ -65,3 +65,6 @@ docs/catalogue.md
 packages/harness/src/__snapshots__/journey-*.json
 # The Gate’s day, held byte for byte by packages/gate/src/fixture.test.ts (WP128).
 packages/gate/fixtures/gate-day.bundle.json
+
+# The owner's own output folder (decks, copies of plans): not source, not formatted
+Claude outputs

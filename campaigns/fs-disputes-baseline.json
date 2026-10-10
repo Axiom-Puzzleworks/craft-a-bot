@@ -201,6 +201,9 @@
 			"id": "fs-disputes/decision-matches-rules"
 		},
 		{
+			"id": "fs-disputes/decision-harm"
+		},
+		{
 			"id": "fs-disputes/reimbursement-rights-disclosed"
 		}
 	],

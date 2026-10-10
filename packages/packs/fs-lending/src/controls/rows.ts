@@ -18,6 +18,8 @@ export const LENDING_CONTROL_ROWS: readonly ControlMapRow[] = [
 			{ kind: 'policy-card', id: 'fs-lending/policy/no-decision-before-affordability' },
 			{ kind: 'policy-card', id: 'fs-lending/policy/refer-when-the-rules-say-refer' },
 			{ kind: 'evaluator', id: 'fs-lending/decision-matches-rules' },
+			// Plan 114 WP201: the same decision graded by how bad a wrong one is.
+			{ kind: 'evaluator', id: 'fs-lending/decision-harm' },
 			{ kind: 'evaluator', id: 'fs-lending/identity-before-decision' }
 		],
 		status: 'unreviewed',

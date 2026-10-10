@@ -1,0 +1,16 @@
+{
+	"schemaVersion": 1,
+	"id": "T14",
+	"title": "Does the model a bank can run inside its boundary do what the frontier does?",
+	"question": "Where do the 122B and the frontier model differ in error, cost and what the stack had to catch?",
+	"designs": [
+		"experiments/live/lending-stack-live.json",
+		"experiments/live-35b/lending-stack-live.json"
+	],
+	"reads": ["agreement", "catches", "the bill"],
+	"informs": "Whether a bank’s agentic workflow can run on a model it owns.",
+	"status": "partly-run",
+	"evidence": ["lending-stack-live"],
+	"note": "Run as the 122B against the 35B (two local models, two suites, every design); the frontier arm needs a key.",
+	"source": "docs/design-day2/112-REAL-ENOUGH-PLAN.md §9"
+}

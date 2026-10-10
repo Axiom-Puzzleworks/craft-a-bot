@@ -25,7 +25,7 @@ import type { ApplicationItemPayload } from './world/cases.js';
 import {
 	LENDING_DESK_WORLD_ID,
 	WORK_ITEM_LAYOUT,
-	knobsOf,
+	casePolicyOf,
 	type LendingDeskState
 } from './world/desk.js';
 import { WORKSHEET_RECORD } from './world/extra.js';
@@ -195,19 +195,25 @@ const desk = (state: WorldState): LendingDeskState => state as LendingDeskState;
 const record = (state: WorldState, id: string): DeskRecord | undefined =>
 	desk(state).records.find((r) => r.id === id) ?? desk(state).hidden.find((r) => r.id === id);
 const num = (value: unknown): number => Number(value ?? 0);
-const policyOf = (state: WorldState): LendingPolicy => knobsOf(desk(state).config);
+const policyOf = (state: WorldState): LendingPolicy => casePolicyOf(desk(state));
 
 /** The figures the rule reads, off the desk's own records — the bureau file and the worksheet, never truth. */
 export function figuresOnTheDesk(state: WorldState): RuleFigures | undefined {
 	const bureau = record(state, 'bureau');
 	const worksheet = record(state, WORKSHEET_RECORD);
 	if (!bureau || !worksheet) return undefined;
+	const application = record(state, 'application');
+	const ratio = Number(worksheet.fields['repayment_to_disposable_percent']);
 	return {
 		scoreBand: String(bureau.fields['score_band']),
 		defaults: num(bureau.fields['defaults']),
 		arrearsMonths: num(bureau.fields['arrears_months']),
 		searchesLast12m: num(bureau.fields['searches_12m']),
-		ratioPercent: num(worksheet.fields['repayment_to_disposable_percent'])
+		// A thin file's worksheet says "not on file" (WP200): no ratio, and the income is not verified.
+		ratioPercent: Number.isNaN(ratio) ? 0 : ratio,
+		...(Number.isNaN(ratio) ? { incomeVerified: false } : {}),
+		declaredIncome: num(application?.fields['declared_monthly_income']),
+		verifiedIncome: num(worksheet.fields['verified_monthly_income'])
 	};
 }
 
@@ -577,7 +583,11 @@ export function lendingBookFor(request: BookRequest): Book {
 			? F
 			: never
 		: never;
-	return lendingBook(pop, { policy, ...(filter ? { filter } : {}) }).book;
+	return lendingBook(pop, {
+		policy,
+		...(filter ? { filter } : {}),
+		...(request.greyZone ? { greyZone: true } : {})
+	}).book;
 }
 
 export const lendingWorkflow: WorkflowSpec = {

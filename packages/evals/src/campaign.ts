@@ -116,7 +116,8 @@ import {
 	type FallibleOptions,
 	type NoiseRates,
 	type CaseInfo,
-	type ResolvedFault
+	type ResolvedFault,
+	type ResolvedHabit
 } from './brains.js';
 import { scoreRun } from './metrics.js';
 import {
@@ -186,7 +187,9 @@ export const specOverridesSchema = z.object({
 	/** The workflow's named configuration this build runs, in a book campaign (WP80, `73-…` §4): an autonomy level applied to the journey. Not a spec override either. */
 	configuration: z.string().min(1).optional(),
 	/** The reviewer model at the journey's human stages (WP115, `103-…` §6), by id: the person as a model, in a book campaign. Not a spec override. */
-	reviewer: z.string().min(1).optional()
+	reviewer: z.string().min(1).optional(),
+	/** What a reply with no tool call means at the journey's agent stages (plan 114 WP205). A workflow setting, not a spec override. */
+	replyContract: z.enum(['say', 'retry-with-nudge', 'fail']).optional()
 });
 
 export const noiseRatesSchema = z.object({
@@ -571,7 +574,12 @@ export const campaignSourceSchema = z.object({
 	 */
 	corpus: z.string().min(1).optional(),
 	/** Scoring readers the corpus has already seen, on purpose (§5): every cell says so. */
-	regression: z.literal(true).optional()
+	regression: z.literal(true).optional(),
+	/**
+	 * The book draws the grey zone (plan 114 WP200): of the applications its rule would approve, some are at the rule's threshold, carry
+	 * incomes that conflict, or have none verified — cases the rule under-determines, where the policy says refer. Absent: the book is as it was.
+	 */
+	greyZone: z.literal(true).optional()
 });
 export type CampaignSource = z.infer<typeof campaignSourceSchema>;
 
@@ -718,7 +726,7 @@ export const campaignCellSchema = z.object({
 			workflowId: z.string().optional(),
 			configuration: z.string().optional(),
 			autonomy: z.number().int().min(1).max(5).optional(),
-			outcome: z.enum(['completed', 'stopped', 'abandoned', 'handed-off']),
+			outcome: z.enum(['completed', 'stopped', 'abandoned', 'handed-off', 'escalated']),
 			/** The handoff the run ended with (WP102): the target journey and the item; the cell's own run is the source's. */
 			handoff: z.object({ to: z.string(), itemId: z.string() }).optional(),
 			stages: z.array(
@@ -1367,7 +1375,8 @@ function drawBook(source: CampaignSource, workflow: WorkflowSpec, corpus?: Corpu
 		size: population.size,
 		...(population.periodDays !== undefined ? { periodDays: population.periodDays } : {}),
 		...(source.filter !== undefined ? { filter: source.filter } : {}),
-		...(corpus ? { corpus } : {})
+		...(corpus ? { corpus } : {}),
+		...(source.greyZone ? { greyZone: true } : {})
 	});
 	// A book said to be from a corpus is from that corpus, frozen at its digest (§7).
 	if (
@@ -1804,7 +1813,10 @@ async function runBookCell(
 		...(named ?? {}),
 		...(Object.keys(knobs).length > 0 ? { knobs } : {}),
 		...(cell.context ? { context: cell.context } : {}),
-		...(build.overrides?.reviewer !== undefined ? { reviewer: build.overrides.reviewer } : {})
+		...(build.overrides?.reviewer !== undefined ? { reviewer: build.overrides.reviewer } : {}),
+		...(build.overrides?.replyContract !== undefined
+			? { replyContract: build.overrides.replyContract }
+			: {})
 	};
 	const spec = specFor(cell);
 	const seat = createTestClock({ seed, idOffset: cell.ordinal * ID_STRIDE });
@@ -1946,7 +1958,8 @@ async function runBookCell(
 	const outcome: RunOutcome =
 		run.outcome === 'completed' || run.outcome === 'handed-off'
 			? 'SUCCESS'
-			: run.stages.some((stage) => stage.status === 'blocked')
+			: // A guardrail escalated the case to a person (plan 114 WP204): the control acted and the cell ends there.
+				run.outcome === 'escalated' || run.stages.some((stage) => stage.status === 'blocked')
 				? 'STOPPED_BY_GUARDRAIL'
 				: 'ERROR';
 	const replay = finishCellReplay(
@@ -2566,7 +2579,11 @@ function cleanOverrides(
 		// `knobs` are the world's, `configuration` and `reviewer` the workflow's, not the spec's (WP78, WP80, WP115).
 		Object.entries(overrides).filter(
 			([key, value]) =>
-				key !== 'knobs' && key !== 'configuration' && key !== 'reviewer' && value !== undefined
+				key !== 'knobs' &&
+				key !== 'configuration' &&
+				key !== 'reviewer' &&
+				key !== 'replyContract' &&
+				value !== undefined
 		)
 	) as Omit<SpecOverrides, 'goalCardId' | 'tools'>;
 }
@@ -2678,6 +2695,28 @@ export function resolveErrorModel(
 	});
 }
 
+/** An error model's habits with their rates read from the calibration table (plan 114 WP203); none when the model names none. */
+export function resolveHabits(
+	registry: Pick<PackRegistry, 'getErrorModel' | 'getCalibrationTable'>,
+	id: string
+): ResolvedHabit[] {
+	const model = registry.getErrorModel(id);
+	if (!model) throw new Error(`no error model '${id}' is installed`);
+	return (model.habits ?? []).map((habit) => {
+		const table = registry.getCalibrationTable(habit.rate.table);
+		if (!table)
+			throw new Error(
+				`error model '${id}': no calibration table '${habit.rate.table}' is installed`
+			);
+		const rate = calibrationRow(table, habit.rate.row).distribution[habit.rate.key];
+		if (rate === undefined || !(rate >= 0 && rate <= 1))
+			throw new Error(
+				`error model '${id}': ${habit.rate.table}/${habit.rate.row} has no rate '${habit.rate.key}' in [0, 1]`
+			);
+		return { kind: habit.kind, rate };
+	});
+}
+
 /** The fallible tier's options for one cell and card: the model's faults, and a seed mixed from the cell's seed, ordinal and the card. */
 function fallibleFor(
 	brain: CampaignBrain,
@@ -2692,6 +2731,9 @@ function fallibleFor(
 		seed: Number.parseInt(sha256Hex(`${seed}|${ordinal}|${goalCardId}`).slice(0, 8), 16),
 		errorModelId: brain.errorModel,
 		faults: resolveErrorModel(registry, brain.errorModel),
+		...(resolveHabits(registry, brain.errorModel).length > 0
+			? { habits: resolveHabits(registry, brain.errorModel) }
+			: {}),
 		...(caseInfo ? { caseInfo } : {})
 	};
 }

@@ -8,6 +8,18 @@ export interface LiveEntry {
 	base: string;
 	/** WP198: the reviewer model at the decisions, and the executors levels to compare. */
 	reviewer?: string;
+	/** Plan 114 WP200: the book draws the grey zone. */
+	greyZone?: boolean;
+	/** Plan 114 WP202: the book filtered by the pack's own filter shape. */
+	sourceFilter?: Record<string, unknown>;
+	/** Plan 114 WP205: factors of the base held at one level each. */
+	pin?: Record<string, string>;
+	/** Plan 114 WP205: a build override as a factor, `none` leaving it unset. */
+	overrideFactor?: { override: string; levels: string[] };
+	/** Plan 114 WP204: guard levels added to the base's, each a stack by id. */
+	extraGuards?: Array<{ id: string; stack: string }>;
+	/** Plan 114 WP201: a harm index over a graded evaluator. */
+	harm?: { evaluatorId: string; weights: Record<string, number> };
 	executors?: string[];
 	baselineExecutors?: string;
 	/** The book population size; absent for a design over scenarios. */
@@ -22,8 +34,10 @@ export interface LiveEntry {
 }
 export const LIVE: LiveEntry[];
 export const OVERSIGHT: LiveEntry[];
+export const PRESSURE: LiveEntry[];
 export function designsOf(suite: LiveSuite): LiveEntry[];
 export function liveIdOf(entry: LiveEntry): string;
 export function cassettePathOf(entry: LiveEntry, cassetteRoot?: string, suite?: LiveSuite): string;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function liveDesign(entry: LiveEntry, cassetteRoot?: string, suite?: LiveSuite): any;
+export const CONTRACT: LiveEntry[];

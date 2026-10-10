@@ -80,6 +80,33 @@ export const WITHIN_THE_LIMIT: PolicyCard = {
 	]
 };
 
+/**
+ * *Within the limit*, handing the case on (plan 114 WP204, G180): the same predicate, but the verdict is `escalate` — the act is
+ * refused and the run ends with the case a person's, where `block-action` left the bot to retry until its turns ran out (6 of 80
+ * stack cells in the first live suite).
+ */
+export const WITHIN_THE_LIMIT_ESCALATES: PolicyCard = {
+	...WITHIN_THE_LIMIT,
+	id: 'fs-disputes/policy/within-the-limit-escalates',
+	title: 'Within the limit, escalating',
+	description:
+		'Hands a reimbursement above the reimbursement limit to a person and ends the run, rather than blocking it and leaving the bot to try again (psr:app-reimbursement; pra:ss1-23:mitigants).',
+	rules: [
+		{
+			hook: 'pre-act',
+			when: {
+				kind: 'and',
+				all: [
+					{ kind: 'call-name-is', value: 'reimburse' },
+					{ kind: 'world-predicate', predicateId: 'claim-above-limit' }
+				]
+			},
+			then: 'escalate',
+			reason: 'Above the limit is a referral: a person has been asked, and the case is theirs.'
+		}
+	]
+};
+
 export const REIMBURSEMENT_IS_FOUR_EYES: PolicyCard = {
 	id: 'fs-disputes/policy/reimbursement-is-four-eyes',
 	title: 'Reimbursement is four-eyes',
@@ -102,6 +129,11 @@ export const disputesPolicyCards: PolicyCard[] = [
 	WITHIN_THE_LIMIT,
 	REIMBURSEMENT_IS_FOUR_EYES
 ];
+
+/** The cards of the escalating stack: the same four, with the limit's card handing the case on. */
+export const disputesEscalatingCards: PolicyCard[] = disputesPolicyCards.map((card) =>
+	card.id === WITHIN_THE_LIMIT.id ? WITHIN_THE_LIMIT_ESCALATES : card
+);
 
 export const DISPUTES_POLICY_CARD_IDS: readonly string[] = disputesPolicyCards.map(
 	(card) => card.id

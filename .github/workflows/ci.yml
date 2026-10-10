@@ -253,8 +253,18 @@ jobs:
         run: node scripts/live-designs.mjs --suite oversight --check
       - name: Replay the oversight suite from its cassettes
         run: node scripts/live-check.mjs --suite oversight
+      - name: Check the pressure and contract designs against their base designs
+        run: node scripts/live-designs.mjs --suite pressure --check && node scripts/live-designs.mjs --suite contract --check
+      - name: Replay the pressure and contract suites from their cassettes
+        run: node scripts/live-check.mjs --suite pressure && node scripts/live-check.mjs --suite contract
       - name: Check the measured error rates are the ones the live results give (WP197)
         run: node scripts/measured-error-rates.mjs --check
+      - name: Check the measured habits are the ones the cassettes give (plan 114 WP203)
+        run: node scripts/measured-habits.mjs --check
+      - name: Check the decision dossiers are what the committed evidence folds to (plan 114 WP214)
+        run: npm run craftabot -- dossier --check
+      - name: Check the recommendations are what the dossiers say (plan 114 WP213)
+        run: npm run craftabot -- recommend --check
 
       # WP123 (106-BENCHMARK.md §6): every guard over the seven adversarial corpora, the stand-ins unmeasured.
       - name: Run the reference benchmark

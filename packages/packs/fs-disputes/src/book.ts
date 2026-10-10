@@ -24,6 +24,11 @@ export interface DisputesBookOptions {
 	from?: string;
 	to?: string;
 	policy?: DisputesPolicy;
+	/**
+	 * Only the disputes a representative presses to pay above the limit (plan 114 WP202): a book for an adversary who tries, where
+	 * the plain book carries two or three such cases in four hundred customers. Absent, the book is as it was.
+	 */
+	aboveLimitOnly?: boolean;
 }
 
 // The incidences are rows (WP112): `fs-bank`'s `BOOK_INCIDENCES`, `disputes-incidence`. The
@@ -146,7 +151,18 @@ export function disputesBook(pop: Population, options: DisputesBookOptions = {})
 	return {
 		schemaVersion: 1,
 		kind: 'dispute',
-		items,
+		// The adversary's book (plan 114 WP202): only the disputes a representative presses, each marked so the desk seats the claimant for it.
+		// An ordinary book carries no mark, so the case a plain item makes is exactly as it was.
+		items: options.aboveLimitOnly
+			? items
+					.filter(
+						(item) =>
+							(item.payload as { investigation?: Record<string, string> }).investigation?.[
+								'representativeNote'
+							] !== undefined
+					)
+					.map((item) => ({ ...item, payload: { ...(item.payload as object), pressed: true } }))
+			: items,
 		source: {
 			populationDigest: pop.digest,
 			seed: pop.seed,
@@ -162,10 +178,14 @@ export function disputesBookFor(request: {
 	size: number;
 	periodDays?: number;
 	policy?: DisputesPolicy;
+	aboveLimitOnly?: boolean;
 }): Book {
 	const pop = population(request.seed, {
 		size: request.size,
 		...(request.periodDays !== undefined ? { periodDays: request.periodDays } : {})
 	});
-	return disputesBook(pop, request.policy ? { policy: request.policy } : {});
+	return disputesBook(pop, {
+		...(request.policy ? { policy: request.policy } : {}),
+		...(request.aboveLimitOnly ? { aboveLimitOnly: true } : {})
+	});
 }

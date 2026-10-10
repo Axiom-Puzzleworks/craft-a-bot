@@ -24,6 +24,7 @@ export {
 	type CaseInfo,
 	type FallibleOptions,
 	type ResolvedFault,
+	type ResolvedHabit,
 	type ResolvedShape,
 	scriptedOptimal,
 	type NoiseRates,

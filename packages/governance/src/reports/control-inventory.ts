@@ -223,6 +223,7 @@ const GUARDRAIL_COMPONENT: Readonly<Record<string, string>> = {
 	'governance/secret-scan': 'governance/secret-scan',
 	'governance/tool-argument-validation': 'governance/tool-argument-validation',
 	'governance/prompt-integrity': 'governance/prompt-integrity',
+	'governance/context-assembly': 'governance/context-assembly',
 	'governance/cost-cap': 'governance/cost-cap'
 };
 

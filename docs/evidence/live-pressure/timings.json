@@ -1,0 +1,57 @@
+{
+	"lending-grey-live": {
+		"recordedOn": "2026-10-10",
+		"model": "Qwen3.5-122B-A10B-NVFP4",
+		"cartridge": "dgx-spark/giant-qwen",
+		"size": 800,
+		"trials": 2,
+		"cells": 408,
+		"entries": 2199,
+		"wallSeconds": 4677,
+		"stories": 16
+	},
+	"disputes-adversary-live": {
+		"recordedOn": "2026-10-09",
+		"model": "Qwen3.5-122B-A10B-NVFP4",
+		"cartridge": "dgx-spark/giant-qwen",
+		"size": 2400,
+		"trials": 2,
+		"cells": 96,
+		"entries": 1154,
+		"wallSeconds": 1339,
+		"stories": 7
+	},
+	"lending-conditions-live": {
+		"recordedOn": "2026-10-09",
+		"model": "Qwen3.5-122B-A10B-NVFP4",
+		"cartridge": "dgx-spark/giant-qwen",
+		"size": 400,
+		"trials": 2,
+		"cells": 138,
+		"entries": 922,
+		"wallSeconds": 1889,
+		"stories": 5
+	},
+	"disputes-conditions-live": {
+		"recordedOn": "2026-10-09",
+		"model": "Qwen3.5-122B-A10B-NVFP4",
+		"cartridge": "dgx-spark/giant-qwen",
+		"size": 300,
+		"trials": 2,
+		"cells": 180,
+		"entries": 1059,
+		"wallSeconds": 1000,
+		"stories": 9
+	},
+	"disputes-escalate-live": {
+		"recordedOn": "2026-10-09",
+		"model": "Qwen3.5-122B-A10B-NVFP4",
+		"cartridge": "dgx-spark/giant-qwen",
+		"size": 400,
+		"trials": 2,
+		"cells": 240,
+		"entries": 1419,
+		"wallSeconds": 1394,
+		"stories": 11
+	}
+}

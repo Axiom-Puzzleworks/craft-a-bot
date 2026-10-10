@@ -1,0 +1,124 @@
+{
+	"schemaVersion": 1,
+	"id": "reply-contract",
+	"title": "A reply with no tool call: what the desk does with it, against the habits the live suites measured",
+	"hypothesis": "The 35B answered in prose where the advice desk needed a tool call on 71% of its calls and lost 40% of its cells to it (plan 114 §2.3). Played by the scripted tier at the rates measured from the recordings (fs-bank/habit-rates), the same loss appears; a reply contract that makes the words the customer's line (say) or asks once more in the same turn (retry-with-nudge) is expected to recover it, at a stated cost in calls. The baseline is the 35B's habits with no contract; the scripted-optimal bot (no habits) and the 122B's habits (repeating the call just made) are the brain axis beside it.",
+	"controls": [],
+	"obligations": [],
+	"design": {
+		"template": {
+			"scenarios": [],
+			"source": {
+				"kind": "book",
+				"workflowId": "fs-advice/advice",
+				"population": {
+					"seed": 1,
+					"size": 3000
+				}
+			},
+			"builds": [
+				{
+					"id": "bot",
+					"base": {
+						"kind": "starter-default"
+					},
+					"overrides": {
+						"senses": [
+							"fs-advice/the-advice-desk/conversation",
+							"fs-advice/the-advice-desk/customer-record",
+							"fs-advice/the-advice-desk/product-shelf"
+						],
+						"actions": [
+							"fs-advice/the-advice-desk/say",
+							"fs-advice/the-advice-desk/ask-suitability-question",
+							"fs-advice/the-advice-desk/run-fact-find",
+							"fs-advice/the-advice-desk/check-suitability",
+							"fs-advice/the-advice-desk/record-customer-fact",
+							"fs-advice/the-advice-desk/recommend-product",
+							"fs-advice/the-advice-desk/refer-to-adviser",
+							"fs-advice/the-advice-desk/execute-investment"
+						],
+						"reviewer": "fs-bank/reviewer/case-handler",
+						"configuration": "bot-everywhere"
+					}
+				}
+			],
+			"guards": [
+				{
+					"id": "none",
+					"fit": []
+				}
+			],
+			"brains": [
+				{
+					"id": "scripted-optimal",
+					"tier": "scripted-optimal"
+				},
+				{
+					"id": "habits-122b",
+					"tier": "fallible",
+					"errorModel": "fs-bank/error/habits-advice-giant"
+				},
+				{
+					"id": "habits-35b",
+					"tier": "fallible",
+					"errorModel": "fs-bank/error/habits-advice-quick"
+				}
+			],
+			"evaluators": [
+				{
+					"id": "fs-advice/recommendation-suitable"
+				},
+				{
+					"id": "fs-advice/data-minimised"
+				}
+			]
+		},
+		"factors": [
+			{
+				"axis": "brain",
+				"levels": ["habits-35b", "scripted-optimal", "habits-122b"]
+			},
+			{
+				"axis": "override",
+				"override": "replyContract",
+				"levels": ["none", "say", "retry-with-nudge"]
+			}
+		],
+		"baseline": {
+			"brain": "habits-35b",
+			"override": "none"
+		},
+		"metrics": [
+			{
+				"kind": "outcome-rate",
+				"id": "success",
+				"direction": "higher-is-better",
+				"outcome": "SUCCESS"
+			},
+			{
+				"kind": "outcome-rate",
+				"id": "lost",
+				"direction": "lower-is-better",
+				"outcome": "OUT_OF_STEPS"
+			},
+			{
+				"kind": "evaluator-pass-rate",
+				"id": "suitable",
+				"evaluatorId": "fs-advice/recommendation-suitable",
+				"direction": "higher-is-better"
+			},
+			{
+				"kind": "cost",
+				"id": "tokens",
+				"of": "tokens",
+				"direction": "lower-is-better"
+			}
+		],
+		"seeds": [1],
+		"replicates": 1,
+		"confidence": 0.95,
+		"minimumDetectableEffect": 0.05
+	},
+	"campaigns": []
+}

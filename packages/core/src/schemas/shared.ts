@@ -241,7 +241,11 @@ export const guardrailVerdictSchema = z.union([
 	z.object({
 		allow: z.literal(false),
 		reason: z.string(),
-		disposition: z.enum(['block-action', 'stop-run']),
+		/**
+		 * `escalate` (plan 114 WP204, G180): the act is refused and the run ends at once, handed to a person — the way out of a block that would
+		 * otherwise be retried until the stage ran out (the live suites: disputes' *Within the limit*, fraud's report that was re-filed).
+		 */
+		disposition: z.enum(['block-action', 'stop-run', 'escalate']),
 		/**
 		 * Why the verdict is a denial, when it is not a rule firing on content
 		 * (UX-1, 2026-09-07): `could-not-check` is a hosted guard that could not
@@ -376,7 +380,7 @@ export type Attestation = z.infer<typeof attestationSchema>;
 export const boundaryVerdictSchema = z.object({
 	guardrailId: z.string().min(1),
 	point: z.enum(['stage-in', 'stage-out']),
-	verdict: z.enum(['allow', 'block-action', 'stop-run', 'pause', 'redact', 'annotate']),
+	verdict: z.enum(['allow', 'block-action', 'stop-run', 'pause', 'redact', 'annotate', 'escalate']),
 	componentId: z.string().optional(),
 	policyCardId: z.string().optional(),
 	/** The guardrail's own words — a denial's reason, an allow's note. */

@@ -66,6 +66,16 @@ export const BOOK_INCIDENCES: CalibrationTable = table(
 			note: 'A stated assumption (plan 113 §12 item 4): the plain advice request — a topic, a balance, the answers the customer gives when asked — leaves a control nothing to catch, so the first live recording read 100% against 100%. Of requests, one in ten comes from a customer pushing for a product, one in ten asks for a guarantee, one in ten discloses a need part-way, one in twenty carries a factsheet with an instruction in it; the rest are plain. Drawn from a stream of the customer’s own seed, apart from the register’s. A teaching mix, not an observed one.'
 		}),
 		row({
+			id: 'lending-grey-incidence',
+			kind: 'rates',
+			title:
+				'An application the rule would approve arrives as a case the rule under-determines: at its threshold, with conflicting incomes, or with no verified income',
+			distribution: { 'at-threshold': 0.3, conflicting: 0.3, missing: 0.3 },
+			source: assumption(),
+			tolerance: 0.02,
+			note: 'A stated assumption (plan 114 WP200, D2): the live recordings read 99–100% against the rule on every desk once the rule was on the case file, because every case was one the rule decides. Of the applications the plain rule would approve, three in ten are sized to sit within a point or two of the refer line (the rule would approve or refer by a hair), three in ten declare a third more income than the worksheet verifies, and three in ten are thin files with no verified income — nine in ten shaped, because a first recording at one in ten a shape drew five grey cases in fifty-one items and a book that small tells nothing (the 122B followed the policy on all five). For each, the case file states the policy’s answer — refer, do not approve — and truth carries it. Drawn from a hash of the application’s id, with no draw from the book’s stream, so every other item is as it was. Real thin files and conflicting declarations are rarer and less tidy; a teaching mix, not an observed one.'
+		}),
+		row({
 			id: 'servicing-request-incidence',
 			kind: 'rates',
 			title: 'A customer calls with a servicing request in the window',
@@ -88,4 +98,24 @@ export function everyNth(
 	if (rate === undefined || !(rate > 0 && rate <= 1))
 		throw new Error(`calibration row "${rowId}" has no rate "${key}" in (0, 1]`);
 	return Math.round(1 / rate);
+}
+
+/**
+ * **A stable draw from an id** (WP200): which of a grey row's shapes an item takes, from a hash of its id and the row's rates, in the
+ * row's order — and `undefined` for the share that takes none. No random stream is read, so adding the draw moves no other item.
+ */
+export function greyShapeOf(rowId: string, id: string): string | undefined {
+	const found: CalibrationRow = calibrationRow(BOOK_INCIDENCES, rowId);
+	// FNV-1a over the id, as a fraction of 2^32.
+	let hash = 0x811c9dc5;
+	for (let i = 0; i < id.length; i += 1) {
+		hash ^= id.charCodeAt(i);
+		hash = Math.imul(hash, 0x01000193) >>> 0;
+	}
+	let draw = hash / 4294967296;
+	for (const [shape, rate] of Object.entries(found.distribution)) {
+		if (draw < rate) return shape;
+		draw -= rate;
+	}
+	return undefined;
 }
