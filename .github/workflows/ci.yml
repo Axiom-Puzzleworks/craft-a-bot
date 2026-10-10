@@ -30,7 +30,9 @@ jobs:
 
       - run: npm run lint
 
-      - run: npm run test
+      # Two at a time: the campaign tests of the desk packs each run whole campaigns, and a two-core runner given them all at once
+      # takes several times as long per test as a laptop, past the timeouts that hold each to a bound.
+      - run: npx turbo run test --concurrency=2
 
       - run: npm run build
 
