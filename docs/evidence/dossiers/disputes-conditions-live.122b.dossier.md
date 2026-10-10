@@ -2,7 +2,7 @@
 
 > The claim: **not-fit**. Not met: accuracy, harm. Not shown: reliability, robustness, faithfulness, fairness, oversight.
 
-Decision: disputes-conditions. Model: `Qwen3.5-122B-A10B-NVFP4`, recorded 2026-10-09. Folded 2026-10-10T18:38:28.282Z; digest `c75afb3dbf2a3266`. One sample of one model on a synthetic bank, never a statement about the model in general; the thresholds are assumptions a bank sets for itself and a reader reviews.
+Decision: disputes-conditions. Model: `Qwen3.5-122B-A10B-NVFP4`, recorded 2026-10-09. Folded 2026-10-10T21:14:22.361Z; digest `a08e774821ad13f8`. One sample of one model on a synthetic bank, never a statement about the model in general; the thresholds are assumptions a bank sets for itself and a reader reviews.
 
 | Measure | What | Value | Threshold | Verdict | Source |
 |---|---|---|---|---|---|

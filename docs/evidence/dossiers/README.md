@@ -23,6 +23,7 @@ Written by `craftabot dossier` from the committed live results (plan 114 WP214);
 | [lending-conditions-live](lending-conditions-live.122b.dossier.md) | 122b | **not-shown** | 2 | 0 | 6 |
 | [lending-grey-live](lending-grey-live.122b.dossier.md) | 122b | **not-shown** | 3 | 0 | 5 |
 | [lending-grey-live](lending-grey-live.35b.dossier.md) | 35b | **not-fit** | 2 | 2 | 4 |
+| [lending-refer-live](lending-refer-live.35b.dossier.md) | 35b | **not-fit** | 1 | 3 | 4 |
 | [lending-stack-live](lending-stack-live.122b.dossier.md) | 122b | **not-shown** | 2 | 0 | 6 |
 | [lending-stack-live](lending-stack-live.35b.dossier.md) | 35b | **not-shown** | 2 | 0 | 6 |
 | [onboarding-stack-live](onboarding-stack-live.122b.dossier.md) | 122b | **not-shown** | 1 | 0 | 7 |

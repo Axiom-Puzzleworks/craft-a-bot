@@ -1,7 +1,11 @@
 import type { Stack } from '@craftabot/core';
 import { LENDING_DECISION_ERROR_MODEL_ID } from './errors/error-models.js';
 import { lendingControlMap } from './controls/rows.js';
-import { LENDING_POLICY_CARD_IDS, lendingPolicyCards } from './cards/policy.js';
+import {
+	LENDING_POLICY_CARD_IDS,
+	lendingEscalatingCards,
+	lendingPolicyCards
+} from './cards/policy.js';
 import {
 	CASE_HANDLER_REVIEWER_ID,
 	FALLBACK,
@@ -314,6 +318,7 @@ export const lendingStacks: Stack[] = deskStacks({
 	deskName: 'Lending Desk',
 	safety: { maxTicks: 20, blockedActions: [], approval: 'off' },
 	cards: [...lendingPolicyCards, FALLBACK],
+	escalating: [...lendingEscalatingCards, FALLBACK],
 	localClassifier: 'guard-local/llama-guard',
 	hostedGuard: 'geap/model-armor',
 	hostedGuardConfig: HOSTED_GUARD_STAND_IN,

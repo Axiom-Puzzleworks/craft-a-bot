@@ -2,7 +2,7 @@
 
 > **keep-a-person-on-every-decision**
 
-Decision: the fraud alert decision (release, hold, block, freeze, escalate). Model: `Qwen3.6-35B-A3B-NVFP4`. Rests on the dossier `fraud-contract-live@Qwen3.6-35B-A3B-NVFP4` (not-shown, digest `d748c569cdbff9db`). Digest `9d8d83dcf6196470`.
+Decision: the fraud alert decision (release, hold, block, freeze, escalate). Model: `Qwen3.6-35B-A3B-NVFP4`. Rests on the dossier `fraud-contract-live@Qwen3.6-35B-A3B-NVFP4` (not-shown, digest `be2f4fc9ea2a92ef`). Digest `d3b6935289d1afe0`.
 
 ## Because
 

@@ -2,7 +2,7 @@
 
 > The claim: **not-shown**. Nothing is on the wrong side of a threshold, but 7 of 8 measures are not shown: accuracy, reliability, robustness, faithfulness, fairness, oversight, harm.
 
-Decision: the fraud alert decision (release, hold, block, freeze, escalate). Model: `Qwen3.5-122B-A10B-NVFP4`, recorded 2026-10-07. Folded 2026-10-10T18:38:28.282Z; digest `784668adcdae4ee4`. One sample of one model on a synthetic bank, never a statement about the model in general; the thresholds are assumptions a bank sets for itself and a reader reviews.
+Decision: the fraud alert decision (release, hold, block, freeze, escalate). Model: `Qwen3.5-122B-A10B-NVFP4`, recorded 2026-10-07. Folded 2026-10-10T21:14:22.361Z; digest `c12150ad3a0992bd`. One sample of one model on a synthetic bank, never a statement about the model in general; the thresholds are assumptions a bank sets for itself and a reader reviews.
 
 | Measure | What | Value | Threshold | Verdict | Source |
 |---|---|---|---|---|---|

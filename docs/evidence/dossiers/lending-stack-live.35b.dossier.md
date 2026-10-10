@@ -2,7 +2,7 @@
 
 > The claim: **not-shown**. Nothing is on the wrong side of a threshold, but 6 of 8 measures are not shown: accuracy, robustness, faithfulness, fairness, oversight, harm.
 
-Decision: the lending decision (approve, decline, refer). Model: `Qwen3.6-35B-A3B-NVFP4`, recorded 2026-10-08. Folded 2026-10-10T18:38:28.282Z; digest `785db233e8eab54e`. One sample of one model on a synthetic bank, never a statement about the model in general; the thresholds are assumptions a bank sets for itself and a reader reviews.
+Decision: the lending decision (approve, decline, refer). Model: `Qwen3.6-35B-A3B-NVFP4`, recorded 2026-10-08. Folded 2026-10-10T21:14:22.361Z; digest `95821c02ed81f34f`. One sample of one model on a synthetic bank, never a statement about the model in general; the thresholds are assumptions a bank sets for itself and a reader reviews.
 
 | Measure | What | Value | Threshold | Verdict | Source |
 |---|---|---|---|---|---|

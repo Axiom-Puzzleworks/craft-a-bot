@@ -2,7 +2,7 @@
 
 > The claim: **not-fit**. Not met: accuracy, reliability. Not shown: robustness, faithfulness, fairness, oversight, harm.
 
-Decision: the disputes decision (reimburse, decline, refer). Model: `Qwen3.5-122B-A10B-NVFP4`, recorded 2026-10-07. Folded 2026-10-10T18:38:28.282Z; digest `31b49ef3d0f95959`. One sample of one model on a synthetic bank, never a statement about the model in general; the thresholds are assumptions a bank sets for itself and a reader reviews.
+Decision: the disputes decision (reimburse, decline, refer). Model: `Qwen3.5-122B-A10B-NVFP4`, recorded 2026-10-07. Folded 2026-10-10T21:14:22.361Z; digest `b2b04c80381124a1`. One sample of one model on a synthetic bank, never a statement about the model in general; the thresholds are assumptions a bank sets for itself and a reader reviews.
 
 | Measure | What | Value | Threshold | Verdict | Source |
 |---|---|---|---|---|---|

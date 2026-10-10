@@ -2,7 +2,7 @@
 
 > **keep-a-person-on-every-decision**
 
-Decision: lending-conditions. Model: `Qwen3.5-122B-A10B-NVFP4`. Rests on the dossier `lending-conditions-live@Qwen3.5-122B-A10B-NVFP4` (not-shown, digest `4742daa68642e312`). Digest `355e0260ba8fd105`.
+Decision: lending-conditions. Model: `Qwen3.5-122B-A10B-NVFP4`. Rests on the dossier `lending-conditions-live@Qwen3.5-122B-A10B-NVFP4` (not-shown, digest `a6ba18a2e190935c`). Digest `b88d04b4af3cdd5e`.
 
 ## Because
 

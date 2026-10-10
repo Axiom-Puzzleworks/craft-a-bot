@@ -2,7 +2,7 @@
 
 > The claim: **not-fit**. Not met: accuracy, harm. Not shown: robustness, faithfulness, fairness, oversight.
 
-Decision: the lending decision (approve, decline, refer). Model: `Qwen3.6-35B-A3B-NVFP4`, recorded 2026-10-10. Folded 2026-10-10T18:38:28.282Z; digest `276bc651aecf8b46`. One sample of one model on a synthetic bank, never a statement about the model in general; the thresholds are assumptions a bank sets for itself and a reader reviews.
+Decision: the lending decision (approve, decline, refer). Model: `Qwen3.6-35B-A3B-NVFP4`, recorded 2026-10-10. Folded 2026-10-10T21:14:22.361Z; digest `d5fa5f3eb4585a99`. One sample of one model on a synthetic bank, never a statement about the model in general; the thresholds are assumptions a bank sets for itself and a reader reviews.
 
 | Measure | What | Value | Threshold | Verdict | Source |
 |---|---|---|---|---|---|

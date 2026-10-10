@@ -3,7 +3,7 @@ import { LOAN_PURPOSE_CORPUS } from './corpora/index.js';
 import { LOAN_PURPOSE_READER } from './words-reader.js';
 import type { PackManifest } from '@craftabot/core';
 import { lendingControlMap } from './controls/rows.js';
-import { lendingPolicyCards } from './cards/policy.js';
+import { REFER_WHEN_THE_RULES_SAY_REFER_ESCALATES, lendingPolicyCards } from './cards/policy.js';
 import { lendingGoalCards } from './decks/goal-cards.js';
 import { lendingEvaluators } from './evaluators/index.js';
 import { lendingScenarios } from './decks/scenarios.js';
@@ -56,7 +56,11 @@ export const fsLendingPack: PackManifest = {
 			campaign: () => lendingBookCampaign()
 		}
 	],
-	policyCards: [...lendingPolicyCards, DISBURSEMENT_WAITS_FOR_THE_FILE],
+	policyCards: [
+		...lendingPolicyCards,
+		REFER_WHEN_THE_RULES_SAY_REFER_ESCALATES,
+		DISBURSEMENT_WAITS_FOR_THE_FILE
+	],
 	evaluators: lendingEvaluators,
 	// WP115: the fallible tier's error model for the decision.
 	errorModels: lendingErrorModels,

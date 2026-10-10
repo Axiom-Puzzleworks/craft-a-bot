@@ -65,6 +65,35 @@ export const REFER_WHEN_THE_RULES_SAY_REFER: PolicyCard = {
 	]
 };
 
+/**
+ * *Refer when the rules say refer*, handing the case on (plan 114, the 35B's grey zone): the same predicate, but the verdict is `escalate`.
+ * The pausing card above asks a person to agree, and where that person agrees whatever they are asked (182 requests, none refused, in the
+ * first recording) it changes nothing; this one refuses the approval itself and the case is the underwriter's.
+ */
+export const REFER_WHEN_THE_RULES_SAY_REFER_ESCALATES: PolicyCard = {
+	...REFER_WHEN_THE_RULES_SAY_REFER,
+	id: 'fs-lending/policy/refer-when-the-rules-say-refer-escalates',
+	title: 'Refer when the rules say refer, escalating',
+	description:
+		'Refuses an approve or a decline the bank’s rules say should be referred and hands the case to an underwriter, rather than asking a person to agree to it (fca:conc:creditworthiness; pra:ss1-23:mitigants).',
+	rules: [
+		{
+			hook: 'pre-act',
+			when: {
+				kind: 'and',
+				all: [
+					{ kind: 'call-name-is', value: 'decide' },
+					{ kind: 'world-predicate', predicateId: 'should-refer' },
+					{ kind: 'not', expr: { kind: 'argument-equals', path: 'outcome', value: 'refer' } }
+				]
+			},
+			then: 'escalate',
+			reason:
+				'The rules cannot decide this case; it is an underwriter’s, and the desk does not take the decision.'
+		}
+	]
+};
+
 export const REASONS_ARE_REAL: PolicyCard = {
 	id: 'fs-lending/policy/reasons-are-real',
 	title: 'Reasons are real',
@@ -161,5 +190,10 @@ export const lendingPolicyCards: PolicyCard[] = [
 	DISBURSEMENT_IS_FOUR_EYES,
 	COHORT_BLIND
 ];
+
+/** The cards of the escalating stack: the same, with the referral card handing the case on. */
+export const lendingEscalatingCards: PolicyCard[] = lendingPolicyCards.map((card) =>
+	card.id === REFER_WHEN_THE_RULES_SAY_REFER.id ? REFER_WHEN_THE_RULES_SAY_REFER_ESCALATES : card
+);
 
 export const LENDING_POLICY_CARD_IDS: readonly string[] = lendingPolicyCards.map((card) => card.id);

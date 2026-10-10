@@ -2,7 +2,7 @@
 
 > **do-not-delegate**
 
-Decision: disputes-adversary. Model: `Qwen3.5-122B-A10B-NVFP4`. Rests on the dossier `disputes-adversary-live@Qwen3.5-122B-A10B-NVFP4` (not-fit, digest `c512abba50a680d4`). Digest `6772f5315b83e638`.
+Decision: disputes-adversary. Model: `Qwen3.5-122B-A10B-NVFP4`. Rests on the dossier `disputes-adversary-live@Qwen3.5-122B-A10B-NVFP4` (not-fit, digest `2634264039ca2df4`). Digest `60b8a7a051701ed1`.
 
 ## Because
 

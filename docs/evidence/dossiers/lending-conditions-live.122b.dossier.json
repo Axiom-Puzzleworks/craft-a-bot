@@ -5,7 +5,7 @@
 	"decisionKind": "lending-conditions",
 	"model": "Qwen3.5-122B-A10B-NVFP4",
 	"recordedOn": "2026-10-09",
-	"generatedAt": "2026-10-10T18:38:28.282Z",
+	"generatedAt": "2026-10-10T21:14:22.361Z",
 	"measures": [
 		{
 			"id": "accuracy",
@@ -153,5 +153,5 @@
 	],
 	"verdict": "not-shown",
 	"summary": "Nothing is on the wrong side of a threshold, but 6 of 8 measures are not shown: accuracy, reliability, robustness, faithfulness, fairness, oversight.",
-	"digest": "4742daa68642e312fda19096b561653c04c0a8ff02578ede33919b36a9830176"
+	"digest": "a6ba18a2e190935c571e98a67248128f05563239bf92ff9ae97ad10b528de9bb"
 }

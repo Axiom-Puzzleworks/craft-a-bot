@@ -2,7 +2,7 @@
 
 > **keep-a-person-on-every-decision**
 
-Decision: the product recommended. Model: `Qwen3.5-122B-A10B-NVFP4`. Rests on the dossier `advice-context-live@Qwen3.5-122B-A10B-NVFP4` (not-shown, digest `f479946cf9146625`). Digest `6b7cd0c76909d982`.
+Decision: the product recommended. Model: `Qwen3.5-122B-A10B-NVFP4`. Rests on the dossier `advice-context-live@Qwen3.5-122B-A10B-NVFP4` (not-shown, digest `48eb965ce083f3f7`). Digest `4715d77ac82616c4`.
 
 ## Because
 

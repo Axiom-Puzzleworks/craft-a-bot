@@ -1,0 +1,13 @@
+{
+	"lending-refer-live": {
+		"recordedOn": "2026-10-10",
+		"model": "Qwen3.6-35B-A3B-NVFP4",
+		"cartridge": "dgx-spark/quick-qwen",
+		"size": 1600,
+		"trials": 2,
+		"cells": 642,
+		"entries": 3173,
+		"wallSeconds": 1196,
+		"stories": 13
+	}
+}
